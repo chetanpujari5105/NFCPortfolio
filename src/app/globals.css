@@ -211,6 +211,11 @@
     @apply font-sans;
     -webkit-text-size-adjust: 100%;
   }
+  /* The page never bounces or pull-to-refreshes; scroll physics live inside the phone */
+  html,
+  body {
+    overscroll-behavior: none;
+  }
   body {
     @apply bg-studio-bg text-studio-ink;
   }
@@ -355,7 +360,9 @@
     background: none;
   }
   .phone-rim::after,
-  .phone-btn,
+  .phone-btn {
+    display: none;
+  }
   /* No drawn cutout on a real phone: the pill only appears while it has something to say */
   .status-pill {
     top: max(env(safe-area-inset-top), 10px);
@@ -632,6 +639,22 @@ html[data-reduce-motion] *::after {
 /* Links and images inside the phone are touched, not dragged out like on a web page */
 [data-screen] :is(a, img) {
   -webkit-user-drag: none;
+}
+/* Touch polish: no grey tap flash, no double-tap-zoom delay (zero specificity, so a gesture
+   surface's own touch-none still wins), and long-press belongs to jiggle mode, not the callout */
+[data-screen] {
+  -webkit-tap-highlight-color: transparent;
+}
+:where([data-screen] :is(button, a, [role="button"], label)) {
+  touch-action: manipulation;
+}
+[data-home-layer],
+[data-lock],
+[data-banner],
+[data-control-panel] {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 /* ───────────────────────── 3D stage (desktop default) ───────────────────────── */

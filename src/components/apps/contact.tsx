@@ -62,7 +62,7 @@ function Field({
 const FIELD_ORDER = ["email", "name", "subject", "message"] as const;
 
 const inputClass =
-  "w-full bg-transparent text-[15.5px] text-app-ink outline-none placeholder:text-app-muted/70 aria-invalid:text-destructive";
+  "w-full bg-transparent text-[16px] text-app-ink outline-none placeholder:text-app-muted/70 aria-invalid:text-destructive";
 
 export default function ContactApp() {
   const initialSubject = useOS((s) => s.contactSubject);

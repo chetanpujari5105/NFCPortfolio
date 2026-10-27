@@ -127,6 +127,15 @@ REA stays off (owner's earlier choice); the reference was studied with Playwrigh
   path. Notification banner 8 s after unlock if Blog wasn't opened, once per session; tap opens the
   post from the banner, swipe up/Esc/timeout dismisses. Haptic ticks on toggles and thresholds. 6 new
   tests (`tests/system.spec.ts`); tests opt out of the banner via a fixture option.
+- **Step 8** — Phones: the phone is the viewport (fixed, 100dvh, no frame/buttons/cutout), safe-area
+  padding everywhere, page never bounces (`overscroll-behavior: none`), no tap flash or double-tap
+  delay (`touch-action: manipulation` at zero specificity so gesture surfaces keep `touch-none`), no
+  long-press callout on home/lock/banner/panel, 16 px form fields (no focus zoom), in-app edge swipe
+  starts inside the browser's own back-swipe strip. Installable PWA: `app/manifest.ts` (standalone,
+  portrait), 192/512 + maskable icons rendered from the site's bolt (`scripts/make-icons.mjs`),
+  Apple web-app meta (black-translucent status bar). Launch before an app's chunk arrives lands on a
+  skeleton instead of a blank screen. 4 new phone tests drive real touch events over CDP. Fixed a
+  step-7 CSS slip that un-hid the frame's buttons on phones.
 
 ## Needs Chetan
 

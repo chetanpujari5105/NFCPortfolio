@@ -45,6 +45,8 @@ export const metadata: Metadata = {
     siteName: "Chetan Pujari",
     type: "website",
   },
+  // Installed to the home screen it opens full screen; content already respects the safe areas
+  appleWebApp: { capable: true, title: "Chetan", statusBarStyle: "black-translucent" },
   twitter: {
     card: "summary_large_image",
     title,
