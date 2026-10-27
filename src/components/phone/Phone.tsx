@@ -23,6 +23,7 @@ import { StatusPill } from "@/components/os/StatusPill";
 import { settlePanel } from "@/lib/panel";
 import { goBack, goHome, useHashRouter } from "@/lib/router";
 import { useOS } from "@/lib/store";
+import { SCREEN_INSET_RATIO } from "@/lib/device";
 import { STAGE_3D_QUERY, STAGE_INTENT } from "@/lib/theme";
 
 import type { Phone3DProps, Rig } from "./Phone3D";
@@ -158,7 +159,7 @@ export function Phone() {
     if (!use3D || !wrap || !stage || !bezel) return;
     const measure = () => {
       const phonePx = wrap.offsetHeight;
-      const inset = phonePx * 0.017;
+      const inset = phonePx * SCREEN_INSET_RATIO;
       const w = Math.round(wrap.offsetWidth - inset * 2);
       const h = Math.round(phonePx - inset * 2);
       // Centre of the CSS phone relative to the stage centre (ignores the arrival transform)
@@ -359,10 +360,12 @@ function CssPhone({
           {children}
         </div>
       </div>
-      <span aria-hidden className="phone-btn top-[17%] -left-[2px] h-[3.5%]" />
-      <span aria-hidden className="phone-btn top-[24%] -left-[2px] h-[6.5%]" />
-      <span aria-hidden className="phone-btn top-[32.5%] -left-[2px] h-[6.5%]" />
-      <span aria-hidden className="phone-btn top-[27%] -right-[2px] h-[10%]" />
+      {/* Action, volume up/down; side button and the flush camera control */}
+      <span aria-hidden className="phone-btn top-[15.2%] -left-[2px] h-[3.6%]" />
+      <span aria-hidden className="phone-btn top-[21.6%] -left-[2px] h-[5.8%]" />
+      <span aria-hidden className="phone-btn top-[28.6%] -left-[2px] h-[5.8%]" />
+      <span aria-hidden className="phone-btn top-[22.5%] -right-[2px] h-[9%]" />
+      <span aria-hidden className="phone-btn phone-btn-flush top-[56%] -right-px h-[5%]" />
     </div>
   );
 }

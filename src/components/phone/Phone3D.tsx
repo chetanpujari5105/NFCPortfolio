@@ -5,11 +5,12 @@
 
 import { Component, useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
 import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
-import { ContactShadows, Environment, Html, Lightformer } from "@react-three/drei";
+import { ContactShadows, Environment, Html, Lightformer, RoundedBox } from "@react-three/drei";
 import { easing } from "maath";
 import * as THREE from "three";
 
 import { FINISH_INFO } from "@/components/studio/FinishSwatches";
+import { DEVICE, SCREEN_INSET_RATIO } from "@/lib/device";
 import { startedIn } from "@/lib/gesture";
 import { useOS } from "@/lib/store";
 
@@ -18,19 +19,21 @@ import { useOS } from "@/lib/store";
  * screen is real DOM, moved into the drei <Html transform> host by <Phone>, so it stays crisp
  * and clickable; `occlude="blending"` lets the body hide it when the back faces the camera.
  *
- * World units: the phone is 9 units tall (≈ 150 mm), 71.5 × 150 × 8.25 mm proportions.
+ * World units: the phone is 9 units tall (163.5 mm): a 77.5 × 163.5 × 8.8 mm flagship (lib/device.ts).
  */
 
 export const PHONE_H = 9;
-export const PHONE_W = (PHONE_H * 71.5) / 150;
-const DEPTH = (PHONE_H * 8.25) / 150;
-const RADIUS = PHONE_H * 0.075;
-const BEVEL = 0.09;
-/** Screen inset from the outer edge, same ratio as the CSS phone (rim + bezel = 1.7% of height) */
-export const SCREEN_INSET = PHONE_H * 0.017;
+export const PHONE_W = PHONE_H * DEVICE.aspect;
+const DEPTH = PHONE_H * DEVICE.depth;
+const RADIUS = PHONE_H * DEVICE.radius;
+/** The polished chamfer: exactly the metal lip the CSS phone draws as its rim */
+const CHAMFER = PHONE_H * DEVICE.rim;
+/** Screen inset from the outer edge, same ratio as the CSS phone (rim + bezel) */
+export const SCREEN_INSET = PHONE_H * SCREEN_INSET_RATIO;
 export const SCREEN_W = PHONE_W - SCREEN_INSET * 2;
 export const SCREEN_H = PHONE_H - SCREEN_INSET * 2;
-const SCREEN_R = PHONE_H * 0.058;
+/** Display corners concentric with the outer corners */
+const SCREEN_R = RADIUS - SCREEN_INSET;
 const FRONT_Z = DEPTH / 2;
 const BACK_Z = -DEPTH / 2;
 
@@ -160,7 +163,83 @@ function useMarkTexture() {
   }, []);
 }
 
+/* ───────────────────────────── Surface textures ───────────────────────────── */
+
+/** Small seeded PRNG, so the brushed grain is the same on every load (and in screenshots). */
+function seeded(seed: number) {
+  let s = seed >>> 0;
+  return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 2 ** 32);
+}
+
+/**
+ * Roughness for the frame's side walls. ExtrudeGeometry gives the walls v = 1 − z, so a texture
+ * that only varies along v maps straight across the frame's depth: polished chamfer bands at both
+ * edges, fine brushed grain (lines running round the perimeter) in between.
+ */
+function useFrameRoughness() {
+  return useMemo(() => {
+    const c = document.createElement("canvas");
+    c.width = 4;
+    c.height = 512;
+    const g = c.getContext("2d")!;
+    const rand = seeded(7);
+    const band = Math.ceil((CHAMFER / DEPTH) * c.height) + 2;
+    for (let y = 0; y < c.height; y++) {
+      const polished = y < band || y >= c.height - band;
+      const r = polished ? 0.12 : 0.3 + (rand() - 0.5) * 0.14;
+      const v = Math.round(r * 255);
+      g.fillStyle = `rgb(${v},${v},${v})`;
+      g.fillRect(0, y, c.width, 1);
+    }
+    const tex = new THREE.CanvasTexture(c);
+    tex.colorSpace = THREE.NoColorSpace;
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.ClampToEdgeWrapping;
+    // v ∈ [1 − DEPTH + CHAMFER, 1 + CHAMFER] → [0, 1]
+    tex.repeat.set(1, 1 / DEPTH);
+    tex.offset.set(0, -(1 - DEPTH + CHAMFER) / DEPTH);
+    return tex;
+  }, []);
+}
+
+/** A faint diagonal reflection across the front glass (alpha only, drawn over the live screen). */
+function useGlassSheen() {
+  return useMemo(() => {
+    const c = document.createElement("canvas");
+    c.width = c.height = 256;
+    const g = c.getContext("2d")!;
+    const grad = g.createLinearGradient(0, 0, 256, 256);
+    grad.addColorStop(0, "rgba(255,255,255,0)");
+    grad.addColorStop(0.3, "rgba(255,255,255,0.055)");
+    grad.addColorStop(0.42, "rgba(255,255,255,0)");
+    grad.addColorStop(0.7, "rgba(255,255,255,0)");
+    grad.addColorStop(0.78, "rgba(255,255,255,0.025)");
+    grad.addColorStop(0.86, "rgba(255,255,255,0)");
+    g.fillStyle = grad;
+    g.fillRect(0, 0, 256, 256);
+    const tex = new THREE.CanvasTexture(c);
+    tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
+    // ShapeGeometry UVs are positions in world units: map the screen rect onto [0, 1]
+    tex.repeat.set(1 / SCREEN_W, 1 / SCREEN_H);
+    tex.offset.set(0.5, 0.5);
+    return tex;
+  }, []);
+}
+
 /* ───────────────────────────── The device ───────────────────────────── */
+
+/** Side buttons: side (−1 left, 1 right), centre from the top and height (share of the phone's height). */
+const BUTTONS: { side: -1 | 1; at: number; h: number; flush?: boolean }[] = [
+  { side: -1, at: 0.17, h: 0.036 }, // action
+  { side: -1, at: 0.245, h: 0.058 }, // volume up
+  { side: -1, at: 0.315, h: 0.058 }, // volume down
+  { side: 1, at: 0.27, h: 0.09 }, // side button
+  { side: 1, at: 0.585, h: 0.05, flush: true }, // camera control
+];
+
+/** Back camera plateau (an original layout): full-width, three lenses in a row, flash + sensor at the end. */
+const PLATEAU = { margin: 0.13, h: 1.62, r: 0.46 };
+const LENSES = [-1.32, -0.42, 0.48];
 
 function Device({
   rig,
@@ -179,74 +258,82 @@ function Device({
 }) {
   const group = useRef<THREE.Group>(null);
   const host = useRef<HTMLDivElement | null>(null);
-  const frame = useRef<THREE.MeshPhysicalMaterial>(null!);
-  const back = useRef<THREE.MeshPhysicalMaterial>(null!);
-  const trim = useRef<THREE.MeshPhysicalMaterial>(null!);
   const buttons = useRef<(THREE.Mesh | null)[]>([]);
   const finish = useOS((s) => s.finish);
   const mark = useMarkTexture();
+  const roughness = useFrameRoughness();
+  const sheen = useGlassSheen();
   // Make the entrance only if the CSS phone is still waiting for us (first load on desktop).
   const [arrive] = useState(() => document.documentElement.hasAttribute("data-stage-wait"));
   const arrival = useRef({ p: arrive ? 0 : 1, v: 0, landed: !arrive });
   const tilt = useRef({ x: 0, y: 0 });
-  const colors = useMemo(
-    () => ({
-      frame: new THREE.Color(),
-      back: new THREE.Color(),
-      trim: new THREE.Color(),
-    }),
-    [],
-  );
-  const press = useRef([0, 0, 0, 0]);
+  const colors = useMemo(() => ({ frame: new THREE.Color(), back: new THREE.Color() }), []);
+  const press = useRef(BUTTONS.map(() => 0));
   const invalidate = useThree((s) => s.invalidate);
 
   const geo = useMemo(() => {
-    const body = new THREE.ExtrudeGeometry(roundedRect(PHONE_W - BEVEL * 2, PHONE_H - BEVEL * 2, RADIUS - BEVEL), {
-      depth: DEPTH - BEVEL * 2,
+    // Flat sides; a thin, softly rounded chamfer where the frame meets the glass (front and back).
+    // Its normals sweep from facing you to facing sideways, so some part always catches a light.
+    const body = new THREE.ExtrudeGeometry(roundedRect(PHONE_W - CHAMFER * 2, PHONE_H - CHAMFER * 2, RADIUS - CHAMFER), {
+      depth: DEPTH - CHAMFER * 2,
       bevelEnabled: true,
-      bevelThickness: BEVEL,
-      bevelSize: BEVEL,
-      bevelSegments: 8,
-      curveSegments: 36,
+      bevelThickness: CHAMFER,
+      bevelSize: CHAMFER,
+      bevelSegments: 4,
+      curveSegments: 48,
     });
     body.center();
-    const front = new THREE.ShapeGeometry(roundedRect(PHONE_W - BEVEL * 2 + 0.02, PHONE_H - BEVEL * 2 + 0.02, RADIUS - BEVEL), 36);
-    const screen = new THREE.ShapeGeometry(roundedRect(SCREEN_W, SCREEN_H, SCREEN_R), 24);
-    // Original camera pill: vertical capsule, two lenses + a flash dot
-    const pill = new THREE.ExtrudeGeometry(roundedRect(1.18, 2.42, 0.59), {
-      depth: 0.08,
+    const glass = new THREE.ShapeGeometry(roundedRect(PHONE_W - CHAMFER * 2, PHONE_H - CHAMFER * 2, RADIUS - CHAMFER), 48);
+    const screen = new THREE.ShapeGeometry(roundedRect(SCREEN_W, SCREEN_H, SCREEN_R), 32);
+    const plateau = new THREE.ExtrudeGeometry(roundedRect(PHONE_W - PLATEAU.margin * 2, PLATEAU.h, PLATEAU.r), {
+      depth: 0.05,
       bevelEnabled: true,
-      bevelThickness: 0.03,
-      bevelSize: 0.03,
-      bevelSegments: 4,
-      curveSegments: 32,
+      bevelThickness: 0.025,
+      bevelSize: 0.025,
+      bevelSegments: 3,
+      curveSegments: 40,
     });
     const markPlane = new THREE.PlaneGeometry(1.6, 3.2);
-    return { body, front, screen, pill, markPlane };
+    return { body, glass, screen, plateau, markPlane };
   }, []);
+
+  const mats = useMemo(
+    () => ({
+      // Brushed anodized sides: roughness ~0.3 with grain, anisotropic along the perimeter
+      frame: new THREE.MeshPhysicalMaterial({ metalness: 1, roughness: 1, roughnessMap: roughness, anisotropy: 0.55, envMapIntensity: 1.3 }),
+      // Matte anodized back
+      back: new THREE.MeshPhysicalMaterial({ metalness: 0.9, roughness: 0.46, envMapIntensity: 0.95 }),
+      // Plateau, lens rings and buttons: the same metal, a little more polished
+      trim: new THREE.MeshPhysicalMaterial({ metalness: 1, roughness: 0.22, envMapIntensity: 1.25 }),
+      // Cover glass over the bezel: true black (the sheen plane carries the glass reflection)
+      glass: new THREE.MeshBasicMaterial({ color: "#000000" }),
+      sapphire: new THREE.MeshPhysicalMaterial({ color: "#0b0b0d", roughness: 0.08, metalness: 0.2, clearcoat: 1, clearcoatRoughness: 0.05 }),
+      lens: new THREE.MeshPhysicalMaterial({ color: "#000000", roughness: 0.03, metalness: 0.1, clearcoat: 1, clearcoatRoughness: 0, iridescence: 0.4, iridescenceIOR: 1.6, envMapIntensity: 0.8 }),
+      lensBarrel: new THREE.MeshPhysicalMaterial({ color: "#141417", roughness: 0.35, metalness: 0.8 }),
+      lensInner: new THREE.MeshPhysicalMaterial({ color: "#2a2a30", roughness: 0.25, metalness: 1 }),
+      sheen: new THREE.MeshBasicMaterial({ map: sheen, transparent: true, depthWrite: false, toneMapped: false }),
+    }),
+    [roughness, sheen],
+  );
   useEffect(
     () => () => {
       Object.values(geo).forEach((g) => g.dispose());
-      mark.dispose();
+      Object.values(mats).forEach((m) => m.dispose());
+      [mark, roughness, sheen].forEach((t) => t.dispose());
     },
-    [geo, mark],
+    [geo, mats, mark, roughness, sheen],
   );
 
   // Finish colours: start where we are and blend over ~400 ms (see useFrame).
   const target = useMemo(() => {
     const f = FINISH_INFO[finish];
-    return {
-      frame: new THREE.Color(f.color),
-      back: new THREE.Color(f.color).lerp(new THREE.Color(f.deep), 0.35),
-      trim: new THREE.Color(f.deep),
-    };
+    return { frame: new THREE.Color(f.frame), back: new THREE.Color(f.back) };
   }, [finish]);
   const firstColor = useRef(true);
   useEffect(() => {
     if (firstColor.current) {
       colors.frame.copy(target.frame);
       colors.back.copy(target.back);
-      colors.trim.copy(target.trim);
       firstColor.current = false;
     }
     invalidate();
@@ -314,10 +401,12 @@ function Device({
     // Finish colour blend
     moving = easing.dampC(colors.frame, target.frame, 0.12, dt) || moving;
     moving = easing.dampC(colors.back, target.back, 0.12, dt) || moving;
-    moving = easing.dampC(colors.trim, target.trim, 0.12, dt) || moving;
-    frame.current.color.copy(colors.frame);
-    back.current.color.copy(colors.back);
-    trim.current.color.copy(colors.trim);
+    mats.frame.color.copy(colors.frame);
+    mats.trim.color.copy(colors.frame);
+    mats.back.color.copy(colors.back);
+
+    // The glass reflection drifts a touch with the parallax, like light on a real cover glass
+    sheen.offset.set(0.5 - tilt.current.y * 1.6, 0.5 + tilt.current.x * 1.6);
 
     // Side buttons: press in, spring out
     press.current.forEach((v, i) => {
@@ -325,7 +414,7 @@ function Device({
       const next = v + (want - v) * (1 - Math.exp(-dt * (want ? 40 : 18)));
       press.current[i] = Math.abs(next - want) < 1e-3 ? want : next;
       const b = buttons.current[i];
-      if (b) b.position.x = b.userData.x - Math.sign(b.userData.x) * press.current[i] * 0.025;
+      if (b) b.position.x = b.userData.x - Math.sign(b.userData.x) * press.current[i] * 0.02;
       if (press.current[i] !== want) moving = true;
     });
 
@@ -342,13 +431,6 @@ function Device({
     if (moving) state.invalidate();
   });
 
-  const buttonSpecs: [side: number, y: number, h: number][] = [
-    [-1, 0.27, 0.075],
-    [-1, 0.17, 0.075],
-    [1, 0.22, 0.12],
-    [1, 0.05, 0.05],
-  ];
-
   const pressButton = (i: number) => (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
     rig.pressed = i;
@@ -361,77 +443,77 @@ function Device({
     window.addEventListener("pointerup", release);
   };
 
+  const plateauY = PHONE_H / 2 - PLATEAU.margin - PLATEAU.h / 2;
+
   return (
     <group ref={group}>
-      <mesh geometry={geo.body}>
-        {/* group 0 = caps (back glass), group 1 = sides + bevel (metal frame) */}
-        <meshPhysicalMaterial ref={back} attach="material-0" metalness={0.35} roughness={0.35} clearcoat={1} clearcoatRoughness={0.22} sheen={0.4} sheenRoughness={0.6} />
-        <meshPhysicalMaterial ref={frame} attach="material-1" metalness={0.9} roughness={0.25} clearcoat={0.4} clearcoatRoughness={0.2} />
-      </mesh>
+      {/* group 0 = caps (back), group 1 = side walls + chamfers (frame) */}
+      <mesh geometry={geo.body} material={[mats.back, mats.frame]} />
 
-      {/* Front glass + bezel */}
-      <mesh geometry={geo.front} position-z={FRONT_Z + 0.001}>
-        <meshPhysicalMaterial color="#030303" roughness={0.08} metalness={0} clearcoat={1} clearcoatRoughness={0.05} />
-      </mesh>
+      {/* Front cover glass: black, edge to edge inside the chamfer */}
+      <mesh geometry={geo.glass} material={mats.glass} position-z={FRONT_Z + 0.0005} />
 
-      {/* Back: camera pill (top-left as seen from behind = +x here) */}
-      <group position={[PHONE_W / 2 - 0.42 - 0.59, PHONE_H / 2 - 0.42 - 1.21, BACK_Z]} rotation-y={Math.PI}>
-        <mesh geometry={geo.pill} position-z={-0.02}>
-          <meshPhysicalMaterial ref={trim} metalness={0.6} roughness={0.22} clearcoat={1} clearcoatRoughness={0.1} />
-        </mesh>
-        {[0.52, -0.38].map((y) => (
-          <group key={y} position={[0, y, 0.12]} rotation-x={Math.PI / 2}>
-            <mesh>
-              <cylinderGeometry args={[0.42, 0.44, 0.08, 48]} />
-              <meshPhysicalMaterial color="#1b1b1e" metalness={0.8} roughness={0.3} />
+      {/* Back: the camera plateau, same metal as the body (as seen from behind, +x is right) */}
+      <group position={[0, plateauY, BACK_Z]} rotation-y={Math.PI}>
+        <mesh geometry={geo.plateau} material={mats.back} />
+        {LENSES.map((x) => (
+          <group key={x} position={[x, 0, 0.075]} rotation-x={Math.PI / 2}>
+            <mesh material={mats.trim} position-y={0.04}>
+              <cylinderGeometry args={[0.4, 0.41, 0.08, 64]} />
             </mesh>
-            <mesh position-y={0.045} rotation-x={-Math.PI / 2}>
-              <torusGeometry args={[0.34, 0.035, 12, 48]} />
-              <meshPhysicalMaterial color="#d9d9de" metalness={1} roughness={0.18} />
+            <mesh material={mats.lensBarrel} position-y={0.081}>
+              <cylinderGeometry args={[0.355, 0.355, 0.004, 64]} />
             </mesh>
-            <mesh position-y={0.05}>
-              <cylinderGeometry args={[0.29, 0.29, 0.02, 48]} />
-              <meshPhysicalMaterial color="#000000" roughness={0.04} metalness={0.1} clearcoat={1} clearcoatRoughness={0} iridescence={0.35} iridescenceIOR={1.5} envMapIntensity={0.8} />
+            <mesh material={mats.lensInner} position-y={0.084} rotation-x={-Math.PI / 2}>
+              <torusGeometry args={[0.25, 0.022, 12, 64]} />
             </mesh>
-            <mesh position={[0.08, 0.062, -0.08]}>
-              <circleGeometry args={[0.06, 24]} />
-              <meshBasicMaterial color="#ffffff" transparent opacity={0.18} />
+            <mesh material={mats.lens} position-y={0.086}>
+              <cylinderGeometry args={[0.235, 0.235, 0.004, 64]} />
+            </mesh>
+            <mesh position={[0.07, 0.09, -0.07]} rotation-x={-Math.PI / 2}>
+              <circleGeometry args={[0.045, 24]} />
+              <meshBasicMaterial color="#ffffff" transparent opacity={0.22} toneMapped={false} />
             </mesh>
           </group>
         ))}
-        <mesh position={[0, -0.98, 0.12]}>
-          <circleGeometry args={[0.1, 32]} />
-          <meshPhysicalMaterial color="#fff6dd" emissive="#2a2410" roughness={0.3} />
+        {/* Flash and sensor dot, stacked at the end of the row */}
+        <mesh position={[1.36, 0.3, 0.077]}>
+          <circleGeometry args={[0.13, 40]} />
+          <meshPhysicalMaterial color="#f3ead6" emissive="#1e1a10" roughness={0.35} clearcoat={1} />
+        </mesh>
+        <mesh position={[1.36, -0.28, 0.077]}>
+          <circleGeometry args={[0.075, 32]} />
+          <meshPhysicalMaterial color="#0d0d10" roughness={0.1} clearcoat={1} />
         </mesh>
       </group>
 
-      {/* Back: debossed ⚡ CP mark — a darker offset copy reads as the recess edge */}
+      {/* Back: debossed ⚡ CP mark, centred — a darker offset copy reads as the recess edge */}
       <group position-z={BACK_Z - 0.002} rotation-y={Math.PI}>
-        <mesh geometry={geo.markPlane} position={[0.012, -0.95, 0]}>
-          <meshBasicMaterial color="#000000" alphaMap={mark} transparent opacity={0.35} depthWrite={false} />
+        <mesh geometry={geo.markPlane} position={[0.012, -0.55, 0]}>
+          <meshBasicMaterial color="#000000" alphaMap={mark} transparent opacity={0.3} depthWrite={false} />
         </mesh>
-        <mesh geometry={geo.markPlane} position={[0, -0.94, 0.001]}>
-          <meshPhysicalMaterial color="#f4f1ea" alphaMap={mark} transparent metalness={1} roughness={0.12} opacity={0.85} depthWrite={false} />
+        <mesh geometry={geo.markPlane} position={[0, -0.54, 0.001]}>
+          <meshPhysicalMaterial color="#f4f1ea" alphaMap={mark} transparent metalness={1} roughness={0.15} opacity={0.8} depthWrite={false} />
         </mesh>
       </group>
 
-      {/* Side buttons (original pills) */}
-      {buttonSpecs.map(([side, y, h], i) => {
-        const x = side * (PHONE_W / 2 + 0.006);
+      {/* Side buttons: slim, slightly proud of the frame, same metal; the camera control sits flush */}
+      {BUTTONS.map((b, i) => {
+        const x = b.side * (PHONE_W / 2 + (b.flush ? -0.02 : 0.012));
         return (
-          <mesh
+          <RoundedBox
             key={i}
-            ref={(m) => {
+            ref={(m: THREE.Mesh | null) => {
               buttons.current[i] = m;
               if (m) m.userData.x = x;
             }}
-            position={[x, PHONE_H * (0.5 - y), 0]}
-            rotation-z={0}
+            args={[0.06, PHONE_H * b.h, b.flush ? 0.2 : 0.21]}
+            radius={0.028}
+            smoothness={4}
+            position={[x, PHONE_H * (0.5 - b.at), 0]}
+            material={b.flush ? mats.sapphire : mats.trim}
             onPointerDown={pressButton(i)}
-          >
-            <capsuleGeometry args={[0.05, PHONE_H * h, 6, 16]} />
-            <meshPhysicalMaterial color={FINISH_INFO[finish].deep} metalness={0.9} roughness={0.28} />
-          </mesh>
+          />
         );
       })}
 
@@ -458,6 +540,9 @@ function Device({
           }}
         />
       </Html>
+
+      {/* Glass sheen over the screen: drawn after the occluder, so it lies on top of the live DOM */}
+      <mesh geometry={geo.screen} material={mats.sheen} position-z={FRONT_Z + 0.006} renderOrder={10} />
     </group>
   );
 }
@@ -669,16 +754,27 @@ export default function Phone3D({ stage, rig, hostSize, offset, onHost, onLanded
         aria-hidden
       >
         <CameraRig phonePx={hostSize.phonePx} offset={offset} />
-        <ambientLight intensity={0.25} />
+        <ambientLight intensity={0.18} />
         {/* key + rim */}
-        <directionalLight position={[4, 6, 8]} intensity={1.3} />
-        <directionalLight position={[-6, 2, -6]} intensity={1.1} />
-        <Environment resolution={256} frames={1}>
-          <Lightformer intensity={2.4} position={[0, 7, 5]} scale={[14, 3, 1]} />
-          <Lightformer intensity={1.4} position={[-7, 0, 4]} rotation-y={Math.PI / 2} scale={[9, 12, 1]} />
-          <Lightformer intensity={1.1} position={[7, -1, 4]} rotation-y={-Math.PI / 2} scale={[9, 8, 1]} />
-          <Lightformer intensity={0.9} position={[0, 2, -8]} rotation-y={Math.PI} scale={[12, 6, 1]} />
-          <Lightformer intensity={0.5} position={[0, -7, 0]} rotation-x={-Math.PI / 2} scale={[12, 12, 1]} />
+        <directionalLight position={[4, 6, 8]} intensity={0.9} />
+        <directionalLight position={[-6, 2, -6]} intensity={0.8} />
+        {/*
+          Studio for the metal. A 45° chamfer seen from the front mirrors what is beside the phone,
+          and a flat side wall mirrors what is behind it, so: thin bright strips left and right make
+          the crisp line along each chamfer; strips behind light the side walls; a soft box above
+          gives the top edge and the glass their sheen; low fills keep the back from going flat.
+        */}
+        <Environment resolution={512} frames={1}>
+          <Lightformer form="rect" intensity={12} position={[-8, 0.5, 1.6]} rotation-y={Math.PI / 2} scale={[0.6, 16, 1]} />
+          <Lightformer form="rect" intensity={9} position={[8, -0.5, 1.6]} rotation-y={-Math.PI / 2} scale={[0.6, 16, 1]} />
+          <Lightformer form="rect" intensity={3} position={[-2.6, 0, -8]} scale={[0.9, 16, 1]} />
+          <Lightformer form="rect" intensity={2.4} position={[2.8, 0, -8]} scale={[0.9, 16, 1]} />
+          <Lightformer form="rect" intensity={2.2} position={[0, 8, 1]} rotation-x={Math.PI / 2} scale={[10, 0.5, 1]} />
+          <Lightformer form="rect" intensity={1.4} position={[0, 6, 6]} rotation-x={-Math.PI / 5} scale={[12, 3, 1]} />
+          {/* Off-centre softbox in front: a soft gradient across the back and the glass */}
+          <Lightformer form="rect" intensity={1.6} position={[-3.5, 4, 8]} scale={[7, 6, 1]} />
+          <Lightformer form="rect" intensity={0.25} position={[0, -2, 9]} scale={[14, 8, 1]} />
+          <Lightformer form="rect" intensity={0.35} position={[0, -8, 0]} rotation-x={-Math.PI / 2} scale={[14, 14, 1]} />
         </Environment>
         <Device
           rig={rig}

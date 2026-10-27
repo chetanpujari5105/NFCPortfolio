@@ -33,13 +33,17 @@ export function StatusBar({ onApp }: { onApp: boolean }) {
   return (
     <div
       className={cn(
-        "pointer-events-none absolute inset-x-0 top-0 z-70 hidden h-[6.2cqh] items-center justify-between px-[8.5cqw] pt-[1.2cqh] text-[15px] font-semibold tracking-tight transition-colors duration-200 tab:flex",
+        // Centred on the cutout's midline; time and indicators each centred in their "ear" beside it
+        "pointer-events-none absolute inset-x-0 top-0 z-70 hidden h-[calc(var(--phone-h)*0.0563)] grid-cols-[1fr_30%_1fr] items-center px-[3cqw] font-[system-ui,-apple-system,sans-serif] text-[clamp(13px,4.1cqw,16px)] font-semibold tracking-[-0.01em] transition-colors duration-200 tab:grid",
         onApp ? "text-app-ink" : "text-white",
       )}
       aria-hidden
     >
-      <Clock />
-      <span className="flex items-center gap-[5px]">
+      <span className="flex justify-center pl-[2cqw]">
+        <Clock />
+      </span>
+      <span />
+      <span className="flex items-center justify-center gap-[5px] pr-[1cqw]">
         <svg viewBox="0 0 18 12" className="h-[11px]" fill="currentColor">
           <rect x="0" y="8" width="3" height="4" rx="1" />
           <rect x="5" y="5.5" width="3" height="6.5" rx="1" />
