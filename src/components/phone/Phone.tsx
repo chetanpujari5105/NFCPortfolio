@@ -15,11 +15,12 @@ import { MotionConfig } from "motion/react";
 import { appsLayout } from "@content/apps";
 import type { AppId } from "@content/schema";
 import { APPS, preloadApp } from "@/components/apps/registry";
+import { AppSwitcher } from "@/components/os/AppSwitcher";
 import { AppWindow } from "@/components/os/AppWindow";
 import { HomeScreen } from "@/components/os/HomeScreen";
 import { SocialsFolder } from "@/components/os/SocialsFolder";
 import { Spotlight } from "@/components/os/Spotlight";
-import { goBack, useHashRouter } from "@/lib/router";
+import { goBack, goHome, useHashRouter } from "@/lib/router";
 import { useOS } from "@/lib/store";
 import { STAGE_3D_QUERY } from "@/lib/theme";
 
@@ -27,7 +28,8 @@ import type { Phone3DProps, Rig } from "./Phone3D";
 import { StatusBar } from "./StatusBar";
 import { Wallpaper } from "./Wallpaper";
 
-type WindowState = { app: AppId; closing: boolean; initial: boolean };
+/** `next`: switching apps — this one closes quickly, then `next` launches from its icon. */
+type WindowState = { app: AppId; closing: boolean; initial: boolean; next?: AppId };
 
 const Phone3D = dynamic<Phone3DProps>(() => import("./Phone3D"), { ssr: false });
 const loadRig = () => import("./Phone3D").then((m) => m.newRig());
@@ -86,6 +88,11 @@ export function Phone() {
 
   useEffect(() => {
     useOS.getState().hydratePrefs();
+    // Warm every app's chunk once things are quiet, so no launch ever shows a blank screen.
+    const idle = window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 1500));
+    const cancel = window.cancelIdleCallback ?? window.clearTimeout;
+    const id = idle(() => (Object.keys(APPS) as AppId[]).forEach(preloadApp), { timeout: 4000 });
+    return () => cancel(id);
   }, []);
 
   // Load the 3D chunk only once the home screen has painted and the main thread is idle.
@@ -181,10 +188,12 @@ export function Phone() {
     setPrevApp(windowApp);
     setWin((prev) => {
       if (windowApp) {
-        if (prev?.app === windowApp) return prev.closing ? { ...prev, closing: false } : prev;
+        if (prev?.app === windowApp) return { ...prev, closing: false, next: undefined };
+        // Another app is up: out to home first, then into the new icon (never a cut).
+        if (prev && !route.initial) return { ...prev, closing: true, next: windowApp };
         return { app: windowApp, closing: false, initial: route.initial };
       }
-      return prev ? { ...prev, closing: true } : null;
+      return prev ? { ...prev, closing: true, next: undefined } : null;
     });
   }
 
@@ -192,15 +201,30 @@ export function Phone() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
-      const { spotlightOpen, setSpotlightOpen, wiggle, setWiggle, route } = useOS.getState();
-      if (spotlightOpen) setSpotlightOpen(false);
+      const { spotlightOpen, setSpotlightOpen, wiggle, setWiggle, route, switcherOpen, setSwitcherOpen } =
+        useOS.getState();
+      if (switcherOpen) setSwitcherOpen(false);
+      else if (spotlightOpen) setSpotlightOpen(false);
       else if (wiggle) setWiggle(false);
       else if (route.app) goBack();
       else return;
       e.preventDefault();
     };
+    // Ctrl+↑: app switcher (like a swipe-and-hold on the home indicator)
+    const onSwitcherKey = (e: KeyboardEvent) => {
+      if (!e.ctrlKey || e.key !== "ArrowUp") return;
+      e.preventDefault();
+      const { setSwitcherOpen, switcherOpen, route } = useOS.getState();
+      if (switcherOpen) return setSwitcherOpen(false);
+      setSwitcherOpen(true);
+      if (route.app) goHome();
+    };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener("keydown", onSwitcherKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("keydown", onSwitcherKey);
+    };
   }, []);
 
   // Warm app chunks when the visitor points at an icon.
@@ -231,7 +255,7 @@ export function Phone() {
       <CssPhone wrapRef={wrapRef} bezelRef={bezelRef} onPointerOver={warm} onFocus={warm}>
         <div ref={screenRef} data-screen className="phone-screen">
           <Wallpaper />
-          <HomeScreen open={!!win && !win.closing} />
+          <HomeScreen open={!!win && !win.closing && !win.next} />
           {win && App && (
             <AppWindow
               key={win.app}
@@ -239,9 +263,14 @@ export function Phone() {
               title={appsLayout.titles[win.app]}
               closing={win.closing}
               initial={win.initial}
+              quick={!!win.next}
               screenRef={screenRef}
               onClosed={() => {
                 const app = win.app;
+                if (win.next) {
+                  setWin({ app: win.next, closing: false, initial: false });
+                  return;
+                }
                 setWin(null);
                 screenRef.current
                   ?.querySelector<HTMLElement>(`[data-app-icon="${app}"]`)
@@ -253,6 +282,7 @@ export function Phone() {
           )}
           <SocialsFolder open={route.app === "socials"} screenRef={screenRef} />
           <Spotlight />
+          <AppSwitcher screenRef={screenRef} />
           <StatusBar onApp={!!win && !win.closing} />
           <div className="phone-island" aria-hidden />
           <div className="screen-off" aria-hidden />

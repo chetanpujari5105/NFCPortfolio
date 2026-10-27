@@ -4,7 +4,7 @@ import { useRef, type KeyboardEvent, type PointerEvent } from "react";
 import { motion, useTransform } from "motion/react";
 
 import { appsLayout, askApp } from "@content/apps";
-import { HOME_SCALE_OPEN, launchProgress } from "@/lib/motion";
+import { HOME_SCALE_OPEN, useRecede } from "@/lib/motion";
 import { ENABLE_ASK } from "@/lib/router";
 import { useOS } from "@/lib/store";
 
@@ -82,11 +82,11 @@ export function HomeScreen({ open }: { open: boolean }) {
   const wiggle = useOS((s) => s.wiggle);
   const setWiggle = useOS((s) => s.setWiggle);
   const setSpotlightOpen = useOS((s) => s.setSpotlightOpen);
-  const transform = useTransform(
-    launchProgress,
-    (p) => `scale(${1 - (1 - HOME_SCALE_OPEN) * p})`,
-  );
-  const dim = useTransform(launchProgress, [0, 1], [0, 0.28]);
+  // Recedes behind an open app: scale 0.9, dim and a slight blur, all on the launch spring
+  const recede = useRecede();
+  const transform = useTransform(recede, (r) => `scale(${1 - (1 - HOME_SCALE_OPEN) * r})`);
+  const filter = useTransform(recede, (r) => (r < 0.01 ? "none" : `blur(${r * 3}px)`));
+  const dim = useTransform(recede, [0, 1], [0, 0.3]);
   const press = useRef<{
     timer: number;
     x: number;
@@ -123,7 +123,7 @@ export function HomeScreen({ open }: { open: boolean }) {
       data-home-layer
       inert={open}
       aria-hidden={open || undefined}
-      style={{ transform }}
+      style={{ transform, filter }}
       className="absolute inset-0 flex flex-col px-[5.6cqw] pt-[max(env(safe-area-inset-top),7.4cqh)] pb-[max(env(safe-area-inset-bottom),1.4cqh)] [--icon:min(62px,15.6cqw)] tab:pt-[7.4cqh]"
       data-wiggle={wiggle || undefined}
       onPointerDown={onPointerDown}
@@ -193,6 +193,7 @@ export function HomeScreen({ open }: { open: boolean }) {
 
       <nav
         aria-label="Dock"
+        data-dock
         className="glass-dark grid grid-cols-4 justify-items-center gap-x-[4.2cqw] rounded-[30px] px-[3.4cqw] py-[1.5cqh] shadow-[inset_0_1px_0_rgb(255_255_255/0.22)]"
       >
         {appsLayout.dock.map((item) => (

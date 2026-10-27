@@ -96,5 +96,10 @@ export const homePagerX = motionValue(0);
 /** Home screen scale while an app is open. */
 export const HOME_SCALE_OPEN = 0.9;
 
+/** How far the home screen recedes behind an open app: 0 = not at all, 1 = fully (0.9, dim, blur). */
+export function useRecede() {
+  return useTransform([launchProgress, dismissProgress], ([p, d]: number[]) => Math.max(0, Math.min(1.05, p)) * (1 - d));
+}
+
 /** Velocity (px/ms) above which a swipe commits regardless of distance. */
 export const FLICK_VELOCITY = 0.5;

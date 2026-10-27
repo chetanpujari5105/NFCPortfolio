@@ -3,6 +3,7 @@
 import type { CSSProperties, ReactNode } from "react";
 
 import type { HomeItem } from "@content/schema";
+import { setLaunchOrigin } from "@/lib/launch";
 import { openApp } from "@/lib/router";
 import { cn } from "@/lib/utils";
 
@@ -53,7 +54,12 @@ export function AppIcon({ item, showLabel = true, tile, className }: Props) {
       data-app-icon={item.app}
       data-nav
       className={classes}
-      onClick={() => item.app && openApp(item.app)}
+      onClick={(e) => {
+        if (!item.app) return;
+        const tile = e.currentTarget.querySelector<HTMLElement>("[data-icon-tile]");
+        if (tile) setLaunchOrigin(item.app, tile);
+        openApp(item.app);
+      }}
     >
       {content}
     </button>

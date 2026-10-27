@@ -4,6 +4,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 test.beforeEach(async ({ page }, info) => {
   test.skip(info.project.name !== "desktop", "3D stage is desktop-only");
+  test.setTimeout(60_000);
   await page.addInitScript(() => sessionStorage.setItem("pp-unlocked", "1"));
 });
 
@@ -17,12 +18,27 @@ async function ready(page: Page) {
   await expect(stage(page)).toHaveAttribute("data-face", "front");
 }
 
+/** A slow drag that comes to rest before release, so there is no flick inertia. */
 async function drag(page: Page, from: [number, number], dx: number, steps = 16) {
   await page.mouse.move(...from);
   await page.mouse.down();
-  for (let i = 1; i <= steps; i++) await page.mouse.move(from[0] + (dx * i) / steps, from[1]);
+  for (let i = 1; i <= steps; i++) {
+    await page.mouse.move(from[0] + (dx * i) / steps, from[1]);
+    await page.waitForTimeout(16);
+  }
+  await page.waitForTimeout(150);
   await page.mouse.up();
 }
+
+test("a flick keeps spinning with its velocity before it settles", async ({ page }) => {
+  await ready(page);
+  await page.mouse.move(300, 450);
+  await page.mouse.down();
+  await page.mouse.move(500, 450, { steps: 4 });
+  await page.mouse.up();
+  // 200 px of drag is 100°; the release velocity carries it well past that
+  await expect.poll(() => rotY(page)).toBeGreaterThan(140);
+});
 
 test("the screen lives in the 3D phone and stays clickable", async ({ page }) => {
   await ready(page);

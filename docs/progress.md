@@ -91,6 +91,13 @@ REA stays off (owner's earlier choice); the reference was studied with Playwrigh
   stage to spin (6 px threshold, never from the screen), inertia, settle on the back or spring home
   after 1.2 s; tap/double-click/`R` resets; ±6° parallax. 3D chunk loads at idle; CSS phone waits up to
   900 ms for the 3D entrance. 6 new stage tests; Playwright limited to 4 workers (WebGL contention).
+- **Step 4** — Launch/close rebuilt: window grows from the exact origin rect (icon, widget or switcher
+  card) with x/y/scale/radius on the `launch` spring, icon art → app in the first 40% with blur → sharp,
+  home + wallpaper recede to 0.9 with dim and blur. Home-indicator swipe is fully interactive (follows
+  finger, shrinks to 0.6, moves sideways) and flies back into the icon with the release velocity, or
+  springs back open. Swipe-and-hold (300 ms), double-tap or Ctrl+↑ opens the app switcher (live inert
+  cards, depth carousel, swipe a card up to close, tap to open from the card). Switching apps is a quick
+  out-to-home then in-to-icon. All app chunks are warmed at idle (no blank launch frames). 5 gesture tests.
 
 ## Needs Chetan
 

@@ -1,146 +1,193 @@
 "use client";
 
 import {
+  createContext,
+  useContext,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   type CSSProperties,
   type KeyboardEvent,
-  type PointerEvent,
   type ReactNode,
   type RefObject,
 } from "react";
-import { animate, motion, useMotionValue, useTransform, type AnimationPlaybackControls } from "motion/react";
+import {
+  animate,
+  motion,
+  useMotionValue,
+  useTransform,
+  type AnimationPlaybackControls,
+  type MotionValue,
+} from "motion/react";
+import { useDrag } from "@use-gesture/react";
 
 import { appsLayout, askApp } from "@content/apps";
 import type { AppId } from "@content/schema";
-import { FLICK_VELOCITY, launchProgress, springs } from "@/lib/motion";
+import { originRect, type Rect } from "@/lib/launch";
+import { dismissProgress, haptic, launchProgress, rubberBand, springs, withVelocity } from "@/lib/motion";
 import { goHome } from "@/lib/router";
-import { prefersReducedMotion } from "@/lib/store";
+import { prefersReducedMotion, useOS } from "@/lib/store";
 
 import { Glyph } from "./icons";
 
-type Geometry = {
-  /** Icon tile box, in untransformed screen coordinates */
-  x: number;
-  y: number;
-  size: number;
-  iconRadius: number;
-  W: number;
-  H: number;
-  screenRadius: number;
-};
-
 const ITEMS = [...appsLayout.block, ...appsLayout.row, ...appsLayout.dock, askApp];
-
-/** Layout position of the app's icon tile relative to the screen, ignoring transforms. */
-function measure(screen: HTMLElement, app: AppId): Geometry {
-  const W = screen.clientWidth;
-  const H = screen.clientHeight;
-  const screenRadius = parseFloat(getComputedStyle(screen).borderTopLeftRadius) || 0;
-  const tile = screen.querySelector<HTMLElement>(`[data-icon-tile="${app}"]`);
-  if (!tile) {
-    const size = Math.min(W, H) * 0.16;
-    return { x: (W - size) / 2, y: (H - size) / 2, size, iconRadius: size * 0.23, W, H, screenRadius };
-  }
-  let x = 0;
-  let y = 0;
-  let el: HTMLElement | null = tile;
-  while (el && el !== screen) {
-    x += el.offsetLeft;
-    y += el.offsetTop;
-    el = el.offsetParent as HTMLElement | null;
-  }
-  const size = tile.offsetWidth;
-  return { x, y, size, iconRadius: size * 0.23, W, H, screenRadius };
-}
-
-const mix = (a: number, b: number, p: number) => a + (b - a) * p;
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+const mix = (a: number, b: number, p: number) => a + (b - a) * p;
+
+type Geometry = Rect & { W: number; H: number; screenR: number };
+
+/** Per-window motion shared with pushed views and sheets inside the app. */
+export type WindowMotion = { push: MotionValue<number>; sheet: MotionValue<number>; width: () => number };
+const WindowCtx = createContext<WindowMotion | null>(null);
+export const useWindowMotion = () => useContext(WindowCtx);
 
 type Props = {
   app: AppId;
   title: string;
   closing: boolean;
   initial: boolean;
+  /** Close fast (switching apps: out to home, then into the next app) */
+  quick: boolean;
   screenRef: RefObject<HTMLDivElement | null>;
   onClosed: () => void;
   children: ReactNode;
 };
 
-export function AppWindow({ app, title, closing, initial, screenRef, onClosed, children }: Props) {
+/** Hold still this long mid-swipe to open the app switcher. */
+const HOLD_MS = 300;
+
+export function AppWindow({ app, title, closing, initial, quick, screenRef, onClosed, children }: Props) {
   const geo = useRef<Geometry | null>(null);
   const windowRef = useRef<HTMLDivElement>(null);
-  const controls = useRef<AnimationPlaybackControls | null>(null);
+  const controls = useRef<AnimationPlaybackControls[]>([]);
   const fade = useMotionValue(1);
+  const dragX = useMotionValue(0);
+  const dragY = useMotionValue(0);
+  const push = useMotionValue(0);
+  const sheet = useMotionValue(0);
   const reduced = useRef(false);
+  const release = useRef({ vx: 0, vy: 0 });
   const item = ITEMS.find((i) => i.app === app);
 
-  const frame = (p: number) => {
+  const stop = () => {
+    controls.current.forEach((c) => c.stop());
+    controls.current = [];
+  };
+
+  const measure = (consume: boolean) => {
+    const screen = screenRef.current;
+    if (!screen) return;
+    const W = screen.clientWidth;
+    const H = screen.clientHeight;
+    const screenR = parseFloat(getComputedStyle(screen).borderTopLeftRadius) || 0;
+    geo.current = { ...originRect(screen, app, consume), W, H, screenR };
+  };
+
+  /*
+   * p = 0: the window is the origin rect (icon); p = 1: full screen. The window is scaled to
+   * the rect's width and clipped top/bottom to its height, so a square icon and a tall card
+   * both work. Radius is in unscaled px; the swipe-down-to-card state rounds it further.
+   */
+  const frame = (p: number, d: number) => {
     const g = geo.current;
     if (!g) return { transform: "none", clipPath: "none" };
-    const L = Math.min(g.W, g.H);
-    const s0 = g.size / L;
-    const clipX = ((g.W - L) / 2) * (1 - p);
-    const clipY = ((g.H - L) / 2) * (1 - p);
-    const tx = (g.x - ((g.W - L) / 2) * s0) * (1 - p);
-    const ty = (g.y - ((g.H - L) / 2) * s0) * (1 - p);
+    const s0 = g.w / g.W;
+    const clipY0 = Math.max(0, (g.H - g.h / s0) / 2);
+    const q = Math.max(0, 1 - p);
     const scale = mix(s0, 1, p);
-    const radius = Math.max(0, mix(g.iconRadius / s0, g.screenRadius, Math.min(p, 1)));
+    const tx = g.x * q;
+    const ty = (g.y - clipY0 * s0) * q;
+    const clipY = clipY0 * Math.min(1, q);
+    const radius = Math.max(0, mix(g.r / s0, g.screenR, Math.min(p, 1))) + d * 28;
     return {
       transform: `translate3d(${tx}px, ${ty}px, 0) scale(${scale})`,
-      clipPath: `inset(${clipY}px ${clipX}px round ${radius}px)`,
+      clipPath: `inset(${clipY}px 0px ${clipY}px 0px round ${radius}px)`,
     };
   };
 
-  const transform = useTransform(launchProgress, (p) => frame(p).transform);
-  const clipPath = useTransform(launchProgress, (p) => frame(p).clipPath);
-  const contentOpacity = useTransform(launchProgress, [0.2, 0.6], [0, 1]);
-  const overlayOpacity = useTransform(launchProgress, [0.25, 0.7], [1, 0]);
+  const transform = useTransform([launchProgress, dismissProgress], ([p, d]: number[]) => frame(p, d).transform);
+  const clipPath = useTransform([launchProgress, dismissProgress], ([p, d]: number[]) => frame(p, d).clipPath);
+  // Icon art crossfades into the app during the first 40% of the launch; content sharpens.
+  const contentOpacity = useTransform(launchProgress, [0.05, 0.4], [0, 1]);
+  const overlayOpacity = useTransform(launchProgress, [0, 0.4], [1, 0]);
+  const contentFilter = useTransform(launchProgress, (p) => (p >= 0.4 ? "none" : `blur(${(1 - p / 0.4) * 6}px)`));
+  // Swipe-up dismiss: the card follows the finger, shrinking toward 0.6 from its bottom edge.
+  const dragTransform = useTransform([dragX, dragY, dismissProgress], ([x, y, d]: number[]) =>
+    x === 0 && y === 0 && d === 0 ? "none" : `translate3d(${x}px, ${y}px, 0) scale(${1 - 0.4 * d})`,
+  );
 
   // Measure before paint so the first frame already sits on the icon.
   useLayoutEffect(() => {
-    if (screenRef.current) geo.current = measure(screenRef.current, app);
+    measure(true);
     reduced.current = prefersReducedMotion();
+    dismissProgress.set(0);
     if (initial) {
       launchProgress.set(1);
     } else if (reduced.current) {
       launchProgress.set(1);
       fade.set(0);
-      controls.current = animate(fade, 1, { duration: 0.2, ease: "easeOut" });
+      controls.current = [animate(fade, 1, { duration: 0.2, ease: "easeOut" })];
     } else {
       launchProgress.set(0);
-      controls.current = animate(launchProgress, 1, springs.launch);
+      controls.current = [animate(launchProgress, 1, springs.launch)];
     }
-    return () => controls.current?.stop();
+    return stop;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [app]);
 
-  // Close (or re-open if the close is interrupted).
+  // Close (or re-open if the close is interrupted), handing over any swipe velocity.
   useEffect(() => {
-    controls.current?.stop();
+    stop();
     if (closing) {
-      if (screenRef.current) geo.current = measure(screenRef.current, app);
+      measure(false);
+      if (useOS.getState().switcherOpen) {
+        // The app switcher takes over from the dragged card.
+        launchProgress.set(0);
+        dismissProgress.set(0);
+        onClosed();
+        return;
+      }
       if (reduced.current) {
-        controls.current = animate(fade, 0, { duration: 0.15, ease: "easeOut", onComplete: onClosed });
-      } else {
-        let done = false;
-        const finish = () => {
-          if (done) return;
-          done = true;
-          launchProgress.set(0);
-          onClosed();
-        };
-        controls.current = animate(launchProgress, 0, {
-          ...springs.home,
+        controls.current = [animate(fade, 0, { duration: 0.15, ease: "easeOut", onComplete: onClosed })];
+        return;
+      }
+      const H = geo.current?.H ?? 800;
+      const { vx, vy } = release.current;
+      release.current = { vx: 0, vy: 0 };
+      const spring = quick ? springs.snappy : springs.home;
+      let done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        launchProgress.set(0);
+        dismissProgress.set(0);
+        dragX.set(0);
+        dragY.set(0);
+        onClosed();
+      };
+      // Upward finger speed becomes shrink speed (progress per second)
+      controls.current = [
+        animate(launchProgress, 0, {
+          ...spring,
+          velocity: (Math.min(0, vy) / H) * 1.4,
           onUpdate: (p) => p < 0.015 && finish(),
           onComplete: finish,
-        });
-      }
+        }),
+        animate(dismissProgress, 0, spring),
+        animate(dragX, 0, { ...spring, velocity: vx }),
+        animate(dragY, 0, { ...spring, velocity: vy }),
+      ];
     } else if (launchProgress.get() < 1 && !reduced.current) {
-      controls.current = animate(launchProgress, 1, springs.launch);
+      controls.current = [
+        animate(launchProgress, 1, springs.launch),
+        animate(dismissProgress, 0, springs.smooth),
+        animate(dragX, 0, springs.smooth),
+        animate(dragY, 0, springs.smooth),
+      ];
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [closing]);
@@ -148,12 +195,13 @@ export function AppWindow({ app, title, closing, initial, screenRef, onClosed, c
   // Keep geometry right if the viewport changes while the app is open.
   useEffect(() => {
     const onResize = () => {
-      if (screenRef.current) geo.current = measure(screenRef.current, app);
+      measure(false);
       launchProgress.set(launchProgress.get() + 1e-6);
     };
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
-  }, [app, screenRef]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [app]);
 
   // Initial focus goes into the window; the focus trap keeps it there.
   useEffect(() => {
@@ -178,77 +226,110 @@ export function AppWindow({ app, title, closing, initial, screenRef, onClosed, c
     }
   };
 
-  // Swipe up on the home indicator: the window follows the finger toward its icon.
-  const drag = useRef<{ y: number; t: number; lastY: number; lastT: number; v: number } | null>(null);
-  const onPointerDown = (e: PointerEvent<HTMLDivElement>) => {
-    if (closing || drag.current) return; // ignore extra fingers
-    e.currentTarget.setPointerCapture(e.pointerId);
-    controls.current?.stop();
-    drag.current = { y: e.clientY, t: e.timeStamp, lastY: e.clientY, lastT: e.timeStamp, v: 0 };
+  // Home indicator: swipe up to go home, swipe up and hold (or double-tap) for the app switcher.
+  const handleRef = useRef<HTMLDivElement>(null);
+  const holdTimer = useRef(0);
+  const lastTap = useRef(0);
+  const openSwitcher = () => {
+    window.clearTimeout(holdTimer.current);
+    haptic();
+    useOS.getState().setSwitcherOpen(true);
+    goHome();
   };
-  const onPointerMove = (e: PointerEvent<HTMLDivElement>) => {
-    const d = drag.current;
-    const g = geo.current;
-    if (!d || !g) return;
-    const dt = Math.max(1, e.timeStamp - d.lastT);
-    d.v = (d.lastY - e.clientY) / dt; // px/ms, upward positive
-    d.lastY = e.clientY;
-    d.lastT = e.timeStamp;
-    const up = d.y - e.clientY;
-    // Rubber-band: progress falls off with distance, never snaps past the icon.
-    const pull = up > 0 ? up / (up + g.H * 0.55) : -Math.min(-up, 60) / 2000;
-    launchProgress.set(1 - pull);
-  };
-  const onPointerUp = (e: PointerEvent<HTMLDivElement>) => {
-    const d = drag.current;
-    drag.current = null;
-    if (!d) return;
-    const up = d.y - e.clientY;
-    if (up > 90 || (d.v > FLICK_VELOCITY && up > 12)) goHome();
-    else controls.current = animate(launchProgress, 1, springs.launch);
-  };
+  useDrag(
+    (s) => {
+      const { first, last, tap, movement, velocity, direction, cancel, timeStamp } = s;
+      if (closing || useOS.getState().switcherOpen) {
+        cancel();
+        return;
+      }
+      if (tap) {
+        if (timeStamp - lastTap.current < 320) openSwitcher();
+        lastTap.current = timeStamp;
+        return;
+      }
+      const H = geo.current?.H ?? 800;
+      if (first) stop();
+      const up = Math.max(0, -movement[1]);
+      const reduce = reduced.current;
+      // Follow the finger (without the shrink under reduced motion); a downward pull rubber-bands.
+      dragX.set(reduce ? 0 : movement[0] * 0.9);
+      dragY.set(movement[1] > 0 ? rubberBand(movement[1], 60) : movement[1]);
+      dismissProgress.set(reduce ? 0 : Math.min(1, up / (H * 0.6)));
+
+      // Finger up the screen and holding still → app switcher. Every move re-arms the timer,
+      // so it only fires once the finger stops for HOLD_MS.
+      window.clearTimeout(holdTimer.current);
+      if (!last && up > 50) {
+        holdTimer.current = window.setTimeout(openSwitcher, HOLD_MS);
+      }
+
+      if (last) {
+        window.clearTimeout(holdTimer.current);
+        const vy = velocity[1] * direction[1] * 1000;
+        const vx = velocity[0] * direction[0] * 1000;
+        if (vy < -500 || (up > H * 0.25 && vy < 300)) {
+          release.current = { vx, vy };
+          goHome();
+        } else {
+          controls.current = [
+            animate(dragX, 0, withVelocity("smooth", vx)),
+            animate(dragY, 0, withVelocity("smooth", vy)),
+            animate(dismissProgress, 0, springs.smooth),
+          ];
+        }
+      }
+    },
+    { target: handleRef, filterTaps: true, threshold: 4, pointer: { capture: true } },
+  );
+  useEffect(() => () => window.clearTimeout(holdTimer.current), []);
 
   const style = { transformOrigin: "0 0", transform, clipPath, opacity: fade } as unknown as CSSProperties;
+  const motionCtx = useMemo<WindowMotion>(() => ({ push, sheet, width: () => geo.current?.W ?? 400 }), [push, sheet]);
 
   return (
     <motion.div
-      ref={windowRef}
-      role="dialog"
-      aria-modal="true"
-      aria-label={title}
-      tabIndex={-1}
-      onKeyDown={trapFocus}
-      style={style}
-      className="absolute inset-0 z-40 overflow-hidden bg-app-background text-app-ink outline-none will-change-transform"
+      style={{ transform: dragTransform, transformOrigin: "50% 100%" } as unknown as CSSProperties}
+      className="pointer-events-none absolute inset-0 z-40"
+      data-app-window={app}
     >
-      <motion.div style={{ opacity: contentOpacity }} className="absolute inset-0">
-        {children}
-      </motion.div>
-
-      {/* The icon's face, fading out as the window grows */}
-      {item && (
-        <motion.div
-          aria-hidden
-          style={{
-            opacity: overlayOpacity,
-            background: `linear-gradient(165deg, ${item.colors[0]}, ${item.colors[1]})`,
-          }}
-          className="pointer-events-none absolute inset-0 grid place-items-center text-white"
-        >
-          <Glyph name={item.icon} className="w-[54cqmin]" />
-        </motion.div>
-      )}
-
-      <div
-        className="absolute inset-x-0 bottom-0 z-50 flex h-[34px] cursor-grab touch-none items-end justify-center pb-[max(env(safe-area-inset-bottom),8px)] active:cursor-grabbing"
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerCancel={onPointerUp}
-        aria-hidden
+      <motion.div
+        ref={windowRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        tabIndex={-1}
+        onKeyDown={trapFocus}
+        style={style}
+        className="pointer-events-auto absolute inset-0 overflow-hidden bg-app-background text-app-ink outline-none will-change-transform"
       >
-        <span className="h-[5px] w-[36%] max-w-[140px] rounded-full bg-app-ink/85" />
-      </div>
+        <motion.div style={{ opacity: contentOpacity, filter: contentFilter }} className="absolute inset-0">
+          <WindowCtx.Provider value={motionCtx}>{children}</WindowCtx.Provider>
+        </motion.div>
+
+        {/* The icon's face, fading out as the window grows */}
+        {item && (
+          <motion.div
+            aria-hidden
+            style={{
+              opacity: overlayOpacity,
+              background: `linear-gradient(165deg, ${item.colors[0]}, ${item.colors[1]})`,
+            }}
+            className="pointer-events-none absolute inset-0 grid place-items-center text-white"
+          >
+            <Glyph name={item.icon} className="w-[54cqmin]" />
+          </motion.div>
+        )}
+
+        <div
+          ref={handleRef}
+          data-home-indicator
+          className="absolute inset-x-0 bottom-0 z-50 flex h-[34px] cursor-grab touch-none items-end justify-center pb-[max(env(safe-area-inset-bottom),8px)] active:cursor-grabbing"
+          aria-hidden
+        >
+          <span className="h-[5px] w-[36%] max-w-[140px] rounded-full bg-app-ink/85" />
+        </div>
+      </motion.div>
     </motion.div>
   );
 }

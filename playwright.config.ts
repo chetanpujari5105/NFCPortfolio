@@ -10,7 +10,12 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? "github" : "list",
-  use: { baseURL: `http://localhost:${PORT}`, trace: "on-first-retry" },
+  use: {
+    baseURL: `http://localhost:${PORT}`,
+    trace: "on-first-retry",
+    // Real GPU on macOS: the 3D phone and wallpaper shader crawl on the software renderer
+    launchOptions: process.platform === "darwin" ? { args: ["--use-angle=metal", "--ignore-gpu-blocklist"] } : {},
+  },
   expect: { toHaveScreenshot: { maxDiffPixelRatio: 0.02, animations: "disabled" } },
   projects: [
     { name: "desktop", use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } } },

@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { motion, useTransform } from "motion/react";
+
+import { HOME_SCALE_OPEN, useRecede } from "@/lib/motion";
 
 import {
   useOS,
@@ -92,6 +95,9 @@ export function Wallpaper() {
   const wallpaper = useOS((s) => s.wallpaper);
   const reduceMotion = useOS((s) => s.reduceMotion);
   const [failed, setFailed] = useState(false);
+  // Recedes with the home screen while an app opens
+  const recede = useRecede();
+  const transform = useTransform(recede, (r) => (r < 0.001 ? "none" : `scale(${1 - (1 - HOME_SCALE_OPEN) * r})`));
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -248,8 +254,9 @@ export function Wallpaper() {
   }, [wallpaper, reduceMotion]);
 
   return (
-    <div
+    <motion.div
       aria-hidden
+      style={{ transform }}
       className="absolute inset-0 overflow-hidden bg-finish-deep"
     >
       {/* The CSS gradient shows until the shader's first frame, and stays if WebGL fails */}
@@ -263,6 +270,6 @@ export function Wallpaper() {
           className="absolute inset-0 size-full opacity-0 transition-opacity duration-500 data-ready:opacity-100"
         />
       )}
-    </div>
+    </motion.div>
   );
 }

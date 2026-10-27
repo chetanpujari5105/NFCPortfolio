@@ -50,11 +50,12 @@ test("browser back, the chevron and the swipe handle all return home", async ({ 
   await page.getByRole("button", { name: "Open Contact", exact: true }).click();
   await expect(dialog(page)).toBeVisible();
   await page.waitForTimeout(700); // let the launch zoom settle before measuring the handle
-  const handle = dialog(page).locator(".cursor-grab");
+  const handle = page.locator("[data-home-indicator]");
   const box = (await handle.boundingBox())!;
+  // A quick flick (a pause mid-swipe would open the app switcher instead)
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
   await page.mouse.down();
-  for (let i = 1; i <= 8; i++) await page.mouse.move(box.x + box.width / 2, box.y - i * 30, { steps: 2 });
+  await page.mouse.move(box.x + box.width / 2, box.y - 260, { steps: 6 });
   await page.mouse.up();
   await expect(dialog(page)).toHaveCount(0);
 });
