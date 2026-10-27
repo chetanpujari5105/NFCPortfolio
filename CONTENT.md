@@ -17,6 +17,7 @@ cross-link.
 | `blog.ts` | Static fallback posts, used only when the Substack RSS feed can't be reached |
 | `reviews.ts` | Student reviews. **Only `verified: true` reviews are shown.** Flip one to `true` only after confirming the quote is real and you have permission. |
 | `projects.ts` | Projects app: `{ id, name, tagline, description, category, url, image, stack, color, featured }` |
+| `ask.ts` | Copy for the optional Ask Chetan app (intro, placeholder, suggestion chips, offline message). Its answers come only from the files above. |
 | `apps.ts` | Home screen + dock layout: label, icon glyph name, gradient colours, and either `app` (opens in the phone) or `href` (new tab) |
 
 ## Images

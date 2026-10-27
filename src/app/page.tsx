@@ -3,6 +3,7 @@ import { ServerDataProvider } from "@/components/os/server-data";
 import { Phone } from "@/components/phone/Phone";
 import { SeoSummary } from "@/components/studio/SeoSummary";
 import { FinishSwatches } from "@/components/studio/FinishSwatches";
+import { JsonLd } from "@/components/studio/JsonLd";
 import { SideNav } from "@/components/studio/SideNav";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { getPosts } from "@/lib/rss";
@@ -21,6 +22,7 @@ export default async function Home() {
       </ServerDataProvider>
       <SideNav />
       <SeoSummary posts={data.posts} />
+      <JsonLd />
     </main>
   );
 }

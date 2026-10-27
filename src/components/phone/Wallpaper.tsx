@@ -2,7 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { useOS, prefersReducedMotion, type Wallpaper as WallpaperId } from "@/lib/store";
+import {
+  useOS,
+  prefersReducedMotion,
+  type Wallpaper as WallpaperId,
+} from "@/lib/store";
 
 /*
  * Original animated wallpapers drawn with one small fragment shader.
@@ -79,7 +83,8 @@ function compile(gl: WebGLRenderingContext, type: number, src: string) {
   if (!s) return null;
   gl.shaderSource(s, src);
   gl.compileShader(s);
-  return gl.getShaderParameter(s, gl.COMPILE_STATUS) ? s : null;
+  // No COMPILE_STATUS check here: it blocks; a bad shader fails LINK_STATUS later
+  return s;
 }
 
 export function Wallpaper() {
@@ -91,107 +96,172 @@ export function Wallpaper() {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const gl = canvas.getContext("webgl", { antialias: false, alpha: false, powerPreference: "low-power" });
-    const vert = gl && compile(gl, gl.VERTEX_SHADER, VERT);
-    const frag = gl && compile(gl, gl.FRAGMENT_SHADER, FRAG);
-    const program = gl?.createProgram();
-    if (!gl || !vert || !frag || !program) {
-      setFailed(true);
-      return;
-    }
-    gl.attachShader(program, vert);
-    gl.attachShader(program, frag);
-    gl.linkProgram(program);
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-      setFailed(true);
-      return;
-    }
-    gl.useProgram(program);
-    const buffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
-    const loc = gl.getAttribLocation(program, "p");
-    gl.enableVertexAttribArray(loc);
-    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    let cancelled = false;
+    let cleanup = () => {};
 
-    const u = {
-      r: gl.getUniformLocation(program, "r"),
-      t: gl.getUniformLocation(program, "t"),
-      a: gl.getUniformLocation(program, "a"),
-      d: gl.getUniformLocation(program, "d"),
-      mode: gl.getUniformLocation(program, "mode"),
-      dark: gl.getUniformLocation(program, "dark"),
-    };
-
-    const readColors = () => {
-      const css = getComputedStyle(document.documentElement);
-      gl.uniform3f(u.a, ...parseColor(css.getPropertyValue("--accent")));
-      gl.uniform3f(u.d, ...parseColor(css.getPropertyValue("--accent-deep")));
-      gl.uniform1f(u.dark, document.documentElement.classList.contains("dark") ? 1 : 0);
-    };
-    gl.uniform1i(u.mode, MODES[wallpaper]);
-    readColors();
-
-    const resize = () => {
-      const scale = Math.min(window.devicePixelRatio || 1, 2) * 0.5;
-      const w = Math.max(1, Math.round(canvas.clientWidth * scale));
-      const h = Math.max(1, Math.round(canvas.clientHeight * scale));
-      if (canvas.width !== w || canvas.height !== h) {
-        canvas.width = w;
-        canvas.height = h;
-        gl.viewport(0, 0, w, h);
+    // Wait for an idle moment after first paint so shader work never competes with hydration
+    const idle =
+      window.requestIdleCallback ??
+      ((cb: () => void) => window.setTimeout(cb, 300));
+    const cancelIdle = window.cancelIdleCallback ?? window.clearTimeout;
+    const idleId = idle(() => {
+      const gl = canvas.getContext("webgl", {
+        antialias: false,
+        alpha: false,
+        powerPreference: "low-power",
+      });
+      const vert = gl && compile(gl, gl.VERTEX_SHADER, VERT);
+      const frag = gl && compile(gl, gl.FRAGMENT_SHADER, FRAG);
+      const program = gl?.createProgram();
+      if (!gl || !vert || !frag || !program) {
+        setFailed(true);
+        return;
       }
-      gl.uniform2f(u.r, w, h);
-    };
+      gl.attachShader(program, vert);
+      gl.attachShader(program, frag);
+      gl.linkProgram(program);
 
-    let raf = 0;
-    let last = 0;
-    const start = performance.now() - 40_000;
-    const still = prefersReducedMotion();
-    const draw = (now: number) => {
-      resize();
-      gl.uniform1f(u.t, (now - start) / 1000);
-      gl.drawArrays(gl.TRIANGLES, 0, 3);
-    };
-    const loop = (now: number) => {
-      raf = requestAnimationFrame(loop);
-      if (now - last < 33) return;
-      last = now;
-      draw(now);
-    };
-    const play = () => {
-      cancelAnimationFrame(raf);
-      if (still || document.hidden) draw(start + 52_000);
-      else raf = requestAnimationFrame(loop);
-    };
-    play();
-
-    const observer = new MutationObserver(() => {
-      readColors();
-      if (still) draw(start + 52_000);
+      // With KHR_parallel_shader_compile, poll instead of blocking on LINK_STATUS
+      const parallel = gl.getExtension("KHR_parallel_shader_compile") as {
+        COMPLETION_STATUS_KHR: number;
+      } | null;
+      const whenLinked = (then: () => void) => {
+        if (cancelled) return;
+        if (
+          parallel &&
+          !gl.getProgramParameter(program, parallel.COMPLETION_STATUS_KHR)
+        )
+          requestAnimationFrame(() => whenLinked(then));
+        else then();
+      };
+      whenLinked(() => {
+        if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+          setFailed(true);
+          return;
+        }
+        cleanup = start(gl, program, vert, frag);
+      });
     });
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-finish", "class"] });
-    document.addEventListener("visibilitychange", play);
-    window.addEventListener("resize", play);
+
+    const start = (
+      gl: WebGLRenderingContext,
+      program: WebGLProgram,
+      vert: WebGLShader,
+      frag: WebGLShader,
+    ) => {
+      gl.useProgram(program);
+      const buffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+      gl.bufferData(
+        gl.ARRAY_BUFFER,
+        new Float32Array([-1, -1, 3, -1, -1, 3]),
+        gl.STATIC_DRAW,
+      );
+      const loc = gl.getAttribLocation(program, "p");
+      gl.enableVertexAttribArray(loc);
+      gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+
+      const u = {
+        r: gl.getUniformLocation(program, "r"),
+        t: gl.getUniformLocation(program, "t"),
+        a: gl.getUniformLocation(program, "a"),
+        d: gl.getUniformLocation(program, "d"),
+        mode: gl.getUniformLocation(program, "mode"),
+        dark: gl.getUniformLocation(program, "dark"),
+      };
+
+      const readColors = () => {
+        const css = getComputedStyle(document.documentElement);
+        gl.uniform3f(u.a, ...parseColor(css.getPropertyValue("--accent")));
+        gl.uniform3f(u.d, ...parseColor(css.getPropertyValue("--accent-deep")));
+        gl.uniform1f(
+          u.dark,
+          document.documentElement.classList.contains("dark") ? 1 : 0,
+        );
+      };
+      gl.uniform1i(u.mode, MODES[wallpaper]);
+      readColors();
+
+      const resize = () => {
+        const scale = Math.min(window.devicePixelRatio || 1, 2) * 0.5;
+        const w = Math.max(1, Math.round(canvas.clientWidth * scale));
+        const h = Math.max(1, Math.round(canvas.clientHeight * scale));
+        if (canvas.width !== w || canvas.height !== h) {
+          canvas.width = w;
+          canvas.height = h;
+          gl.viewport(0, 0, w, h);
+        }
+        gl.uniform2f(u.r, w, h);
+      };
+
+      let raf = 0;
+      let last = 0;
+      const start = performance.now() - 40_000;
+      const still = prefersReducedMotion();
+      const draw = (now: number) => {
+        resize();
+        gl.uniform1f(u.t, (now - start) / 1000);
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+        canvas.dataset.ready = "";
+      };
+      const loop = (now: number) => {
+        raf = requestAnimationFrame(loop);
+        if (now - last < 33) return;
+        last = now;
+        draw(now);
+      };
+      const play = () => {
+        cancelAnimationFrame(raf);
+        if (still || document.hidden) draw(start + 52_000);
+        else raf = requestAnimationFrame(loop);
+      };
+      play();
+
+      const observer = new MutationObserver(() => {
+        readColors();
+        if (still) draw(start + 52_000);
+      });
+      observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ["data-finish", "class"],
+      });
+      document.addEventListener("visibilitychange", play);
+      window.addEventListener("resize", play);
+
+      return () => {
+        cancelAnimationFrame(raf);
+        observer.disconnect();
+        document.removeEventListener("visibilitychange", play);
+        window.removeEventListener("resize", play);
+        gl.deleteProgram(program);
+        gl.deleteShader(vert);
+        gl.deleteShader(frag);
+        gl.deleteBuffer(buffer);
+      };
+    };
 
     return () => {
-      cancelAnimationFrame(raf);
-      observer.disconnect();
-      document.removeEventListener("visibilitychange", play);
-      window.removeEventListener("resize", play);
-      gl.deleteProgram(program);
-      gl.deleteShader(vert);
-      gl.deleteShader(frag);
-      gl.deleteBuffer(buffer);
+      cancelled = true;
+      cancelIdle(idleId);
+      cleanup();
     };
   }, [wallpaper, reduceMotion]);
 
   return (
-    <div aria-hidden className="absolute inset-0 overflow-hidden bg-finish-deep">
-      {failed ? (
-        <div className="wallpaper-fallback absolute inset-0" data-variant={wallpaper} />
-      ) : (
-        <canvas ref={canvasRef} className="absolute inset-0 size-full" />
+    <div
+      aria-hidden
+      className="absolute inset-0 overflow-hidden bg-finish-deep"
+    >
+      {/* The CSS gradient shows until the shader's first frame, and stays if WebGL fails */}
+      <div
+        className="wallpaper-fallback absolute inset-0"
+        data-variant={wallpaper}
+      />
+      {!failed && (
+        <canvas
+          ref={canvasRef}
+          className="absolute inset-0 size-full opacity-0 transition-opacity duration-500 data-ready:opacity-100"
+        />
       )}
     </div>
   );

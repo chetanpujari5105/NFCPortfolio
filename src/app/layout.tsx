@@ -3,6 +3,7 @@ import { Archivo, Geist, Geist_Mono } from "next/font/google";
 
 import { ThemeSync } from "@/components/ui/theme-toggle";
 import { appsLayout } from "@content/apps";
+import { SITE_URL } from "@/lib/site";
 import { buildInitScript } from "@/lib/theme";
 import "./globals.css";
 
@@ -32,14 +33,16 @@ const description =
   "Chetan Pujari — AI Educator, Bestselling Instructor on 21+ Platforms, 400K+ Students across 190+ Countries. Making AI, Design & Tech simple for everyone.";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://chetanpujari.com"),
+  metadataBase: new URL(SITE_URL),
+  alternates: { canonical: "/" },
   title,
   description,
   openGraph: {
     title,
     description:
       "AI Educator, Bestselling Instructor on 21+ Platforms, 400K+ Students across 190+ Countries.",
-    url: "https://chetanpujari.com",
+    url: "/",
+    siteName: "Chetan Pujari",
     type: "website",
   },
   twitter: {

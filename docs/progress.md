@@ -26,7 +26,7 @@ Status as of 2026-10-27 (autonomous run; specs: `claude-code-master-prompt.md` +
 | 5 Apps | Done |
 | 6 Spotlight / keyboard / focus / reduced motion | Done |
 | 7 3D phone + Ask Chetan | Done (both behind flags, off by default) |
-| 8 Polish (SEO, OG, Lighthouse, tests, README) | Not started |
+| 8 Polish (SEO, OG, Lighthouse, tests, README) | Done |
 
 ## Log
 
@@ -52,6 +52,21 @@ Status as of 2026-10-27 (autonomous run; specs: `claude-code-master-prompt.md` +
   WebGL + motion-allowed only, falls back to the CSS phone (`scripts/check-3d.mjs`). Ask Chetan
   (`NEXT_PUBLIC_ENABLE_ASK`): `/api/ask` grounded only in `/content`, refuses off-topic, 15/hour/IP,
   course cards via `{{course:id}}`, links allow-listed to the site's own URLs (`scripts/check-ask.mjs`).
+- **Phase 8** — Generated OG image, original ⚡ icon + apple-icon, `sitemap.xml`, `robots.txt`, JSON-LD
+  (Person + 6 Courses), canonical URL helper. Wallpaper shader now compiles off the critical path
+  (idle + `KHR_parallel_shader_compile`): mobile TBT 1,330 ms → 70 ms. Playwright: 21 smoke + 18 visual
+  tests across 3 viewports, all passing. README with local + Vercel steps.
+
+## Final checks (2026-10-27, production build, local)
+
+| Lighthouse | Performance | Accessibility | Best Practices | SEO | LCP | TBT | CLS |
+|---|---|---|---|---|---|---|---|
+| Desktop | 100 | 100 | 100 | 100 | 0.7 s | 10 ms | 0 |
+| Mobile (simulated 4× CPU, slow 4G) | 91 | 100 | 100 | 100 | 3.5 s | 70 ms | 0 |
+
+Mobile LCP is Lighthouse's simulated estimate; a real 4× CPU-throttled run paints the LCP text at
+~0.2 s (it's server-rendered). `npm test`: 39/39 passed. axe (WCAG 2.1 AA): 0 violations on home +
+11 apps in both themes. ESLint, TypeScript and `content:check` clean.
 
 ## Needs Chetan
 
@@ -60,4 +75,5 @@ Status as of 2026-10-27 (autonomous run; specs: `claude-code-master-prompt.md` +
 - [ ] **Contact email delivery:** add `RESEND_API_KEY` (and a verified sender in `CONTACT_FROM_EMAIL`) to Vercel env vars. Until then the form shows "email me directly".
 - [ ] **Ask Chetan (optional):** set `OPENAI_API_KEY` (server only) and `NEXT_PUBLIC_ENABLE_ASK=true` in Vercel, then redeploy. `OPENAI_MODEL` defaults to `gpt-5-mini`. Try a few questions before announcing it.
 - [ ] **3D phone (optional):** set `NEXT_PUBLIC_ENABLE_3D=true` to try it; the CSS phone stays the default.
+- [ ] **Domain:** point `chetanpujari.com` at the Vercel project (or set `NEXT_PUBLIC_SITE_URL`) so the canonical URL, sitemap and OG links match the live site.
 - [ ] **Packt profile URL:** the old site's Packt links were `#`; Packt shows without a link in `content/platforms.ts`.
