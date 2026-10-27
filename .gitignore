@@ -43,3 +43,6 @@ next-env.d.ts
 /test-results
 /playwright-report
 /docs/reference
+/docs/feel/videos
+/docs/feel/frames
+/docs/feel/ref

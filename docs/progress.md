@@ -68,6 +68,19 @@ Mobile LCP is Lighthouse's simulated estimate; a real 4× CPU-throttled run pain
 ~0.2 s (it's server-rendered). `npm test`: 39/39 passed. axe (WCAG 2.1 AA): 0 violations on home +
 11 apps in both themes. ESLint, TypeScript and `content:check` clean.
 
+## v3: 3D phone + real-phone feel (branch `feat/v3-3d-phone`, spec `claude-code-prompt-v3-3d-iphone-feel.md`)
+
+**Toolbox used:** Context7 (use-gesture, drei/R3F docs; drei's `Html` source read directly in
+`node_modules` for the `occlude="blending"` behaviour), emil-design-eng / animate / apple-design
+(springs, interruptibility, gestures), impeccable + web-design-guidelines, vercel-react-best-practices,
+Playwright (recordings, gesture tests), ffmpeg (frame analysis). New packages: `@use-gesture/react`,
+`maath`. No three.js/R3F skill or plugin exists in the skills registry this session; none installed.
+REA stays off (owner's earlier choice); the reference was studied with Playwright recordings instead.
+
+- **Step 1** — Recorded 9 interactions on the reference and on the v2 build (`scripts/feel/record.mjs`,
+  `analyze.mjs`), wrote `docs/feel-gap.md`. Biggest gaps: no 3D object, no drag-rotate, closes are not
+  gesture-driven, no rubber-band or edge-swipe, swatches and Search don't animate.
+
 ## Needs Chetan
 
 - [ ] **Reviews:** all 5 are `verified: false` in `content/reviews.ts`. Confirm each is a real quote you may publish, then set `verified: true`.
