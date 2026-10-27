@@ -9,8 +9,8 @@ import { easeOut } from "@/lib/motion";
 import { goBack } from "@/lib/router";
 import { prefersReducedMotion } from "@/lib/store";
 
-import { Glyph } from "./icons";
-import { FOLDER_SOCIALS, socialIcons } from "./social-icons";
+import { BrandTile } from "./BrandIcon";
+import { FOLDER_SOCIALS, SOCIAL_MARK } from "./social-icons";
 
 const items = FOLDER_SOCIALS.map((id) => profile.socials.find((s) => s.id === id)!).filter(Boolean);
 
@@ -65,7 +65,6 @@ export function SocialsFolder({ open, screenRef }: { open: boolean; screenRef: R
             <h2 className="mb-3 px-1 text-[26px] font-bold tracking-tight text-white drop-shadow">Socials</h2>
             <div className="glass-dark grid grid-cols-3 gap-x-3 gap-y-4 rounded-[34px] p-5 [--icon:min(62px,15.6cqw)]">
               {items.map((s) => {
-                const icon = socialIcons[s.id];
                 return (
                   <a
                     key={s.id}
@@ -75,12 +74,7 @@ export function SocialsFolder({ open, screenRef }: { open: boolean; screenRef: R
                     aria-label={`${s.label} ${s.handle} (opens in a new tab)`}
                     className="icon-press flex flex-col items-center gap-[5px] rounded-[14px]"
                   >
-                    <span
-                      className="icon-tile"
-                      style={{ "--c1": icon.colors[0], "--c2": icon.colors[1] } as CSSProperties}
-                    >
-                      <Glyph name={icon.glyph} />
-                    </span>
+                    <BrandTile mark={SOCIAL_MARK[s.id]} as="icon" />
                     <span className="icon-label max-w-full truncate">{s.label}</span>
                   </a>
                 );

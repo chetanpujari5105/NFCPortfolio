@@ -28,7 +28,8 @@ import { prefersReducedMotion, useOS } from "@/lib/store";
 import { AppIcon } from "./AppIcon";
 import { Glyph } from "./icons";
 import { ImpactWidget } from "./ImpactWidget";
-import { socialIcons, FOLDER_SOCIALS } from "./social-icons";
+import { BrandGlyph } from "./BrandIcon";
+import { SOCIAL_MARK, FOLDER_SOCIALS } from "./social-icons";
 import { WorkWidget } from "./WorkWidget";
 
 // Page 2 starts off-screen: its widgets (and next/image) load right after hydration
@@ -39,7 +40,7 @@ const PAGES = 2;
 /** Pull this far (px) to fully open Search. */
 const SEARCH_PULL = 140;
 
-const REORDERABLE: HomeItem[] = [...appsLayout.block, ...appsLayout.row];
+const REORDERABLE: HomeItem[] = [...appsLayout.block, ...appsLayout.row, ...appsLayout.links];
 const DEFAULT_ORDER = REORDERABLE.map((i) => i.id);
 
 /** Saved order, made valid against the current set of icons. */
@@ -54,16 +55,15 @@ function useIconOrder() {
 
 function FolderTile() {
   return (
-    <span className="grid size-full grid-cols-3 content-center gap-[8%] p-[16%]">
-      {FOLDER_SOCIALS.map((id) => (
-        <span
-          key={id}
-          className="aspect-square rounded-[24%]"
-          style={{
-            background: `linear-gradient(165deg, ${socialIcons[id].colors[0]}, ${socialIcons[id].colors[1]})`,
-          }}
-        />
-      ))}
+    <span className="icon-content grid size-full grid-cols-3 content-center gap-[8%] p-[15%]">
+      {FOLDER_SOCIALS.slice(0, 9).map((id) => {
+        const mark = SOCIAL_MARK[id];
+        return (
+          <span key={id} className="squircle grid aspect-square place-items-center" style={{ background: mark.tile.bg, color: mark.tile.fg }}>
+            <BrandGlyph mark={mark} className="size-[58%]" />
+          </span>
+        );
+      })}
     </span>
   );
 }
@@ -74,7 +74,7 @@ function iconFor(item: HomeItem, showLabel = true) {
       <AppIcon
         item={{ ...item, colors: ["rgb(255 255 255 / 0.28)", "rgb(255 255 255 / 0.16)"] }}
         tile={<FolderTile />}
-        className="[&_.icon-tile]:backdrop-blur-xl"
+        className="icon-folder"
         showLabel={showLabel}
       />
     );

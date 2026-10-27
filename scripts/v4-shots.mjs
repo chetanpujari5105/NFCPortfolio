@@ -58,14 +58,14 @@ for (const theme of ["light", "dark"]) {
 for (const theme of ["light", "dark"]) {
   const { ctx, page } = await open(desktop, { theme });
   await ready3D(page);
-  await page.keyboard.press("ArrowRight");
+  await page.getByRole("button", { name: "Page 2 of 2" }).click();
   await page.waitForTimeout(1500);
   await page.screenshot({ path: join(outDir, `page2-desktop-${theme}.png`) });
   await ctx.close();
   const phone = await open({ ...devices["iPhone 13"], viewport: { width: 390, height: 844 } }, { theme });
   await phone.page.waitForTimeout(1500);
   await phone.page.screenshot({ path: join(outDir, `home-phone-${theme}.png`) });
-  await phone.page.keyboard.press("ArrowRight");
+  await phone.page.getByRole("button", { name: "Page 2 of 2" }).click();
   await phone.page.waitForTimeout(1500);
   await phone.page.screenshot({ path: join(outDir, `page2-phone-${theme}.png`) });
   await phone.ctx.close();

@@ -43,10 +43,12 @@ export const profile = {
     { id: "substack", label: "Substack", handle: "chetanpujari", url: "https://chetanpujari.substack.com/" },
     { id: "udemy", label: "Udemy", handle: "chetan-pujari-3", url: "https://www.udemy.com/user/chetan-pujari-3/" },
     { id: "youtube", label: "YouTube", handle: "@chetanpujari", url: "https://www.youtube.com/@chetanpujari" },
+    { id: "github", label: "GitHub", handle: "chetanpujari5105", url: "https://github.com/chetanpujari5105" },
   ],
   udemyProfile: "https://www.udemy.com/user/chetan-pujari-3/",
   youtube: "https://www.youtube.com/@chetanpujari",
   substack: "https://chetanpujari.substack.com/",
+  github: "chetanpujari5105",
   stats: {
     students: 400000,
     courses: 21,

@@ -17,6 +17,8 @@ import { useOS, WALLPAPERS } from "@/lib/store";
 import { FINISHES, setThemeWithReveal } from "@/lib/theme";
 import { cnMerge as cn } from "@/lib/cn-merge";
 
+import { BrandTile } from "./BrandIcon";
+import { youtube } from "./brand-marks";
 import { useServerData } from "./server-data";
 
 /** How far a pull from the top-right corner travels to open the panel fully (fraction of screen). */
@@ -269,7 +271,10 @@ export function ControlPanel() {
             </div>
           </Tile>
           <Tile className="col-span-2 flex flex-col justify-between gap-2">
-            <span className="text-[11px] font-semibold tracking-wide text-white/65 uppercase">Now playing</span>
+            <span className="flex items-center gap-1.5">
+              <BrandTile mark={youtube} className="size-[18px]" />
+              <span className="text-[11px] font-semibold tracking-wide text-white/65 uppercase">Now playing</span>
+            </span>
             <span className="line-clamp-2 text-[13px] leading-snug font-semibold">{nowPlaying.title}</span>
             <span className="flex items-center justify-between">
               <span className="truncate text-[11.5px] text-white/65">{nowPlaying.by}</span>

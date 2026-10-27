@@ -10,10 +10,12 @@ import { animateTo, springs } from "@/lib/motion";
 import { openApp } from "@/lib/router";
 import { cn } from "@/lib/utils";
 
+import { BrandGlyph } from "./BrandIcon";
+import { HOME_MARKS } from "./social-icons";
 import { Glyph } from "./icons";
 
 type Props = {
-  item: Pick<HomeItem, "id" | "label" | "icon" | "colors" | "app" | "href">;
+  item: Pick<HomeItem, "id" | "label" | "icon" | "colors" | "app" | "href" | "brand">;
   showLabel?: boolean;
   /** Custom tile content (e.g. the Socials folder preview) */
   tile?: ReactNode;
@@ -52,13 +54,22 @@ function usePress() {
 }
 
 export function AppIcon({ item, showLabel = true, tile, className }: Props) {
-  const style = { "--c1": item.colors[0], "--c2": item.colors[1] } as CSSProperties;
+  const mark = item.brand ? HOME_MARKS[item.brand] : undefined;
+  const brand = mark?.tile;
+  const style = brand
+    ? ({ "--tile": brand.bg, color: brand.fg } as CSSProperties)
+    : ({ "--c1": item.colors[0], "--c2": item.colors[1] } as CSSProperties);
   const { scale, handlers } = usePress();
   const content = (
     <>
       <m.span style={{ scale }} className="block">
-        <span className="icon-tile wiggle-item" data-icon-tile={item.app ?? item.id} style={style}>
-          {tile ?? <Glyph name={item.icon} />}
+        <span className={cn("icon-tile wiggle-item", brand && "icon-brand")} data-icon-tile={item.app ?? item.id} style={style}>
+          {tile ??
+            (brand ? (
+              <BrandGlyph mark={mark!} style={{ width: `${brand.size * 100}%`, height: `${brand.size * 100}%` }} />
+            ) : (
+              <Glyph name={item.icon} />
+            ))}
         </span>
       </m.span>
       {showLabel && <span className="icon-label max-w-[calc(var(--icon)+14px)] truncate">{item.label}</span>}

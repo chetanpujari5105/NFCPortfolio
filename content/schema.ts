@@ -25,7 +25,7 @@ export const AppIdSchema = z.enum([
 ]);
 
 export const SocialSchema = z.object({
-  id: z.enum(["linkedin", "x", "instagram", "ai-instagram", "substack", "udemy", "youtube"]),
+  id: z.enum(["linkedin", "x", "instagram", "ai-instagram", "substack", "udemy", "youtube", "github"]),
   label: z.string(),
   handle: z.string(),
   url,
@@ -56,6 +56,8 @@ export const ProfileSchema = z.object({
   udemyProfile: url,
   youtube: url,
   substack: url,
+  /** GitHub username: the page-2 contribution heatmap and the GitHub links */
+  github: z.string().regex(/^[a-z\d](?:[a-z\d-]{0,38})$/i),
   stats: z.object({
     students: z.number().int(),
     courses: z.number().int(),
@@ -153,11 +155,15 @@ export const HomeItemSchema = z.object({
   colors: z.tuple([z.string(), z.string()]),
   app: AppIdSchema.optional(),
   href: url.optional(),
+  /** Official brand mark instead of a glyph (a slug from src/components/os/brand-icons.ts) */
+  brand: z.string().optional(),
 });
 
 export const AppsLayoutSchema = z.object({
   block: z.array(HomeItemSchema).length(4),
   row: z.array(HomeItemSchema).length(4),
+  /** Brand links straight on page 1, under the row */
+  links: z.array(HomeItemSchema).max(4),
   dock: z.array(HomeItemSchema).length(4),
   titles: z.record(AppIdSchema, z.string()),
 });

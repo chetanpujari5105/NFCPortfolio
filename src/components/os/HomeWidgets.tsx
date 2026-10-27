@@ -1,12 +1,17 @@
 "use client";
 
 import Image from "next/image";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 
 import { expertise } from "@content/expertise";
 import { profile } from "@content/profile";
 import { setLaunchOrigin } from "@/lib/launch";
 import { openApp } from "@/lib/router";
 
+import type { ContributionDay } from "@/lib/github";
+
+import { BrandGlyph } from "./BrandIcon";
+import { github } from "./brand-marks";
 import { Glyph } from "./icons";
 import { useServerData } from "./server-data";
 
@@ -125,10 +130,105 @@ export function ExpertiseStack() {
   );
 }
 
+const WEEKS = 17;
+
+/** No data: an empty 17-week grid ending today, so the widget keeps its shape. */
+function emptyDays(): ContributionDay[] {
+  const today = new Date();
+  const start = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay() - (WEEKS - 1) * 7));
+  const days: ContributionDay[] = [];
+  for (let d = new Date(start); d <= today; d.setUTCDate(d.getUTCDate() + 1))
+    days.push({ date: d.toISOString().slice(0, 10), level: 0, count: 0 });
+  return days;
+}
+
+/**
+ * Page 2, large: the GitHub contribution heatmap (last 17 weeks, Sunday-first columns). Squares
+ * fade in column by column the first time page 2 comes into view; today's square breathes.
+ */
+export function GitHubWidget() {
+  const { contributions } = useServerData();
+  const user = contributions?.user ?? profile.github;
+  const days = contributions?.days.length ? contributions.days : emptyDays();
+  const total = contributions?.total ?? null;
+  const ref = useRef<HTMLAnchorElement>(null);
+  const [shown, setShown] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || shown) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.intersectionRatio > 0.6)) {
+          setShown(true);
+          io.disconnect();
+        }
+      },
+      { threshold: [0, 0.6, 1] },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [shown]);
+
+  const first = new Date(`${days[0].date}T00:00:00Z`).getUTCDay();
+  const label =
+    total !== null
+      ? `GitHub: ${total.toLocaleString("en-US")} contributions in the last year. Open ${user} on GitHub (opens in a new tab)`
+      : `GitHub: ${user}. View on GitHub (opens in a new tab)`;
+
+  return (
+    <a
+      ref={ref}
+      href={`https://github.com/${user}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      data-nav
+      data-fly
+      data-github-widget
+      aria-label={label}
+      className="icon-press col-span-4 flex flex-col items-center gap-[5px] select-none"
+    >
+      <span
+        data-shown={shown || undefined}
+        className="widget-press gh-heat flex aspect-[2.05] w-full flex-col gap-[2.2cqw] overflow-hidden rounded-[22px] bg-app-surface p-[3.6cqw] text-left text-app-ink shadow-[0_4px_14px_rgb(0_0_0/0.18)]"
+      >
+        <span className="flex items-center gap-2">
+          <BrandGlyph mark={github} className="size-[18px] shrink-0" />
+          <span className="min-w-0 flex-1 truncate text-[13px] font-semibold tracking-tight">{user}</span>
+          {total !== null ? (
+            <span className="text-right leading-none">
+              <span className="text-[15px] font-bold tabular-nums">{total.toLocaleString("en-US")}</span>
+              <span className="ml-1 text-[11px] font-medium text-app-muted">this year</span>
+            </span>
+          ) : (
+            <span className="text-[12px] font-semibold text-app-muted">View on GitHub</span>
+          )}
+        </span>
+        <span aria-hidden className="gh-grid">
+          {days.map((d, i) => {
+            const col = Math.floor((i + first) / 7);
+            const row = (i + first) % 7;
+            return (
+              <span
+                key={d.date}
+                data-level={d.level}
+                className={i === days.length - 1 ? "gh-cell gh-today" : "gh-cell"}
+                style={{ gridColumn: col + 1, gridRow: row + 1, "--col": col } as CSSProperties}
+              />
+            );
+          })}
+        </span>
+      </span>
+      <span className="icon-label">GitHub</span>
+    </a>
+  );
+}
+
 /** Everything on home page 2. */
 export function WidgetsPage() {
   return (
     <>
+      <GitHubWidget />
       <BlogWidget />
       <VideoWidget />
       <ExpertiseStack />

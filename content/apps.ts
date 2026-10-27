@@ -13,10 +13,14 @@ export const appsLayout = {
     { id: "reviews", label: "Reviews", icon: "star", colors: ["#ffd76a", "#f08a00"], app: "reviews" },
   ],
   row: [
-    { id: "youtube", label: "YouTube", icon: "play", colors: ["#ff6a5c", "#d81f26"], href: "https://www.youtube.com/@chetanpujari" },
+    { id: "youtube", label: "YouTube", icon: "play", colors: ["#ff6a5c", "#d81f26"], href: "https://www.youtube.com/@chetanpujari", brand: "youtube" },
     { id: "socials", label: "Socials", icon: "folder", colors: ["#ffffff", "#ffffff"], app: "socials" },
     { id: "projects", label: "Projects", icon: "rocket", colors: ["#ff9a6b", "#e8451f"], app: "projects" },
     { id: "settings", label: "Settings", icon: "gear", colors: ["#b9bec7", "#6b717c"], app: "settings" },
+  ],
+  links: [
+    { id: "linkedin", label: "LinkedIn", icon: "briefcase", colors: ["#0A66C2", "#0A66C2"], href: "https://www.linkedin.com/in/chetan-pujari-ai", brand: "linkedin" },
+    { id: "x", label: "X", icon: "at", colors: ["#000000", "#000000"], href: "https://x.com/Chetanpujari51", brand: "x" },
   ],
   dock: [
     { id: "courses", label: "Courses", icon: "cap", colors: ["#6aa8ff", "#2747e0"], app: "courses" },

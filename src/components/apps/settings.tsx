@@ -5,7 +5,8 @@ import type { MouseEvent } from "react";
 
 import { profile } from "@content/profile";
 import { Glyph } from "@/components/os/icons";
-import { socialIcons } from "@/components/os/social-icons";
+import { BrandTile } from "@/components/os/BrandIcon";
+import { SOCIAL_MARK } from "@/components/os/social-icons";
 import { FINISH_INFO, useSetFinish } from "@/components/studio/FinishSwatches";
 import {
   AppHeader,
@@ -49,7 +50,7 @@ function RowIcon({ glyph, colors }: { glyph: string; colors: [string, string] })
   return (
     <span
       aria-hidden
-      className="grid size-[30px] place-items-center rounded-[8px] text-white"
+      className="squircle grid size-[30px] place-items-center text-white"
       style={{ background: `linear-gradient(160deg, ${colors[0]}, ${colors[1]})` }}
     >
       <Glyph name={glyph} className="size-[17px]" />
@@ -104,7 +105,7 @@ function Profile() {
           <ListRow
             key={s.id}
             href={s.url}
-            leading={<RowIcon glyph={socialIcons[s.id].glyph} colors={socialIcons[s.id].colors} />}
+            leading={<BrandTile mark={SOCIAL_MARK[s.id]} />}
             title={s.label}
             subtitle={s.handle}
           />
@@ -290,7 +291,7 @@ export default function SettingsApp() {
           </div>
           <ListRow
             title="Credits"
-            subtitle="Designed and built for Chetan Pujari. Icons, wallpaper and phone are original. World map data: Natural Earth (public domain)."
+            subtitle="Designed and built for Chetan Pujari. App icons, wallpaper and phone are original. Brand logos: Simple Icons (CC0) and Font Awesome Free (CC BY 4.0, LinkedIn), used only to link to Chetan's profiles. World map data: Natural Earth (public domain)."
           />
         </ListGroup>
       </AppScreen>

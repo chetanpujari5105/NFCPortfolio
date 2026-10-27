@@ -6,6 +6,8 @@ import * as m from "motion/react-m";
 import { ArrowUp, Check, Copy, Mail } from "lucide-react";
 
 import { profile } from "@content/profile";
+import { BrandTile } from "@/components/os/BrandIcon";
+import { SOCIAL_MARK } from "@/components/os/social-icons";
 import {
   AppScreen,
   BackButton,
@@ -303,12 +305,13 @@ export default function ContactApp() {
           />
           {profile.socials
             .filter((s) =>
-              ["linkedin", "x", "instagram", "substack"].includes(s.id),
+              ["linkedin", "x", "instagram", "substack", "github"].includes(s.id),
             )
             .map((s) => (
               <ListRow
                 key={s.id}
                 href={s.url}
+                leading={<BrandTile mark={SOCIAL_MARK[s.id]} />}
                 title={s.label}
                 subtitle={s.handle}
               />
