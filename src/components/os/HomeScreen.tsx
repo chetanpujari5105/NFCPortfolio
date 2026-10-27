@@ -23,7 +23,9 @@ function FolderTile() {
         <span
           key={id}
           className="aspect-square rounded-[24%]"
-          style={{ background: `linear-gradient(165deg, ${socialIcons[id].colors[0]}, ${socialIcons[id].colors[1]})` }}
+          style={{
+            background: `linear-gradient(165deg, ${socialIcons[id].colors[0]}, ${socialIcons[id].colors[1]})`,
+          }}
         />
       ))}
     </span>
@@ -32,24 +34,40 @@ function FolderTile() {
 
 /** Moves focus to the nearest home item in the arrow's direction. */
 function moveFocus(event: KeyboardEvent<HTMLDivElement>) {
-  const dir = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[event.key];
+  const dir = {
+    ArrowLeft: [-1, 0],
+    ArrowRight: [1, 0],
+    ArrowUp: [0, -1],
+    ArrowDown: [0, 1],
+  }[event.key];
   if (!dir) return;
-  const items = [...event.currentTarget.querySelectorAll<HTMLElement>("[data-nav]")];
+  const items = [
+    ...event.currentTarget.querySelectorAll<HTMLElement>("[data-nav]"),
+  ];
   const current = document.activeElement as HTMLElement | null;
   if (!current || !items.includes(current)) return;
   event.preventDefault();
   const from = current.getBoundingClientRect();
   const cx = from.left + from.width / 2;
   const cy = from.top + from.height / 2;
+  // Only items fully past the current item's edge in that direction
+  const ahead = (r: DOMRect) =>
+    dir[0] > 0
+      ? r.left >= from.right - 4
+      : dir[0] < 0
+        ? r.right <= from.left + 4
+        : dir[1] > 0
+          ? r.top >= from.bottom - 4
+          : r.bottom <= from.top + 4;
   let best: HTMLElement | null = null;
   let bestScore = Infinity;
   for (const item of items) {
     if (item === current) continue;
     const r = item.getBoundingClientRect();
+    if (!ahead(r)) continue;
     const dx = r.left + r.width / 2 - cx;
     const dy = r.top + r.height / 2 - cy;
     const along = dx * dir[0] + dy * dir[1];
-    if (along <= 4) continue;
     const across = Math.abs(dx * dir[1]) + Math.abs(dy * dir[0]);
     const score = along + across * 2.5;
     if (score < bestScore) {
@@ -64,9 +82,17 @@ export function HomeScreen({ open }: { open: boolean }) {
   const wiggle = useOS((s) => s.wiggle);
   const setWiggle = useOS((s) => s.setWiggle);
   const setSpotlightOpen = useOS((s) => s.setSpotlightOpen);
-  const transform = useTransform(launchProgress, (p) => `scale(${1 - (1 - HOME_SCALE_OPEN) * p})`);
+  const transform = useTransform(
+    launchProgress,
+    (p) => `scale(${1 - (1 - HOME_SCALE_OPEN) * p})`,
+  );
   const dim = useTransform(launchProgress, [0, 1], [0, 0.28]);
-  const press = useRef<{ timer: number; x: number; y: number; fired: boolean } | null>(null);
+  const press = useRef<{
+    timer: number;
+    x: number;
+    y: number;
+    fired: boolean;
+  } | null>(null);
 
   const row = appsLayout.row;
 
@@ -82,7 +108,12 @@ export function HomeScreen({ open }: { open: boolean }) {
   const cancelPress = (e?: PointerEvent) => {
     const p = press.current;
     if (!p) return;
-    if (e && Math.hypot(e.clientX - p.x, e.clientY - p.y) < 8 && e.type === "pointermove") return;
+    if (
+      e &&
+      Math.hypot(e.clientX - p.x, e.clientY - p.y) < 8 &&
+      e.type === "pointermove"
+    )
+      return;
     window.clearTimeout(p.timer);
     if (e?.type !== "pointerup") press.current = null;
   };
@@ -130,7 +161,13 @@ export function HomeScreen({ open }: { open: boolean }) {
             item.id === "socials" ? (
               <AppIcon
                 key={item.id}
-                item={{ ...item, colors: ["rgb(255 255 255 / 0.28)", "rgb(255 255 255 / 0.16)"] }}
+                item={{
+                  ...item,
+                  colors: [
+                    "rgb(255 255 255 / 0.28)",
+                    "rgb(255 255 255 / 0.16)",
+                  ],
+                }}
                 tile={<FolderTile />}
                 className="[&_.icon-tile]:backdrop-blur-xl"
               />
@@ -173,7 +210,11 @@ export function HomeScreen({ open }: { open: boolean }) {
         </button>
       )}
 
-      <motion.div aria-hidden style={{ opacity: dim }} className="pointer-events-none absolute inset-0 bg-black" />
+      <motion.div
+        aria-hidden
+        style={{ opacity: dim }}
+        className="pointer-events-none absolute inset-0 bg-black"
+      />
     </motion.div>
   );
 }

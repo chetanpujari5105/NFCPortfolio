@@ -1,6 +1,7 @@
 "use client";
 
 import { FINISHES, applyFinish, type Finish } from "@/lib/theme";
+import { onRadioGroupKeyDown } from "@/lib/a11y";
 import { useOS } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -22,13 +23,14 @@ export function FinishSwatches({ className }: { className?: string }) {
   const finish = useOS((s) => s.finish);
   const set = useSetFinish();
   return (
-    <div role="radiogroup" aria-label="Phone finish" className={cn("flex items-center gap-3", className)}>
+    <div role="radiogroup" aria-label="Phone finish" onKeyDown={onRadioGroupKeyDown} className={cn("flex items-center gap-3", className)}>
       {FINISHES.map((f) => (
         <button
           key={f}
           type="button"
           role="radio"
           aria-checked={finish === f}
+          tabIndex={finish === f ? 0 : -1}
           aria-label={FINISH_INFO[f].label}
           title={FINISH_INFO[f].label}
           onClick={() => set(f)}

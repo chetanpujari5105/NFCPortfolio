@@ -4,6 +4,7 @@ import { Children, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 
+import { onRadioGroupKeyDown } from "@/lib/a11y";
 import { popTransition, pushTransition } from "@/lib/motion";
 import { goBack } from "@/lib/router";
 import { cn } from "@/lib/utils";
@@ -240,13 +241,14 @@ export function Segmented<T extends string>({
   label: string;
 }) {
   return (
-    <div role="radiogroup" aria-label={label} className="flex rounded-[10px] bg-app-divider/50 p-[2px]">
+    <div role="radiogroup" aria-label={label} onKeyDown={onRadioGroupKeyDown} className="flex rounded-[10px] bg-app-divider/50 p-[2px]">
       {options.map((o) => (
         <button
           key={o.value}
           type="button"
           role="radio"
           aria-checked={value === o.value}
+          tabIndex={value === o.value ? 0 : -1}
           onClick={() => onChange(o.value)}
           className={cn(
             "flex-1 rounded-[8px] px-2 py-1.5 text-[13px] font-semibold transition-colors duration-150",

@@ -24,7 +24,7 @@ Status as of 2026-10-27 (autonomous run; specs: `claude-code-master-prompt.md` +
 | 3 Studio + CSS phone | Done (`9798123`) |
 | 4 OS shell | Done (`745ea67`) |
 | 5 Apps | Done |
-| 6 Spotlight / keyboard / focus / reduced motion | Not started |
+| 6 Spotlight / keyboard / focus / reduced motion | Done |
 | 7 3D phone + Ask Chetan | Not started |
 | 8 Polish (SEO, OG, Lighthouse, tests, README) | Not started |
 
@@ -44,6 +44,9 @@ Status as of 2026-10-27 (autonomous run; specs: `claude-code-master-prompt.md` +
   Substack RSS with fallback, Reviews (verified-only → "coming soon"), Services, Contact, Settings).
   `/api/contact` → Resend with Zod + honeypot + 3/hour rate limit; returns 503 without a key and the
   form shows "email me directly". Click-through script (`scripts/check-os.mjs`) passes; no console errors.
+- **Phase 6** — `scripts/a11y.mjs`: axe (WCAG 2.1 AA) finds 0 violations on home + 11 apps in both
+  themes. Radio groups are single tab stops with arrow keys; home arrow-key nav is edge-based;
+  Spotlight restores focus on close; focus trap + return-to-icon verified; reduced motion = fade.
 
 ## Needs Chetan
 

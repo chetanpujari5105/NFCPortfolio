@@ -75,7 +75,15 @@ function SpotlightPanel() {
   const [active, setActive] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => inputRef.current?.focus({ preventScroll: true }), []);
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null;
+    const appBefore = useOS.getState().route.app;
+    inputRef.current?.focus({ preventScroll: true });
+    // Hand focus back on close, unless a result opened an app (its window takes focus)
+    return () => {
+      if (useOS.getState().route.app === appBefore && previous?.isConnected) previous.focus({ preventScroll: true });
+    };
+  }, []);
 
   const entries = useMemo<Entry[]>(() => {
     const apps: HomeItem[] = [...appsLayout.block, ...appsLayout.row, ...appsLayout.dock, ...(ENABLE_ASK ? [askApp] : [])];

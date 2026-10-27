@@ -18,6 +18,7 @@ import {
   useLastValue,
 } from "@/components/ui/app-shell";
 import { useTheme } from "@/components/ui/theme-toggle";
+import { onRadioGroupKeyDown } from "@/lib/a11y";
 import { openApp } from "@/lib/router";
 import { useOS, WALLPAPERS, type Wallpaper } from "@/lib/store";
 import { FINISHES, setThemeWithReveal, type Theme } from "@/lib/theme";
@@ -151,13 +152,14 @@ export default function SettingsApp() {
         </ListGroup>
 
         <ListGroup header="Display & Brightness">
-          <div role="radiogroup" aria-label="Appearance" className="flex justify-center gap-12 px-4 pt-4 pb-3">
+          <div role="radiogroup" onKeyDown={onRadioGroupKeyDown} aria-label="Appearance" className="flex justify-center gap-12 px-4 pt-4 pb-3">
             {(["light", "dark"] as const).map((t) => (
               <button
                 key={t}
                 type="button"
                 role="radio"
                 aria-checked={theme === t}
+                tabIndex={theme === t ? 0 : -1}
                 aria-label={t === "light" ? "Light" : "Dark"}
                 suppressHydrationWarning
                 onClick={(e) => pickTheme(t, e)}
@@ -194,13 +196,14 @@ export default function SettingsApp() {
         </ListGroup>
 
         <ListGroup header="Wallpaper">
-          <div role="radiogroup" aria-label="Wallpaper" className="grid grid-cols-3 gap-3 p-4">
+          <div role="radiogroup" onKeyDown={onRadioGroupKeyDown} aria-label="Wallpaper" className="grid grid-cols-3 gap-3 p-4">
             {WALLPAPERS.map((w) => (
               <button
                 key={w}
                 type="button"
                 role="radio"
                 aria-checked={wallpaper === w}
+                tabIndex={wallpaper === w ? 0 : -1}
                 onClick={() => setWallpaper(w)}
                 className="flex flex-col items-center gap-2 transition-transform duration-150 ease-out active:scale-[0.96]"
               >
@@ -221,13 +224,14 @@ export default function SettingsApp() {
         </ListGroup>
 
         <ListGroup header="Phone finish">
-          <div role="radiogroup" aria-label="Phone finish" className="flex justify-around px-4 py-4">
+          <div role="radiogroup" onKeyDown={onRadioGroupKeyDown} aria-label="Phone finish" className="flex justify-around px-4 py-4">
             {FINISHES.map((f) => (
               <button
                 key={f}
                 type="button"
                 role="radio"
                 aria-checked={finish === f}
+                tabIndex={finish === f ? 0 : -1}
                 onClick={() => setFinish(f)}
                 className="flex flex-col items-center gap-2 transition-transform duration-150 ease-out active:scale-[0.94]"
               >
