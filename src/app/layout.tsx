@@ -2,7 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Archivo, Geist, Geist_Mono } from "next/font/google";
 
 import { ThemeSync } from "@/components/ui/theme-toggle";
-import { themeInitScript } from "@/lib/theme";
+import { appsLayout } from "@content/apps";
+import { buildInitScript } from "@/lib/theme";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -21,6 +22,10 @@ const archivo = Archivo({
   subsets: ["latin"],
   axes: ["wdth"],
 });
+
+const deepLinkApps = Object.keys(appsLayout.titles).filter(
+  (id) => id !== "ask" || process.env.NEXT_PUBLIC_ENABLE_ASK === "true",
+);
 
 const title = "Chetan Pujari — AI Educator · 400K+ Students · 21+ Platforms";
 const description =
@@ -61,7 +66,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} ${archivo.variable} h-full antialiased`}
     >
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        <script dangerouslySetInnerHTML={{ __html: buildInitScript(deepLinkApps) }} />
       </head>
       <body className="min-h-full">
         <ThemeSync />

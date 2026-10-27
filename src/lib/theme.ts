@@ -10,7 +10,9 @@ export const FINISHES: readonly Finish[] = ["electric", "graphite", "chai"];
  * Runs in <head> before first paint: applies the saved (or system) theme and
  * the saved phone finish so neither flashes. Kept dependency-free on purpose.
  */
-export const themeInitScript = `(function(){var d=document.documentElement;try{var t=localStorage.getItem("${THEME_KEY}");if(t!=="light"&&t!=="dark"){t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"}d.classList.toggle("dark",t==="dark");var f=localStorage.getItem("${FINISH_KEY}");if(f==="graphite"||f==="chai")d.setAttribute("data-finish",f)}catch(e){}})()`;
+export function buildInitScript(appIds: readonly string[]) {
+  return `(function(){var d=document.documentElement;try{var h=location.hash.slice(1).split("/")[0];if(${JSON.stringify(appIds)}.indexOf(h)>-1)d.setAttribute("data-deeplink","")}catch(e){}try{var t=localStorage.getItem("${THEME_KEY}");if(t!=="light"&&t!=="dark"){t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"}d.classList.toggle("dark",t==="dark");var f=localStorage.getItem("${FINISH_KEY}");if(f==="graphite"||f==="chai")d.setAttribute("data-finish",f);if(localStorage.getItem("pp-text")==="large")d.setAttribute("data-text","large");if(localStorage.getItem("pp-motion")==="reduce")d.setAttribute("data-reduce-motion","")}catch(e){}})()`;
+}
 
 export function readStored<T extends string>(
   key: string,

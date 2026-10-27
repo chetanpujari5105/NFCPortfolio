@@ -1,34 +1,26 @@
+import { validateContent } from "@content/index";
+import { ServerDataProvider } from "@/components/os/server-data";
+import { Phone } from "@/components/phone/Phone";
+import { SeoSummary } from "@/components/studio/SeoSummary";
+import { FinishSwatches } from "@/components/studio/FinishSwatches";
+import { SideNav } from "@/components/studio/SideNav";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { getPosts } from "@/lib/rss";
 
-// Phase 1 placeholder: the studio, phone and OS arrive in phases 3–4.
-export default function Home() {
+export default async function Home() {
+  // A broken edit in /content fails the build here instead of reaching visitors.
+  validateContent();
+  const data = await getPosts();
+
   return (
-    <main className="relative grid min-h-dvh place-items-center bg-studio-bg px-6 text-studio-ink">
-      <ThemeToggle className="absolute top-6 right-6" />
-      <div className="flex flex-col items-start gap-6">
-        <h1 className="font-display text-[clamp(3rem,9vw,7rem)] leading-[0.88] font-extrabold tracking-[-0.02em] [font-stretch:125%]">
-          Chetan
-          <br />
-          Pujari<span className="text-finish">⚡</span>
-        </h1>
-        <p className="text-lg text-studio-muted">AI Educator · 400K+ students</p>
-        <div className="flex gap-3">
-          {(["Studio", "App", "Finish"] as const).map((label, i) => (
-            <span
-              key={label}
-              className={
-                i === 0
-                  ? "rounded-full border border-studio-line px-3 py-1 text-sm"
-                  : i === 1
-                    ? "rounded-full bg-app-surface px-3 py-1 text-sm text-app-ink"
-                    : "rounded-full bg-finish px-3 py-1 text-sm text-finish-ink"
-              }
-            >
-              {label} token
-            </span>
-          ))}
-        </div>
-      </div>
+    <main className="relative flex h-dvh flex-col items-center justify-center gap-6 overflow-hidden bg-studio-bg text-studio-ink [background-image:radial-gradient(120%_90%_at_50%_45%,transparent_55%,var(--studio-vignette))] desk:gap-0">
+      <FinishSwatches className="absolute top-7 left-7 hidden tab:flex" />
+      <ThemeToggle className="absolute top-6 right-6 hidden tab:grid" />
+      <ServerDataProvider value={data}>
+        <Phone />
+      </ServerDataProvider>
+      <SideNav />
+      <SeoSummary posts={data.posts} />
     </main>
   );
 }
