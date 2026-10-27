@@ -659,7 +659,7 @@ html[data-reduce-motion] *::after {
 
 /* ───────────────────────── 3D stage (desktop default) ───────────────────────── */
 
-/* The whole studio is the stage: drag anywhere off the screen to spin the phone. */
+/* The whole studio is the stage: a deliberate sideways drag off the screen turns the phone. At rest it is perfectly still. */
 .stage {
   position: absolute;
   inset: 0;
@@ -671,32 +671,6 @@ html[data-reduce-motion] *::after {
 }
 .stage[data-dragging] {
   cursor: grabbing;
-}
-/* Idle float: ±3px over 6s on the compositor. It holds still while the screen is in use. */
-html[data-3d] .stage {
-  animation: stage-float 6s ease-in-out infinite;
-}
-.stage[data-dragging],
-.stage:has([data-screen]:hover),
-.stage:has([data-screen]:focus-within) {
-  animation-play-state: paused;
-}
-@keyframes stage-float {
-  0%,
-  100% {
-    translate: 0 3px;
-  }
-  50% {
-    translate: 0 -3px;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  html[data-3d] .stage {
-    animation: none;
-  }
-}
-html[data-reduce-motion] .stage {
-  animation: none;
 }
 .stage-canvas {
   position: absolute !important;

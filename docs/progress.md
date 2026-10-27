@@ -158,6 +158,12 @@ REA stays off (owner's earlier choice); the reference was studied with Playwrigh
   flaky (the desktop jiggle-drag test, which passes on its retry under full parallel load) /
   24 skipped by viewport. Re-recorded all scenarios: `docs/feel-gap.md` "After".
 
+## v4: stable phone, flagship look, real icons, GitHub (branch `feat/v4-polish`, spec `claude-code-prompt-v4-stable-phone-real-icons-github.md`)
+
+- **Problem 1: stable phone.** Reproduced first (`tests/stability.spec.ts` failed on v3: a quick 10 px wobble on the frame/stage — what a real click often is — crossed the 6 px threshold and flicked the phone; flicks spun 988°; the idle float moved it 3 px).
+  Fix: our own pointer state machine replaces use-gesture. A press only becomes a turn past 12 px *and* mostly sideways, never from the screen or anything pressable; rotation follows 1:1 (0.6°/px), pitch ≤ ±12°; release projects velocity ≤ 90° and a critically damped spring (ω 14, ~450 ms, no overshoot) settles on the nearest face and stays. Removed tap/double-click/`R` resets, the 1.2 s return and the idle float; a **Flip** button sits in the bottom-left studio corner. Parallax ±3° (0.35 s) holds still over the screen, while any app/layer is open and for 600 ms after any press.
+  27 stability tests (clicks, double-clicks, jitter, sloppy clicks, rapid clicks on screen/frame/stage, icon + in-app scroll, 200 px → 180° → 0°, 30 px → 0°, flick ≤ one half-turn, vertical drag, pitch, Flip, perfectly still at rest; box tolerance 0.5 px). Captures: `docs/v4/before/` (`stage-frames.png` is the click/drag video as frames).
+
 ## Needs Chetan
 
 - [ ] **Reviews:** all 5 are `verified: false` in `content/reviews.ts`. Confirm each is a real quote you may publish, then set `verified: true`.

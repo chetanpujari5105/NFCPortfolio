@@ -11,6 +11,7 @@ import {
 } from "react";
 import dynamic from "next/dynamic";
 import { LazyMotion, MotionConfig } from "motion/react";
+import { Rotate3d } from "lucide-react";
 
 import { appsLayout } from "@content/apps";
 import type { AppId } from "@content/schema";
@@ -280,6 +281,17 @@ export function Phone() {
             />
           )}
         </div>
+      )}
+      {live3D && rig && (
+        <button
+          type="button"
+          onClick={() => rig.flip()}
+          aria-label="Flip the phone"
+          className="absolute bottom-7 left-7 z-10 inline-flex h-9 items-center gap-2 rounded-full border border-studio-line px-3.5 text-[13px] font-semibold text-studio-muted transition-colors duration-150 hover:text-studio-ink"
+        >
+          <Rotate3d aria-hidden className="size-4" strokeWidth={2} />
+          Flip
+        </button>
       )}
       <CssPhone wrapRef={wrapRef} bezelRef={bezelRef} onPointerOver={warm} onFocus={warm}>
         <div ref={screenRef} data-screen className="phone-screen">

@@ -6,7 +6,6 @@
 import { Component, useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
 import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import { ContactShadows, Environment, Html, Lightformer } from "@react-three/drei";
-import { useDrag } from "@use-gesture/react";
 import { easing } from "maath";
 import * as THREE from "three";
 
@@ -36,11 +35,24 @@ const FRONT_Z = DEPTH / 2;
 const BACK_Z = -DEPTH / 2;
 
 const DEG = Math.PI / 180;
-const MAX_TILT = 6 * DEG;
-const MAX_PITCH = 25 * DEG;
-/** Drag distance (px) for a full turn */
-const PX_PER_TURN = 720;
-const IDLE_BEFORE_SETTLE = 1.2;
+/** Pointer parallax, at most this far either way, eased slowly */
+const MAX_TILT = 3 * DEG;
+const TILT_SMOOTH = 0.35;
+/** Pitch follows the drag's vertical travel, clamped, and springs flat on release */
+const MAX_PITCH = 12 * DEG;
+/** Rotation per px of drag (0.6°/px: 300 px is a half turn) */
+const RAD_PER_PX = 0.6 * DEG;
+/** A drag only turns the phone past this much horizontal travel, and only if it is mostly horizontal */
+export const SPIN_THRESHOLD = 12;
+/** Release velocity is projected this far ahead (s), capped at a quarter turn */
+const PROJECT_S = 0.15;
+const MAX_PROJECT = Math.PI / 2;
+/** Critically damped settle (ω = 14 rad/s ≈ 450 ms to rest, no overshoot) */
+const SETTLE_W = 14;
+/** Parallax holds still this long after any press, so nothing moves under a click */
+const CALM_AFTER_PRESS_MS = 600;
+/** Drags never start on the live screen or on anything you can press */
+const NO_SPIN = "[data-screen], .stage-screen, button, a, input, textarea, select, label, [role='button'], [data-no-spin]";
 
 function roundedRect(w: number, h: number, r: number) {
   const s = new THREE.Shape();
@@ -65,34 +77,44 @@ export type Rig = {
   velY: number;
   velX: number;
   dragging: boolean;
-  /** Seconds since the last drag release; settles to a face after IDLE_BEFORE_SETTLE */
-  idle: number;
-  /** Face we are springing to, in radians (null = coasting) */
-  target: number | null;
+  /** Face the phone rests on or springs to, in half turns (rotY target = face·π). Even = front. */
+  face: number;
   pointer: { x: number; y: number; over: boolean };
+  /** Parallax is frozen until this time (performance.now ms) */
+  calmUntil: number;
+  /** An app or system layer is open: the visitor is using the screen, so parallax holds still */
+  busy: boolean;
   pressed: number | null;
+  /** Requests a frame (set once the canvas exists) */
+  invalidate: () => void;
+  /** Half a turn to the other face (the studio's Flip button) */
+  flip: () => void;
 };
 
-const newRig = (): Rig => ({
-  rotY: 0,
-  rotX: 0,
-  velY: 0,
-  velX: 0,
-  dragging: false,
-  idle: 99,
-  target: 0,
-  pointer: { x: 0, y: 0, over: false },
-  pressed: null,
-});
+const newRig = (): Rig => {
+  const rig: Rig = {
+    rotY: 0,
+    rotX: 0,
+    velY: 0,
+    velX: 0,
+    dragging: false,
+    face: 0,
+    pointer: { x: 0, y: 0, over: false },
+    calmUntil: 0,
+    busy: false,
+    pressed: null,
+    invalidate: () => {},
+    flip: () => flipRig(rig),
+  };
+  return rig;
+};
 
-/** Nearest angle ≡ `face` (0 = front, π = back) to `angle`. */
-const nearest = (angle: number, face: number) => face + Math.round((angle - face) / (Math.PI * 2)) * Math.PI * 2;
 const showingBack = (angle: number) => Math.cos(angle) < 0;
 
-/** Springs `rig` back to the front from wherever it is (tap on back, double-click, R). */
-export function resetRig(rig: Rig) {
-  rig.target = nearest(rig.rotY, 0);
-  rig.idle = IDLE_BEFORE_SETTLE;
+function flipRig(rig: Rig) {
+  if (rig.dragging) return;
+  rig.face = Math.round(rig.rotY / Math.PI) + 1;
+  rig.invalidate();
 }
 
 /* ───────────────────────────── Branding texture ───────────────────────────── */
@@ -168,7 +190,11 @@ function Device({
   const arrival = useRef({ p: arrive ? 0 : 1, v: 0, landed: !arrive });
   const tilt = useRef({ x: 0, y: 0 });
   const colors = useMemo(
-    () => ({ frame: new THREE.Color(), back: new THREE.Color(), trim: new THREE.Color() }),
+    () => ({
+      frame: new THREE.Color(),
+      back: new THREE.Color(),
+      trim: new THREE.Color(),
+    }),
     [],
   );
   const press = useRef([0, 0, 0, 0]);
@@ -249,45 +275,37 @@ function Device({
     const away = 1 - a.p;
     if (stage.current) stage.current.style.opacity = String(Math.min(1, a.p * 1.4));
 
-    // Drag inertia → settle on the nearest face once the visitor lets go for a moment.
+    // Settle: one critically damped spring to the resting face (no overshoot, no coasting).
     if (!rig.dragging) {
-      rig.idle += dt;
-      if (rig.target === null) {
-        rig.rotY += rig.velY * dt;
-        rig.rotX += rig.velX * dt;
-        const decay = Math.exp(-dt * 2.6);
-        rig.velY *= decay;
-        rig.velX *= decay;
-        // Back showing once it slows: settle on the back. Front: spring home after a short pause.
-        const slow = Math.abs(rig.velY) < 0.35;
-        if (slow && showingBack(rig.rotY)) rig.target = nearest(rig.rotY, Math.PI);
-        else if (rig.idle > IDLE_BEFORE_SETTLE && !showingBack(rig.rotY)) rig.target = nearest(rig.rotY, 0);
-        moving = true;
-      } else {
-        // Rotation spring (damping ratio ≈ 0.8): carries the release velocity, no hard stop.
-        const k = 70;
-        const c = 13.5;
-        for (let i = 0; i < 4; i++) {
-          const h = dt / 4;
-          rig.velY += (-k * (rig.rotY - rig.target) - c * rig.velY) * h;
-          rig.rotY += rig.velY * h;
-          rig.velX += (-k * rig.rotX - c * rig.velX) * h;
-          rig.rotX += rig.velX * h;
-        }
-        if (Math.abs(rig.rotY - rig.target) > 1e-4 || Math.abs(rig.velY) > 1e-3 || Math.abs(rig.rotX) > 1e-4) moving = true;
-        else {
-          rig.rotY = rig.target;
-          rig.rotX = 0;
-          rig.velY = rig.velX = 0;
-        }
+      const goal = rig.face * Math.PI;
+      const k = SETTLE_W * SETTLE_W;
+      const c = 2 * SETTLE_W;
+      for (let i = 0; i < 4; i++) {
+        const h = dt / 4;
+        rig.velY += (-k * (rig.rotY - goal) - c * rig.velY) * h;
+        rig.rotY += rig.velY * h;
+        rig.velX += (-k * rig.rotX - c * rig.velX) * h;
+        rig.rotX += rig.velX * h;
+      }
+      if (Math.abs(rig.rotY - goal) > 1e-4 || Math.abs(rig.velY) > 1e-3 || Math.abs(rig.rotX) > 1e-4) moving = true;
+      else if (rig.rotY !== goal || rig.rotX !== 0) {
+        // At rest: snap exactly onto the face and fold the angle back to 0 or π
+        rig.face = ((rig.face % 2) + 2) % 2;
+        rig.rotY = rig.face * Math.PI;
+        rig.rotX = rig.velY = rig.velX = 0;
       }
     } else moving = true;
 
-    // Pointer parallax (critically damped); squares up while the visitor uses the screen.
+    // Pointer parallax. It holds exactly where it is while the visitor uses the screen, while any
+    // layer is open, and just after a press, so the phone never shifts under the cursor.
     const p = rig.pointer;
-    const calm = p.over || rig.dragging || showingBack(rig.rotY);
-    moving = easing.damp(tilt.current, "x", calm ? 0 : p.y * MAX_TILT, 0.22, dt) || moving;
-    moving = easing.damp(tilt.current, "y", calm ? 0 : p.x * MAX_TILT, 0.22, dt) || moving;
+    const frozen = p.over || rig.busy || rig.dragging || performance.now() < rig.calmUntil;
+    if (frozen) {
+      if (performance.now() < rig.calmUntil) moving = true;
+    } else {
+      moving = easing.damp(tilt.current, "x", p.y * MAX_TILT, TILT_SMOOTH, dt) || moving;
+      moving = easing.damp(tilt.current, "y", p.x * MAX_TILT, TILT_SMOOTH, dt) || moving;
+    }
 
     g.rotation.y = rig.rotY + tilt.current.y + away * -18 * DEG;
     g.rotation.x = rig.rotX + tilt.current.x + away * 8 * DEG;
@@ -316,7 +334,8 @@ function Device({
     if (host.current && host.current.inert === facing) host.current.inert = !facing;
     const s = stage.current;
     if (s) {
-      s.dataset.roty = String(Math.round((rig.rotY * 180) / Math.PI));
+      s.dataset.roty = String(Math.round((rig.rotY * 18000) / Math.PI) / 100);
+      s.dataset.rotx = String(Math.round((rig.rotX * 18000) / Math.PI) / 100);
       s.dataset.face = facing ? "front" : "back";
     }
 
@@ -432,7 +451,11 @@ function Device({
             onHost(el);
           }}
           className="stage-screen"
-          style={{ width: hostSize.w, height: hostSize.h, ["--phone-h" as string]: `${hostSize.phonePx}px` }}
+          style={{
+            width: hostSize.w,
+            height: hostSize.h,
+            ["--phone-h" as string]: `${hostSize.phonePx}px`,
+          }}
         />
       </Html>
     </group>
@@ -482,78 +505,145 @@ export type Phone3DProps = {
 };
 
 export default function Phone3D({ stage, rig, hostSize, offset, onHost, onLanded, onError }: Phone3DProps) {
-  const invalidateRef = useRef<() => void>(() => {});
-
-  // Pointer parallax + "is the pointer over the screen"
+  // Pointer parallax + "is the pointer over the screen"; any press calms the parallax for a moment.
   useEffect(() => {
     const onMove = (e: PointerEvent) => {
       rig.pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
       rig.pointer.y = (e.clientY / window.innerHeight) * 2 - 1;
       rig.pointer.over = !!(e.target as Element | null)?.closest?.("[data-screen]");
-      invalidateRef.current();
+      rig.invalidate();
     };
-    const onKey = (e: KeyboardEvent) => {
-      const t = e.target as HTMLElement | null;
-      if (e.key.toLowerCase() !== "r" || e.metaKey || e.ctrlKey || e.altKey) return;
-      if (t?.closest("input, textarea, [contenteditable], [data-screen]")) return;
-      resetRig(rig);
-      invalidateRef.current();
+    const onPress = () => {
+      rig.calmUntil = performance.now() + CALM_AFTER_PRESS_MS;
+      rig.invalidate();
     };
     window.addEventListener("pointermove", onMove, { passive: true });
-    window.addEventListener("keydown", onKey);
+    window.addEventListener("pointerdown", onPress, {
+      capture: true,
+      passive: true,
+    });
+    window.addEventListener("click", onPress, { capture: true, passive: true });
     return () => {
       window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("pointerdown", onPress, { capture: true });
+      window.removeEventListener("click", onPress, { capture: true });
     };
   }, [rig]);
 
-  // Drag on the stage (never on the screen): spin with inertia.
-  const start = useRef({ y: 0, x: 0 });
-  useDrag(
-    (s) => {
-      const { first, last, tap, movement, event, cancel } = s;
-      if (first && startedIn(event, "[data-screen], button, a, input")) {
-        cancel();
-        return;
+  // Open apps and system layers count as "using the screen".
+  useEffect(() => {
+    const sync = (s: ReturnType<typeof useOS.getState>) => {
+      const busy = !!s.route.app || s.spotlightOpen || s.switcherOpen || s.panelOpen;
+      if (busy !== rig.busy) {
+        rig.busy = busy;
+        rig.invalidate();
       }
-      if (tap) {
-        if (showingBack(rig.rotY)) resetRig(rig);
-        invalidateRef.current();
-        return;
-      }
-      if (first) {
-        start.current = { y: rig.rotY, x: rig.rotX };
-        rig.dragging = true;
-        rig.target = null;
-        stage.current?.setAttribute("data-dragging", "");
-      }
-      const k = (Math.PI * 2) / PX_PER_TURN;
-      rig.rotY = start.current.y + movement[0] * k;
-      const pitch = start.current.x + movement[1] * k;
-      rig.rotX = Math.max(-MAX_PITCH, Math.min(MAX_PITCH, pitch));
-      rig.velY = s.velocity[0] * s.direction[0] * 1000 * k;
-      rig.velX = rig.rotX === pitch ? s.velocity[1] * s.direction[1] * 1000 * k : 0;
-      if (last) {
-        rig.dragging = false;
-        rig.idle = 0;
-        stage.current?.removeAttribute("data-dragging");
-      }
-      invalidateRef.current();
-    },
-    { target: stage, threshold: 6, filterTaps: true, pointer: { capture: true }, eventOptions: { passive: true } },
-  );
+    };
+    sync(useOS.getState());
+    return useOS.subscribe(sync);
+  }, [rig]);
 
-  // Double-click empty stage space: back to the front.
+  // Deliberate drags on the stage turn the phone; nothing else does. A press stays "pending" until
+  // it has moved more than SPIN_THRESHOLD px, mostly sideways; anything else (clicks, jitter,
+  // vertical drags) never turns it. While dragging, rotation follows the pointer 1:1; on release the
+  // velocity is projected a little (≤ 90°) and the phone settles on the nearest face and stays.
   useEffect(() => {
     const el = stage.current;
     if (!el) return;
-    const onDbl = (e: MouseEvent) => {
-      if (startedIn(e, "[data-screen], button, a")) return;
-      resetRig(rig);
-      invalidateRef.current();
+    type Press = {
+      id: number;
+      x0: number;
+      y0: number;
+      ox: number;
+      oy: number;
+      from: number;
+      turning: boolean;
+      samples: [number, number][];
     };
-    el.addEventListener("dblclick", onDbl);
-    return () => el.removeEventListener("dblclick", onDbl);
+    let press: Press | null = null;
+
+    const end = (release: boolean) => {
+      const g = press;
+      press = null;
+      if (!g?.turning) return;
+      let v = 0;
+      if (release) {
+        // Release velocity (rad/s) from the last 80 ms of movement; a pause before release is 0
+        const now = performance.now();
+        const recent = g.samples.filter(([t]) => now - t < 80);
+        if (recent.length > 1) {
+          const [t0, x0] = recent[0];
+          const [t1, x1] = recent[recent.length - 1];
+          if (t1 - t0 > 0) v = ((x1 - x0) / ((t1 - t0) / 1000)) * RAD_PER_PX;
+        }
+      }
+      const projected = rig.rotY + Math.max(-MAX_PROJECT, Math.min(MAX_PROJECT, v * PROJECT_S));
+      rig.face = Math.round(projected / Math.PI);
+      // Carry the release speed into the settle only toward the face, and never enough to overshoot
+      const gap = rig.face * Math.PI - rig.rotY;
+      const toward = Math.sign(gap) === Math.sign(v) ? v : 0;
+      rig.velY = Math.sign(toward) * Math.min(Math.abs(toward), SETTLE_W * Math.abs(gap));
+      rig.velX = 0;
+      rig.dragging = false;
+      el.removeAttribute("data-dragging");
+      if (el.hasPointerCapture(g.id)) el.releasePointerCapture(g.id);
+      rig.invalidate();
+    };
+
+    const onDown = (e: PointerEvent) => {
+      if (press || e.button !== 0 || !e.isPrimary || startedIn(e, NO_SPIN)) return;
+      press = {
+        id: e.pointerId,
+        x0: e.clientX,
+        y0: e.clientY,
+        ox: 0,
+        oy: 0,
+        from: 0,
+        turning: false,
+        samples: [],
+      };
+    };
+    const onMove = (e: PointerEvent) => {
+      const g = press;
+      if (!g || e.pointerId !== g.id) return;
+      if (!g.turning) {
+        const dx = Math.abs(e.clientX - g.x0);
+        const dy = Math.abs(e.clientY - g.y0);
+        if (dy > SPIN_THRESHOLD && dy >= dx) press = null; // a vertical drag: never a turn
+        if (dx <= SPIN_THRESHOLD || dx <= dy) return;
+        // Deliberate: measure from here so the phone doesn't jump by the threshold
+        g.turning = true;
+        g.ox = e.clientX;
+        g.oy = e.clientY;
+        g.from = rig.rotY;
+        rig.dragging = true;
+        rig.velY = rig.velX = 0;
+        el.setAttribute("data-dragging", "");
+        el.setPointerCapture(g.id);
+      }
+      rig.rotY = g.from + (e.clientX - g.ox) * RAD_PER_PX;
+      rig.rotX = Math.max(-MAX_PITCH, Math.min(MAX_PITCH, (e.clientY - g.oy) * RAD_PER_PX));
+      const now = performance.now();
+      g.samples.push([now, e.clientX]);
+      if (g.samples.length > 12) g.samples.shift();
+      rig.invalidate();
+    };
+    const onUp = (e: PointerEvent) => {
+      if (press && e.pointerId === press.id) end(true);
+    };
+    const onCancel = (e: PointerEvent) => {
+      if (press && e.pointerId === press.id) end(false);
+    };
+    el.addEventListener("pointerdown", onDown);
+    window.addEventListener("pointermove", onMove, { passive: true });
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onCancel);
+    return () => {
+      el.removeEventListener("pointerdown", onDown);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onCancel);
+    };
   }, [stage, rig]);
 
   return (
@@ -564,10 +654,14 @@ export default function Phone3D({ stage, rig, hostSize, offset, onHost, onLanded
         dpr={[1, 2]}
         eventSource={stage as RefObject<HTMLElement>}
         eventPrefix="client"
-        gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
+        gl={{
+          antialias: true,
+          alpha: true,
+          powerPreference: "high-performance",
+        }}
         camera={{ fov: 30, position: [0, 0, 30] }}
         onCreated={({ invalidate, gl }) => {
-          invalidateRef.current = invalidate;
+          rig.invalidate = invalidate;
           gl.toneMapping = THREE.ACESFilmicToneMapping;
           gl.outputColorSpace = THREE.SRGBColorSpace;
           gl.domElement.addEventListener("webglcontextlost", onError);
