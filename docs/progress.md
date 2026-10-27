@@ -25,7 +25,7 @@ Status as of 2026-10-27 (autonomous run; specs: `claude-code-master-prompt.md` +
 | 4 OS shell | Done (`745ea67`) |
 | 5 Apps | Done |
 | 6 Spotlight / keyboard / focus / reduced motion | Done |
-| 7 3D phone + Ask Chetan | Not started |
+| 7 3D phone + Ask Chetan | Done (both behind flags, off by default) |
 | 8 Polish (SEO, OG, Lighthouse, tests, README) | Not started |
 
 ## Log
@@ -47,10 +47,17 @@ Status as of 2026-10-27 (autonomous run; specs: `claude-code-master-prompt.md` +
 - **Phase 6** — `scripts/a11y.mjs`: axe (WCAG 2.1 AA) finds 0 violations on home + 11 apps in both
   themes. Radio groups are single tab stops with arrow keys; home arrow-key nav is edge-based;
   Spotlight restores focus on close; focus trap + return-to-icon verified; reduced motion = fade.
+- **Phase 7** — 3D phone (`NEXT_PUBLIC_ENABLE_3D`): original extruded body in R3F, live OS portalled into
+  drei `<Html transform>`, ±6° pointer tilt that squares up while you use the screen, lazy + desktop +
+  WebGL + motion-allowed only, falls back to the CSS phone (`scripts/check-3d.mjs`). Ask Chetan
+  (`NEXT_PUBLIC_ENABLE_ASK`): `/api/ask` grounded only in `/content`, refuses off-topic, 15/hour/IP,
+  course cards via `{{course:id}}`, links allow-listed to the site's own URLs (`scripts/check-ask.mjs`).
 
 ## Needs Chetan
 
 - [ ] **Reviews:** all 5 are `verified: false` in `content/reviews.ts`. Confirm each is a real quote you may publish, then set `verified: true`.
 - [ ] **Prompt Chaining post URL:** not found in the Substack feed/sitemap; the fallback post links to the publication home. Put the real URL in `content/blog.ts` if it exists.
 - [ ] **Contact email delivery:** add `RESEND_API_KEY` (and a verified sender in `CONTACT_FROM_EMAIL`) to Vercel env vars. Until then the form shows "email me directly".
+- [ ] **Ask Chetan (optional):** set `OPENAI_API_KEY` (server only) and `NEXT_PUBLIC_ENABLE_ASK=true` in Vercel, then redeploy. `OPENAI_MODEL` defaults to `gpt-5-mini`. Try a few questions before announcing it.
+- [ ] **3D phone (optional):** set `NEXT_PUBLIC_ENABLE_3D=true` to try it; the CSS phone stays the default.
 - [ ] **Packt profile URL:** the old site's Packt links were `#`; Packt shows without a link in `content/platforms.ts`.

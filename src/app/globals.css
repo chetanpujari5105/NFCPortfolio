@@ -490,3 +490,16 @@ html[data-reduce-motion] *::after {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/* Optional 3D phone: same footprint as the CSS phone, with room for the tilt */
+.phone-wrap-3d {
+  --phone-h: min(86dvh, 900px);
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: var(--phone-h);
+  width: calc(var(--phone-h) * 0.62);
+}
+.phone-wrap-3d > .phone-wrap {
+  position: absolute;
+}

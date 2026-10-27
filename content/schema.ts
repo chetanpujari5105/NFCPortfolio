@@ -162,6 +162,14 @@ export const AppsLayoutSchema = z.object({
   titles: z.record(AppIdSchema, z.string()),
 });
 
+export const AskCopySchema = z.object({
+  title: z.string(),
+  intro: z.string(),
+  placeholder: z.string(),
+  suggestions: z.array(z.string()).min(1).max(6),
+  unavailable: z.string(),
+});
+
 export type AppId = z.infer<typeof AppIdSchema>;
 export type Social = z.infer<typeof SocialSchema>;
 export type Profile = z.infer<typeof ProfileSchema>;
@@ -177,3 +185,4 @@ export type Review = z.infer<typeof ReviewSchema>;
 export type Project = z.infer<typeof ProjectSchema>;
 export type HomeItem = z.infer<typeof HomeItemSchema>;
 export type AppsLayout = z.infer<typeof AppsLayoutSchema>;
+export type AskCopy = z.infer<typeof AskCopySchema>;

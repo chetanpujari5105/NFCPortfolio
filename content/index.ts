@@ -1,6 +1,7 @@
 import * as z from "zod";
 
 import { appsLayout } from "./apps";
+import { ask } from "./ask";
 import { fallbackPosts } from "./blog";
 import { courses } from "./courses";
 import { expertise } from "./expertise";
@@ -11,6 +12,7 @@ import { projects } from "./projects";
 import { reviews } from "./reviews";
 import {
   AppsLayoutSchema,
+  AskCopySchema,
   BlogPostSchema,
   CourseSchema,
   ExpertiseSchema,
@@ -41,6 +43,7 @@ export function validateContent() {
   z.array(ReviewSchema).parse(reviews);
   z.array(ProjectSchema).parse(projects);
   AppsLayoutSchema.parse(appsLayout);
+  AskCopySchema.parse(ask);
 
   const courseIds = new Set(courses.map((c) => c.id));
   const serviceIds = new Set(services.map((s) => s.id));
