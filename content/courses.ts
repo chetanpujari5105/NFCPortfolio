@@ -1,0 +1,81 @@
+import type { Course, CourseCategory } from "./schema";
+
+export const courseCategories: CourseCategory[] = ["AI Video", "AI & Prompting", "Design", "Productivity"];
+
+// Blurbs are written from the course titles only — no invented ratings or numbers.
+export const courses = [
+  {
+    id: "google-veo",
+    title: "Google Veo 3.1 Complete Mastery: From Text to Cinema",
+    platform: "Udemy",
+    badge: "BESTSELLER",
+    category: "AI Video",
+    image: "/content/courses/google-veo.webp",
+    url: "https://www.udemy.com/course/google-veo-complete-mastery-from-text-to-cinema/?referralCode=C8E267B2F6C642B37946",
+    featured: true,
+    blurb: "Turn plain text prompts into cinematic AI video with Google Veo 3.1.",
+    audience: "Creators, marketers and filmmakers who want to make video with AI.",
+  },
+  {
+    id: "heygen-elevenlabs",
+    title: "HeyGen + ElevenLabs: Create Viral AI Videos & Voiceovers",
+    platform: "Udemy",
+    badge: "MOST POPULAR",
+    category: "AI Video",
+    image: "/content/courses/heygen-elevenlabs.webp",
+    url: "https://www.udemy.com/course/heygen-elevenlabs-create-viral-ai-videos-voiceovers/?referralCode=9B7744312C61C887D963",
+    featured: false,
+    blurb: "Pair HeyGen avatars with ElevenLabs voices to produce AI videos and voiceovers.",
+    audience: "Content creators and businesses who want videos without filming.",
+  },
+  {
+    id: "figma-design",
+    title: "UI/UX Design With Figma : 5+ Real World Projects",
+    platform: "Udemy",
+    badge: "HIGHEST RATED & BESTSELLER",
+    category: "Design",
+    image: "/content/courses/figma-design.webp",
+    url: "https://www.udemy.com/course/uiux-design-with-figma-5-real-world-projects2022/?referralCode=162A0121145B10617735",
+    featured: false,
+    blurb: "Learn UI/UX design in Figma by building five real-world projects.",
+    audience: "Beginners and career-switchers heading into product design.",
+  },
+  {
+    id: "prompt-engineering",
+    title: "Mastering ChatGPT Prompt Engineering: Beginner to Advanced",
+    platform: "Udemy",
+    badge: "HIGHEST RATED",
+    category: "AI & Prompting",
+    image: "/content/courses/prompt-engineering.webp",
+    url: "https://www.udemy.com/course/mastering-chatgpt-prompt-engineering-beginner-to-advanced/?referralCode=A9C87B6CB177C58EF463",
+    featured: false,
+    blurb: "Go from first prompt to advanced prompt engineering with ChatGPT.",
+    audience: "Anyone who uses ChatGPT at work or school and wants better answers.",
+  },
+  {
+    id: "master-notion",
+    title: "Master Notion: Build Your All-in-One Productivity System",
+    platform: "Udemy",
+    badge: "HIGHEST RATED",
+    category: "Productivity",
+    image: "/content/courses/master-notion.webp",
+    url: "https://www.udemy.com/course/master-notion-build-your-all-in-one-productivity-system/?referralCode=B40F9D016BA8B8A77A92",
+    featured: false,
+    blurb: "Build one Notion system that runs your notes, tasks and projects.",
+    audience: "Students and professionals who want to get organised.",
+  },
+  {
+    id: "canva-masterclass",
+    title: "Canva Masterclass For Social Media And Content Creation",
+    platform: "Udemy",
+    badge: "BESTSELLER",
+    category: "Design",
+    image: "/content/courses/canva-masterclass.webp",
+    url: "https://www.udemy.com/course/canva-masterclass-for-social-media-and-content-creation/?referralCode=66F992F39A96477E14B5",
+    featured: false,
+    blurb: "Design social media posts and content in Canva, start to finish.",
+    audience: "Creators, small businesses and social media managers.",
+  },
+] satisfies Course[];
+
+export type CourseId = (typeof courses)[number]["id"];

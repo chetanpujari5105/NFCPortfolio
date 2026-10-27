@@ -9,7 +9,8 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
-    "test": "playwright test"
+    "test": "playwright test",
+    "content:check": "tsx scripts/validate-content.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
@@ -36,6 +37,7 @@
     "prettier": "^3.9.10",
     "prettier-plugin-tailwindcss": "^0.8.1",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   }
 }
