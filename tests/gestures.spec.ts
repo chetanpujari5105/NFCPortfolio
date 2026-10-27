@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./fixtures";
 
 /*
  * Gesture end-states, driven with the real mouse / touchscreen. These run on every viewport;
@@ -14,6 +14,23 @@ const dialog = (page: Page) => page.locator("[role=dialog][aria-modal=true][aria
 async function home(page: Page) {
   await page.goto("/");
   await expect(page.locator("[data-app-icon]").first()).toBeVisible();
+  // On wide screens the live screen moves into the 3D phone once it loads; start after that.
+  await page.waitForFunction(
+    () => innerWidth < 900 || document.documentElement.hasAttribute("data-3d"),
+    null,
+    { timeout: 25_000 },
+  );
+  // …and once the phone has finished arriving and levelled out (parallax rests while the pointer
+  // is over the screen), so measured positions hold.
+  const screen = (await page.locator("[data-screen]").boundingBox())!;
+  await page.mouse.move(screen.x + screen.width / 2, screen.y + screen.height / 2);
+  const icon = page.locator("[data-app-icon]").first();
+  await expect(async () => {
+    const a = (await icon.boundingBox())!;
+    await page.waitForTimeout(150);
+    const b = (await icon.boundingBox())!;
+    expect(Math.abs(a.x - b.x) + Math.abs(a.y - b.y)).toBeLessThan(1);
+  }).toPass({ timeout: 10_000 });
 }
 
 async function openApp(page: Page, label: string) {
@@ -97,4 +114,48 @@ test("switching apps from Search goes out to home, then into the new app", async
   await expect(page).toHaveURL(/#settings$/);
   await expect(page.getByRole("dialog", { name: "Settings" })).toBeVisible();
   await expect(page.getByRole("dialog", { name: "Journey" })).toHaveCount(0);
+});
+
+test("swiping the home screen pages to the widgets and back", async ({ page }) => {
+  await home(page);
+  const layer = (await page.locator("[data-home-layer]").boundingBox())!;
+  const y = layer.y + layer.height * 0.45;
+  await drag(page, { x: layer.x + layer.width * 0.85, y }, { x: layer.x + layer.width * 0.15, y }, { steps: 10 });
+  await expect(page.getByRole("button", { name: "Page 2 of 2" })).toHaveAttribute("aria-current", "page");
+  await expect(page.getByRole("button", { name: /Latest post:/ })).toBeVisible();
+  // Start the swipe back on a link widget: a native link drag must not swallow it.
+  const video = (await page.getByRole("link", { name: /^(YouTube channel|Latest video)/ }).boundingBox())!;
+  const vy = video.y + video.height / 2;
+  await drag(page, { x: video.x + video.width / 2, y: vy }, { x: video.x + video.width / 2 + layer.width * 0.6, y: vy }, { steps: 10 });
+  await expect(page.getByRole("button", { name: "Page 1 of 2" })).toHaveAttribute("aria-current", "page");
+});
+
+test("pulling down on the home screen opens Search", async ({ page }) => {
+  await home(page);
+  const layer = (await page.locator("[data-home-layer]").boundingBox())!;
+  const x = layer.x + layer.width * 0.5;
+  await drag(page, { x, y: layer.y + layer.height * 0.62 }, { x, y: layer.y + layer.height * 0.62 + 170 }, { steps: 10 });
+  await expect(page.getByRole("combobox")).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("combobox")).toHaveCount(0);
+});
+
+test("long-press enters jiggle mode; dragging an icon rearranges and persists", async ({ page }) => {
+  await home(page);
+  const first = page.locator("[data-reorder]").first();
+  const id = await first.getAttribute("data-reorder");
+  const box = (await first.boundingBox())!;
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 3);
+  await page.mouse.down();
+  await page.waitForTimeout(650);
+  await page.mouse.up();
+  await expect(page.getByRole("button", { name: "Done" })).toBeVisible();
+  await page.waitForTimeout(500); // jiggle mode's entrance settles before measuring the drop slot
+  const target = (await page.locator("[data-reorder]").nth(3).boundingBox())!;
+  await drag(page, { x: box.x + box.width / 2, y: box.y + box.height / 3 }, { x: target.x + target.width / 2, y: target.y + target.height / 3 }, { steps: 14, delay: 16 });
+  await page.waitForTimeout(600);
+  await expect(page.locator("[data-reorder]").nth(3)).toHaveAttribute("data-reorder", id!);
+  await page.getByRole("button", { name: "Done" }).click();
+  await page.reload();
+  await expect(page.locator("[data-reorder]").nth(3)).toHaveAttribute("data-reorder", id!);
 });

@@ -6,12 +6,13 @@ import { FinishSwatches } from "@/components/studio/FinishSwatches";
 import { JsonLd } from "@/components/studio/JsonLd";
 import { SideNav } from "@/components/studio/SideNav";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { getPosts } from "@/lib/rss";
+import { getLatestVideo, getPosts } from "@/lib/rss";
 
 export default async function Home() {
   // A broken edit in /content fails the build here instead of reaching visitors.
   validateContent();
-  const data = await getPosts();
+  const [feed, video] = await Promise.all([getPosts(), getLatestVideo()]);
+  const data = { ...feed, video };
 
   return (
     <main className="relative flex h-dvh flex-col items-center justify-center gap-6 overflow-hidden bg-studio-bg text-studio-ink [background-image:radial-gradient(120%_90%_at_50%_45%,transparent_55%,var(--studio-vignette))] desk:gap-0">

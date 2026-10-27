@@ -56,7 +56,7 @@ async function scenario(name, run, { mobile = false } = {}) {
     recordVideo: { dir: out, size: mobile ? { width: 390, height: 844 } : { width: 1440, height: 900 } },
   });
   await ctx.addInitScript(INIT);
-  if (MINE && name !== "arrival") await ctx.addInitScript(() => sessionStorage.setItem("pp-unlocked", "1"));
+  if (MINE && name !== "arrival" && name !== "home") await ctx.addInitScript(() => sessionStorage.setItem("pp-unlocked", "1"));
   const page = await ctx.newPage();
   const t0 = Date.now();
   const marks = [];
@@ -166,6 +166,57 @@ await scenario("finish", async (page, mark) => {
     await toggle.click();
     await settle(page, 1200);
   }
+});
+
+// Step 5: lock screen swipe, home paging, pull-down Search and jiggle mode (mine only).
+await scenario("home", async (page, mark) => {
+  if (!MINE) return;
+  await settle(page, 2600);
+  const lock = await page.locator("[data-lock]").boundingBox();
+  if (lock) {
+    mark("unlock");
+    const x = lock.x + lock.width / 2;
+    await page.mouse.move(x, lock.y + lock.height * 0.85);
+    await page.mouse.down();
+    for (let i = 1; i <= 12; i++) {
+      await page.mouse.move(x, lock.y + lock.height * (0.85 - i * 0.04));
+      await page.waitForTimeout(16);
+    }
+    await page.mouse.up();
+    await settle(page, 1200);
+  }
+  const layer = await page.locator("[data-home-layer]").boundingBox();
+  const swipe = async (fx, fy, tx, ty) => {
+    await page.mouse.move(fx, fy);
+    await page.mouse.down();
+    for (let i = 1; i <= 12; i++) {
+      await page.mouse.move(fx + ((tx - fx) * i) / 12, fy + ((ty - fy) * i) / 12);
+      await page.waitForTimeout(16);
+    }
+    await page.mouse.up();
+  };
+  const y = layer.y + layer.height * 0.45;
+  mark("page");
+  await swipe(layer.x + layer.width * 0.85, y, layer.x + layer.width * 0.2, y);
+  await settle(page, 1200);
+  await swipe(layer.x + layer.width * 0.2, y, layer.x + layer.width * 0.85, y);
+  await settle(page, 1000);
+  mark("search");
+  const cx = layer.x + layer.width / 2;
+  await swipe(cx, layer.y + layer.height * 0.6, cx, layer.y + layer.height * 0.6 + 170);
+  await settle(page, 1000);
+  await page.keyboard.press("Escape");
+  await settle(page, 800);
+  mark("jiggle");
+  const icon = await page.locator("[data-reorder]").first().boundingBox();
+  await page.mouse.move(icon.x + icon.width / 2, icon.y + icon.height / 3);
+  await page.mouse.down();
+  await page.waitForTimeout(650);
+  await page.mouse.up();
+  await settle(page, 600);
+  const target = await page.locator("[data-reorder]").nth(3).boundingBox();
+  await swipe(icon.x + icon.width / 2, icon.y + icon.height / 3, target.x + target.width / 2, target.y + target.height / 3);
+  await settle(page, 1500);
 });
 
 await scenario("search", async (page, mark) => {

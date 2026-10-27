@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { animate, motion, useMotionValueEvent, useTransform } from "motion/react";
 
 import { appsLayout, askApp } from "@content/apps";
 import { courses } from "@content/courses";
@@ -9,8 +10,9 @@ import { platforms } from "@content/platforms";
 import { projects } from "@content/projects";
 import type { AppId, HomeItem } from "@content/schema";
 import { services } from "@content/services";
+import { searchProgress, springs } from "@/lib/motion";
 import { ENABLE_ASK, openApp } from "@/lib/router";
-import { useOS } from "@/lib/store";
+import { prefersReducedMotion, useOS } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 import { Glyph } from "./icons";
@@ -64,11 +66,23 @@ export function Spotlight() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  // Mounted only while open, so the query resets every time.
-  return open ? <SpotlightPanel /> : null;
+  // Opening/closing (button, ⌘K, Esc) animates the same progress a pull-down drives by hand.
+  const [visible, setVisible] = useState(false);
+  useMotionValueEvent(searchProgress, "change", (v) => setVisible(v > 0.002));
+  useEffect(() => {
+    const c = animate(searchProgress, open ? 1 : 0, prefersReducedMotion() ? { duration: 0.15 } : springs.smooth);
+    return () => c.stop();
+  }, [open]);
+
+  // Mounted only while visible, so the query resets every time.
+  return open || visible ? <SpotlightPanel open={open} /> : null;
 }
 
-function SpotlightPanel() {
+function SpotlightPanel({ open }: { open: boolean }) {
+  // The field follows the finger down; the home screen blurs and dims in proportion.
+  const backdrop = useTransform(searchProgress, [0, 1], [0, 1]);
+  const panelY = useTransform(searchProgress, (p) => (1 - Math.min(p, 1)) * -56 + Math.max(0, p - 1) * 40);
+  const panelOpacity = useTransform(searchProgress, [0, 0.6], [0, 1]);
   const setOpen = useOS((s) => s.setSpotlightOpen);
   const { posts } = useServerData();
   const [query, setQuery] = useState("");
@@ -76,6 +90,7 @@ function SpotlightPanel() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    if (!open) return;
     const previous = document.activeElement as HTMLElement | null;
     const appBefore = useOS.getState().route.app;
     inputRef.current?.focus({ preventScroll: true });
@@ -83,7 +98,7 @@ function SpotlightPanel() {
     return () => {
       if (useOS.getState().route.app === appBefore && previous?.isConnected) previous.focus({ preventScroll: true });
     };
-  }, []);
+  }, [open]);
 
   const entries = useMemo<Entry[]>(() => {
     const apps: HomeItem[] = [...appsLayout.block, ...appsLayout.row, ...appsLayout.dock, ...(ENABLE_ASK ? [askApp] : [])];
@@ -162,15 +177,24 @@ function SpotlightPanel() {
   };
 
   return (
-    <div role="dialog" aria-modal="true" aria-label="Search" className="absolute inset-0 z-60 flex flex-col">
-      <button
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Search"
+      className={cn("absolute inset-0 z-60 flex flex-col", !open && "pointer-events-none")}
+    >
+      <motion.button
         type="button"
         tabIndex={-1}
         aria-label="Close search"
         onClick={() => setOpen(false)}
+        style={{ opacity: backdrop }}
         className="absolute inset-0 bg-black/30 backdrop-blur-[22px]"
       />
-      <div className="relative mx-4 mt-[max(env(safe-area-inset-top),14px)] tab:mt-[7.5cqh]">
+      <motion.div
+        style={{ y: panelY, opacity: panelOpacity }}
+        className="relative mx-4 mt-[max(env(safe-area-inset-top),14px)] tab:mt-[7.5cqh]"
+      >
         <label className="glass flex h-11 items-center gap-2 rounded-[14px] px-3 text-app-ink shadow-lg">
           <Glyph name="search" className="size-4 text-app-muted" />
           <span className="sr-only">Search apps, courses, projects and posts</span>
@@ -233,7 +257,7 @@ function SpotlightPanel() {
             </li>
           ))}
         </ul>
-      </div>
+      </motion.div>
     </div>
   );
 }

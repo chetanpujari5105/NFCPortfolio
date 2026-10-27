@@ -1,7 +1,7 @@
 import { cacheLife } from "next/cache";
 
 import { fallbackPosts, substackFeed } from "@content/blog";
-import type { FeedPost } from "@/components/os/server-data";
+import type { FeedPost, LatestVideo } from "@/components/os/server-data";
 
 const ENTITIES: Record<string, string> = {
   amp: "&",
@@ -71,5 +71,35 @@ export async function getPosts(): Promise<{ posts: FeedPost[]; fromFeed: boolean
     return { posts: posts.slice(0, 20), fromFeed: true };
   } catch {
     return { posts: fallback(), fromFeed: false };
+  }
+}
+
+/** Channel feed (public, no key). Empty or unreachable → null and the widget links the channel. */
+export const YOUTUBE_FEED = "https://www.youtube.com/feeds/videos.xml?channel_id=UCBfmE2dDnKSHxeIG6ACyhmw";
+
+export function parseVideoFeed(xml: string): LatestVideo | null {
+  const entry = xml.match(/<entry>([\s\S]*?)<\/entry>/)?.[1];
+  if (!entry) return null;
+  const id = field(entry, "yt:videoId");
+  const title = decode(field(entry, "title"));
+  if (!/^[\w-]{6,20}$/.test(id) || !title) return null;
+  return {
+    id,
+    title,
+    url: `https://www.youtube.com/watch?v=${id}`,
+    published: field(entry, "published").slice(0, 10),
+    thumb: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
+  };
+}
+
+export async function getLatestVideo(): Promise<LatestVideo | null> {
+  "use cache";
+  cacheLife({ stale: 3600, revalidate: 21600, expire: 604800 });
+  try {
+    const res = await fetch(YOUTUBE_FEED, { signal: AbortSignal.timeout(6000) });
+    if (!res.ok) return null;
+    return parseVideoFeed(await res.text());
+  } catch {
+    return null;
   }
 }

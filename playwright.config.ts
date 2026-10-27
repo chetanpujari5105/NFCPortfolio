@@ -8,7 +8,8 @@ export default defineConfig({
   // Each desktop page renders WebGL (3D phone + wallpaper); too many at once starve the GPU
   workers: process.env.CI ? 2 : 4,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
+  // One local retry absorbs GPU-contention timing under 4 parallel WebGL workers; it is reported as "flaky".
+  retries: process.env.CI ? 2 : 1,
   reporter: process.env.CI ? "github" : "list",
   use: {
     baseURL: `http://localhost:${PORT}`,

@@ -18,6 +18,7 @@ import { APPS, preloadApp } from "@/components/apps/registry";
 import { AppSwitcher } from "@/components/os/AppSwitcher";
 import { AppWindow } from "@/components/os/AppWindow";
 import { HomeScreen } from "@/components/os/HomeScreen";
+import { LockScreen } from "@/components/os/LockScreen";
 import { SocialsFolder } from "@/components/os/SocialsFolder";
 import { Spotlight } from "@/components/os/Spotlight";
 import { goBack, goHome, useHashRouter } from "@/lib/router";
@@ -280,6 +281,7 @@ export function Phone() {
               <App />
             </AppWindow>
           )}
+          <LockScreen />
           <SocialsFolder open={route.app === "socials"} screenRef={screenRef} />
           <Spotlight />
           <AppSwitcher screenRef={screenRef} />

@@ -1,4 +1,9 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./fixtures";
+
+// The lock screen shows once per session; these tests start on the home screen.
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => sessionStorage.setItem("pp-unlocked", "1"));
+});
 
 import { appsLayout } from "../content/apps";
 

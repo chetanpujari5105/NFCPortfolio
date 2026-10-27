@@ -1,4 +1,9 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
+
+// The lock screen shows once per session; these tests start on the home screen.
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => sessionStorage.setItem("pp-unlocked", "1"));
+});
 
 // Stable frames: reduced motion draws a still wallpaper; the clock is masked.
 for (const scheme of ["light", "dark"] as const) {

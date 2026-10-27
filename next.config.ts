@@ -10,6 +10,8 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       { protocol: "https", hostname: "substackcdn.com", pathname: "/**" },
       { protocol: "https", hostname: "substack-post-media.s3.amazonaws.com", pathname: "/**" },
+      // Latest YouTube video thumbnail (Home page 2)
+      { protocol: "https", hostname: "i.ytimg.com", pathname: "/vi/**" },
     ],
   },
   turbopack: {

@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./fixtures";
 
 /* The 3D phone is the desktop default (≥ 900px, WebGL, motion allowed). */
 
@@ -89,4 +89,19 @@ test("reduced motion keeps the flat CSS phone", async ({ page }) => {
   await expect(page.locator("[data-app-icon]").first()).toBeVisible();
   await expect(page.locator("[data-stage]")).toHaveCount(0);
   await expect(page.locator(".phone-bezel [data-screen]")).toHaveCount(1);
+});
+
+test.describe("idle float", () => {
+  test.use({ float: true });
+
+  test("the phone floats while idle and holds still under the pointer", async ({ page }) => {
+    await ready(page);
+    const playState = () => stage(page).evaluate((el) => getComputedStyle(el).animationPlayState);
+    await expect(stage(page)).toHaveCSS("animation-name", "stage-float");
+    await page.mouse.move(40, 40);
+    expect(await playState()).toBe("running");
+    const screen = (await page.locator("[data-screen]").boundingBox())!;
+    await page.mouse.move(screen.x + screen.width / 2, screen.y + screen.height / 2);
+    await expect.poll(playState).toBe("paused");
+  });
 });

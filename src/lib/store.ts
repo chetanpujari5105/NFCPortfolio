@@ -97,7 +97,8 @@ export const useOS = create<OSState>()((set, get) => ({
   largeText: false,
   spotlightOpen: false,
   wiggle: false,
-  locked: false,
+  // Server render shows the lock screen; CSS hides it for repeat visits until prefs hydrate.
+  locked: true,
   switcherOpen: false,
   panelOpen: false,
   brightness: 1,

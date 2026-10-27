@@ -98,6 +98,15 @@ REA stays off (owner's earlier choice); the reference was studied with Playwrigh
   springs back open. Swipe-and-hold (300 ms), double-tap or Ctrl+↑ opens the app switcher (live inert
   cards, depth carousel, swipe a card up to close, tap to open from the card). Switching apps is a quick
   out-to-home then in-to-icon. All app chunks are warmed at idle (no blank launch frames). 5 gesture tests.
+- **Step 5** — Lock screen once per session (skipped for deep links): live clock/date, a Substack
+  notification, swipe up with rubber-band (commits past 30% or on a flick), tap/Enter also opens; icons fly
+  in 20 ms apart on the gentle spring. Home has 2 pages with dots (page 2: latest-post, YouTube and
+  Expertise widgets), swipe/trackpad/arrow paging with projection and rubber-band; pull down anywhere for
+  Search with proportional dim/blur. Icon press 0.92 on the snappy spring with release overshoot, cancels
+  after 10 px. Long-press (500 ms) → jiggle with random phase; drag to rearrange (live pointer mapping, so
+  float/parallax can't skew it), springs reflow, order saved; "Done" exits. Dock magnifies to 1.15. Idle
+  float ±3 px / 6 s on the stage (compositor-only, pauses under the pointer). Tests: lock, pager (incl. a
+  swipe started on a link widget), pull-to-search, jiggle reorder + persistence, float.
 
 ## Needs Chetan
 
@@ -105,6 +114,7 @@ REA stays off (owner's earlier choice); the reference was studied with Playwrigh
 - [ ] **Prompt Chaining post URL:** not found in the Substack feed/sitemap; the fallback post links to the publication home. Put the real URL in `content/blog.ts` if it exists.
 - [ ] **Contact email delivery:** add `RESEND_API_KEY` (and a verified sender in `CONTACT_FROM_EMAIL`) to Vercel env vars. Until then the form shows "email me directly".
 - [ ] **Ask Chetan (optional):** set `OPENAI_API_KEY` (server only) and `NEXT_PUBLIC_ENABLE_ASK=true` in Vercel, then redeploy. `OPENAI_MODEL` defaults to `gpt-5-mini`. Try a few questions before announcing it.
-- [ ] **3D phone (optional):** set `NEXT_PUBLIC_ENABLE_3D=true` to try it; the CSS phone stays the default.
+- [ ] **YouTube widget:** the channel's public feed has no videos right now, so the page-2 widget links the channel. It switches to the latest video (thumbnail + title) by itself once one is public.
+- [ ] **Icon rearranging:** jiggle-mode reordering covers the page-1 app icons; widgets, the dock and page 2 stay fixed. Say if you want those movable too.
 - [ ] **Domain:** point `chetanpujari.com` at the Vercel project (or set `NEXT_PUBLIC_SITE_URL`) so the canonical URL, sitemap and OG links match the live site.
 - [ ] **Packt profile URL:** the old site's Packt links were `#`; Packt shows without a link in `content/platforms.ts`.
