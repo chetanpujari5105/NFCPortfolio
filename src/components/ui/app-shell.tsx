@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 
 import { onRadioGroupKeyDown } from "@/lib/a11y";
-import { popTransition, pushTransition } from "@/lib/motion";
+import { springs } from "@/lib/motion";
 import { goBack } from "@/lib/router";
 import { cn } from "@/lib/utils";
 
@@ -279,8 +279,8 @@ export function PushView({ open, children, label }: { open: boolean; children: R
           role="region"
           aria-label={label}
           initial={{ transform: "translateX(100%)" }}
-          animate={{ transform: "translateX(0%)", transition: pushTransition }}
-          exit={{ transform: "translateX(100%)", transition: popTransition }}
+          animate={{ transform: "translateX(0%)", transition: springs.smooth }}
+          exit={{ transform: "translateX(100%)", transition: springs.smooth }}
           className="absolute inset-0 z-10 bg-app-background shadow-[-12px_0_32px_rgb(0_0_0/0.12)]"
         >
           {children}
@@ -318,8 +318,8 @@ export function Sheet({ open, children, label }: { open: boolean; children: Reac
           <motion.div
             className="no-scrollbar absolute inset-x-0 bottom-0 max-h-[78%] overflow-y-auto overscroll-contain rounded-t-[26px] bg-app-background px-4 pt-2 pb-[max(env(safe-area-inset-bottom),28px)] shadow-[0_-10px_40px_rgb(0_0_0/0.18)]"
             initial={{ transform: "translateY(100%)" }}
-            animate={{ transform: "translateY(0%)", transition: pushTransition }}
-            exit={{ transform: "translateY(100%)", transition: popTransition }}
+            animate={{ transform: "translateY(0%)", transition: springs.smooth }}
+            exit={{ transform: "translateY(100%)", transition: springs.smooth }}
           >
             <span aria-hidden className="mx-auto mb-3 block h-[5px] w-10 rounded-full bg-app-divider" />
             {children}

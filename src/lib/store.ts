@@ -14,6 +14,12 @@ export type Route = {
   initial: boolean;
 };
 
+/** Short-lived message shown by the status pill (morphs out of the camera cutout). */
+export type PillEvent =
+  | { kind: "done"; text: string; id: number }
+  | { kind: "info"; text: string; id: number }
+  | { kind: "progress"; text: string; id: number };
+
 type OSState = {
   route: Route;
   finish: Finish;
@@ -22,6 +28,17 @@ type OSState = {
   largeText: boolean;
   spotlightOpen: boolean;
   wiggle: boolean;
+  locked: boolean;
+  switcherOpen: boolean;
+  panelOpen: boolean;
+  /** 0.4–1: screen brightness from the control panel */
+  brightness: number;
+  homePage: number;
+  /** Apps opened this session, most recent first (app switcher) */
+  recents: AppId[];
+  /** Home icon order (ids), saved after rearranging in jiggle mode */
+  iconOrder: string[] | null;
+  pill: PillEvent | null;
   /** Pre-filled subject for the Contact app ("Let's talk" from a service) */
   contactSubject: string;
   setRoute: (route: Route) => void;
@@ -31,6 +48,15 @@ type OSState = {
   setLargeText: (on: boolean) => void;
   setSpotlightOpen: (open: boolean) => void;
   setWiggle: (on: boolean) => void;
+  unlock: () => void;
+  setSwitcherOpen: (open: boolean) => void;
+  setPanelOpen: (open: boolean) => void;
+  setBrightness: (value: number) => void;
+  setHomePage: (page: number) => void;
+  forgetRecent: (app: AppId) => void;
+  setIconOrder: (order: string[]) => void;
+  showPill: (kind: PillEvent["kind"], text: string) => number;
+  hidePill: (id?: number) => void;
   setContactSubject: (subject: string) => void;
   hydratePrefs: () => void;
 };
@@ -39,9 +65,31 @@ export const PREF_KEYS = {
   wallpaper: "pp-wallpaper",
   reduceMotion: "pp-motion",
   largeText: "pp-text",
+  iconOrder: "pp-icon-order",
 } as const;
 
-export const useOS = create<OSState>()((set) => ({
+/** Session flag: the lock screen shows once per browser session. */
+export const UNLOCK_KEY = "pp-unlocked";
+
+function readSession(key: string) {
+  try {
+    return sessionStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+export function writeSession(key: string, value: string) {
+  try {
+    sessionStorage.setItem(key, value);
+  } catch {
+    // Blocked storage: the lock screen may show again on reload, which is harmless.
+  }
+}
+
+let pillSeq = 0;
+let pillTimer = 0;
+
+export const useOS = create<OSState>()((set, get) => ({
   route: { app: null, sub: null, initial: true },
   finish: "electric",
   wallpaper: "ribbons",
@@ -49,8 +97,23 @@ export const useOS = create<OSState>()((set) => ({
   largeText: false,
   spotlightOpen: false,
   wiggle: false,
+  locked: false,
+  switcherOpen: false,
+  panelOpen: false,
+  brightness: 1,
+  homePage: 0,
+  recents: [],
+  iconOrder: null,
+  pill: null,
   contactSubject: "",
-  setRoute: (route) => set({ route }),
+  setRoute: (route) =>
+    set((s) => ({
+      route,
+      recents:
+        route.app && route.app !== "socials"
+          ? [route.app, ...s.recents.filter((a) => a !== route.app)].slice(0, 8)
+          : s.recents,
+    })),
   setFinish: (finish) => set({ finish }),
   setWallpaper: (wallpaper) => {
     writeStored(PREF_KEYS.wallpaper, wallpaper);
@@ -69,14 +132,50 @@ export const useOS = create<OSState>()((set) => ({
   },
   setSpotlightOpen: (spotlightOpen) => set({ spotlightOpen }),
   setWiggle: (wiggle) => set({ wiggle }),
+  unlock: () => {
+    writeSession(UNLOCK_KEY, "1");
+    document.documentElement.setAttribute("data-unlocked", "");
+    set({ locked: false });
+  },
+  setSwitcherOpen: (switcherOpen) => set({ switcherOpen }),
+  setPanelOpen: (panelOpen) => set({ panelOpen }),
+  setBrightness: (brightness) => set({ brightness: Math.min(1, Math.max(0.4, brightness)) }),
+  setHomePage: (homePage) => set({ homePage }),
+  forgetRecent: (app) => set((s) => ({ recents: s.recents.filter((a) => a !== app) })),
+  setIconOrder: (iconOrder) => {
+    writeStored(PREF_KEYS.iconOrder, JSON.stringify(iconOrder));
+    set({ iconOrder });
+  },
+  showPill: (kind, text) => {
+    const id = ++pillSeq;
+    window.clearTimeout(pillTimer);
+    set({ pill: { kind, text, id } });
+    // Progress stays until replaced; messages collapse on their own.
+    if (kind !== "progress") pillTimer = window.setTimeout(() => get().hidePill(id), 2600);
+    return id;
+  },
+  hidePill: (id) => {
+    if (id === undefined || get().pill?.id === id) set({ pill: null });
+  },
   setContactSubject: (contactSubject) => set({ contactSubject }),
-  hydratePrefs: () =>
+  hydratePrefs: () => {
+    let iconOrder: string[] | null = null;
+    try {
+      const raw = localStorage.getItem(PREF_KEYS.iconOrder);
+      const parsed: unknown = raw ? JSON.parse(raw) : null;
+      if (Array.isArray(parsed) && parsed.every((x) => typeof x === "string")) iconOrder = parsed;
+    } catch {
+      // Unreadable order: keep the default layout.
+    }
     set({
       finish: readStored("pp-finish", ["electric", "graphite", "chai"] as const) ?? "electric",
       wallpaper: readStored(PREF_KEYS.wallpaper, WALLPAPERS) ?? "ribbons",
       reduceMotion: readStored(PREF_KEYS.reduceMotion, ["reduce", "auto"] as const) === "reduce",
       largeText: readStored(PREF_KEYS.largeText, ["large", "default"] as const) === "large",
-    }),
+      locked: !document.documentElement.hasAttribute("data-unlocked") && readSession(UNLOCK_KEY) !== "1",
+      iconOrder,
+    });
+  },
 }));
 
 /** Motion is reduced if the OS asks for it or the visitor toggled it in Settings. */

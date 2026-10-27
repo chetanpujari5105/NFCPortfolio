@@ -6,12 +6,17 @@ export const FINISH_KEY = "pp-finish";
 
 export const FINISHES: readonly Finish[] = ["electric", "graphite", "chai"];
 
+/** Desktop stage where the 3D phone is the default (WebGL is checked later, on the client). */
+export const STAGE_3D_QUERY = "(min-width: 900px) and (prefers-reduced-motion: no-preference)";
+
 /**
  * Runs in <head> before first paint: applies the saved (or system) theme and
- * the saved phone finish so neither flashes. Kept dependency-free on purpose.
+ * the saved phone finish so neither flashes, skips the lock screen for deep links
+ * and repeat visits this session, and holds the CSS phone back briefly on desktop
+ * so the 3D phone can make the entrance. Kept dependency-free on purpose.
  */
 export function buildInitScript(appIds: readonly string[]) {
-  return `(function(){var d=document.documentElement;try{var h=location.hash.slice(1).split("/")[0];if(${JSON.stringify(appIds)}.indexOf(h)>-1)d.setAttribute("data-deeplink","")}catch(e){}try{var t=localStorage.getItem("${THEME_KEY}");if(t!=="light"&&t!=="dark"){t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"}d.classList.toggle("dark",t==="dark");var f=localStorage.getItem("${FINISH_KEY}");if(f==="graphite"||f==="chai")d.setAttribute("data-finish",f);if(localStorage.getItem("pp-text")==="large")d.setAttribute("data-text","large");if(localStorage.getItem("pp-motion")==="reduce")d.setAttribute("data-reduce-motion","")}catch(e){}})()`;
+  return `(function(){var d=document.documentElement;try{var h=location.hash.slice(1).split("/")[0];if(${JSON.stringify(appIds)}.indexOf(h)>-1){d.setAttribute("data-deeplink","");d.setAttribute("data-unlocked","")}}catch(e){}try{if(sessionStorage.getItem("pp-unlocked")==="1")d.setAttribute("data-unlocked","")}catch(e){}try{var t=localStorage.getItem("${THEME_KEY}");if(t!=="light"&&t!=="dark"){t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"}d.classList.toggle("dark",t==="dark");var f=localStorage.getItem("${FINISH_KEY}");if(f==="graphite"||f==="chai")d.setAttribute("data-finish",f);if(localStorage.getItem("pp-text")==="large")d.setAttribute("data-text","large");var r=localStorage.getItem("pp-motion")==="reduce";if(r)d.setAttribute("data-reduce-motion","");if(!r&&matchMedia("${STAGE_3D_QUERY}").matches)d.setAttribute("data-stage-wait","")}catch(e){}})()`;
 }
 
 export function readStored<T extends string>(

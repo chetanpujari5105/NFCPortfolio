@@ -14,7 +14,7 @@ import { animate, motion, useMotionValue, useTransform, type AnimationPlaybackCo
 
 import { appsLayout, askApp } from "@content/apps";
 import type { AppId } from "@content/schema";
-import { closeSpring, FLICK_VELOCITY, launchProgress, launchSpring } from "@/lib/motion";
+import { FLICK_VELOCITY, launchProgress, springs } from "@/lib/motion";
 import { goHome } from "@/lib/router";
 import { prefersReducedMotion } from "@/lib/store";
 
@@ -112,7 +112,7 @@ export function AppWindow({ app, title, closing, initial, screenRef, onClosed, c
       controls.current = animate(fade, 1, { duration: 0.2, ease: "easeOut" });
     } else {
       launchProgress.set(0);
-      controls.current = animate(launchProgress, 1, launchSpring);
+      controls.current = animate(launchProgress, 1, springs.launch);
     }
     return () => controls.current?.stop();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -134,13 +134,13 @@ export function AppWindow({ app, title, closing, initial, screenRef, onClosed, c
           onClosed();
         };
         controls.current = animate(launchProgress, 0, {
-          ...closeSpring,
+          ...springs.home,
           onUpdate: (p) => p < 0.015 && finish(),
           onComplete: finish,
         });
       }
     } else if (launchProgress.get() < 1 && !reduced.current) {
-      controls.current = animate(launchProgress, 1, launchSpring);
+      controls.current = animate(launchProgress, 1, springs.launch);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [closing]);
@@ -205,7 +205,7 @@ export function AppWindow({ app, title, closing, initial, screenRef, onClosed, c
     if (!d) return;
     const up = d.y - e.clientY;
     if (up > 90 || (d.v > FLICK_VELOCITY && up > 12)) goHome();
-    else controls.current = animate(launchProgress, 1, launchSpring);
+    else controls.current = animate(launchProgress, 1, springs.launch);
   };
 
   const style = { transformOrigin: "0 0", transform, clipPath, opacity: fade } as unknown as CSSProperties;

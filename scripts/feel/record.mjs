@@ -126,10 +126,10 @@ await scenario("scroll", async (page, mark) => {
   await settle(page, 1200);
   await page.mouse.move(720, 500);
   mark("scroll down");
-  for (let i = 0; i < 12; i++) await page.mouse.wheel(0, 120), await page.waitForTimeout(40);
+  for (let i = 0; i < 12; i++) { await page.mouse.wheel(0, 120); await page.waitForTimeout(40); }
   await settle(page, 800);
   mark("scroll up past top");
-  for (let i = 0; i < 20; i++) await page.mouse.wheel(0, -120), await page.waitForTimeout(40);
+  for (let i = 0; i < 20; i++) { await page.mouse.wheel(0, -120); await page.waitForTimeout(40); }
   await settle(page, 1500);
 });
 
