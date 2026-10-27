@@ -17,4 +17,4 @@ const inline = [...html.matchAll(/<script(?![^>]*src=)[^>]*>([\s\S]*?)<\/script>
 const inlineGz = gzipSync(Buffer.from(inline)).length;
 rows.sort((a, b) => b[0] - a[0]).forEach(([gz, src]) => console.log(`${(gz / 1024).toFixed(1).padStart(7)} KB  ${src}`));
 console.log(`${(inlineGz / 1024).toFixed(1).padStart(7)} KB  (inline scripts / RSC payload)`);
-console.log(`total external: ${(total / 1024).toFixed(1)} KB gzipped across ${srcs.length} files`);
+console.log(`total external: ${(total / 1024).toFixed(1)} KB gzipped across ${srcs.length} files (${total} B; budget ${200 * 1024} B)`);

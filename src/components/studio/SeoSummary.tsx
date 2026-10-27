@@ -2,6 +2,7 @@ import { courses } from "@content/courses";
 import { expertise } from "@content/expertise";
 import { platforms } from "@content/platforms";
 import { profile } from "@content/profile";
+import { story } from "@content/story";
 import { projects } from "@content/projects";
 import { services } from "@content/services";
 import { timeline } from "@content/timeline";
@@ -22,7 +23,7 @@ export function SeoSummary({ posts }: { posts: FeedPost[] }) {
 
       <section>
         <h2>My story</h2>
-        {profile.story.map((p) => (
+        {story.map((p) => (
           <p key={p}>{p}</p>
         ))}
         <p>

@@ -5,6 +5,7 @@ import { courses } from "@content/courses";
 import { expertise } from "@content/expertise";
 import { platforms } from "@content/platforms";
 import { profile } from "@content/profile";
+import { story } from "@content/story";
 import { projects } from "@content/projects";
 import { services } from "@content/services";
 import { timeline } from "@content/timeline";
@@ -15,7 +16,7 @@ function knowledge() {
     `## About\n${profile.name} — ${profile.role}. ${profile.shortBio}\nLocation: ${profile.location}. Education: ${profile.education}. ` +
       `${profile.stats.students.toLocaleString("en-IN")}+ students, ${profile.stats.platforms}+ platforms, ${profile.stats.countries}+ countries, ${profile.stats.yearsTeaching} years teaching.\n` +
       `Email: ${profile.email} (${profile.responseTime}). Status: ${profile.status}.`,
-    `## Story\n${profile.story.join("\n")}`,
+    `## Story\n${story.join("\n")}`,
     `## Timeline\n${timeline.map((t) => `${t.year}: ${t.text}`).join("\n")}`,
     `## Courses (recommend with {{course:<id>}})\n${courses
       .map((c) => `- id=${c.id} | ${c.title} | ${c.platform} | ${c.badge} | ${c.category} | For: ${c.audience} | ${c.blurb} | ${c.url}`)

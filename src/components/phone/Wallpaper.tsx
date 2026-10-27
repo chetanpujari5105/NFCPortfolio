@@ -23,6 +23,8 @@ import {
 
 const VERT = `attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}`;
 
+// Ribbons add a thin rim light at each band edge, and every mode gets fine grain (no banding,
+// texture for frosted glass to pick up). GLSL comments would ship in the bundle, so they live here.
 const FRAG = `
 precision mediump float;
 uniform vec2 r;
@@ -35,13 +37,11 @@ uniform float dark;
 vec3 tone(vec3 c){ return c / (c + vec3(0.9)) * 1.6; }
 
 void main(){
-  vec2 uv = gl_FragCoord.xy / r;
   vec2 q = (gl_FragCoord.xy - .5 * r) / r.y;
   float time = t * .06;
   vec3 col;
 
   if (mode == 0) {
-    // Glossy ribbons: a warped stripe field shaded like rounded bands.
     vec2 w = q * 1.15;
     for (int i = 1; i < 4; i++) {
       float fi = float(i);
@@ -55,6 +55,7 @@ void main(){
     float gap = smoothstep(-.98, -.55, s);
     vec3 base = mix(d * .12, a * .95, body * body);
     col = base * mix(.18, 1., gap) + gloss * mix(a, vec3(1.), .6) * 1.1;
+    col += exp(-pow((s + .7) * 16., 2.)) * mix(a, vec3(1.), .45) * .55;
   } else if (mode == 1) {
     float n = sin(q.x * 2.2 + time * 2.0) * .5 + sin(q.y * 3.1 - time * 1.4 + q.x) * .5;
     float g1 = exp(-pow(q.y - .25 - .18 * n, 2.0) * 9.0);
@@ -69,6 +70,7 @@ void main(){
   float vig = smoothstep(1.25, .35, length(q * vec2(.9, .7)));
   col *= mix(.55, 1., vig);
   col *= mix(1., .82, dark);
+  col += (fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) - .5) * .022;
   gl_FragColor = vec4(col, 1.);
 }`;
 

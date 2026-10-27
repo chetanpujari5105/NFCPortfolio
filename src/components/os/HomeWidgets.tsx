@@ -37,17 +37,17 @@ export function BlogWidget() {
     >
       <span
         data-widget-tile
-        className="widget-press relative flex aspect-[2.05] w-full flex-col justify-end overflow-hidden rounded-[22px] bg-app-surface text-left text-white shadow-[0_4px_14px_rgb(0_0_0/0.18)]"
+        className="widget-press relative flex aspect-[2.05] w-full flex-col justify-end overflow-hidden widget-r bg-app-surface text-left text-white shadow-[0_4px_14px_rgb(0_0_0/0.18)]"
       >
         {post.image ? (
           <Image src={post.image} alt="" fill sizes="(max-width: 600px) 92vw, 380px" className="object-cover" />
         ) : (
           <span className="absolute inset-0 bg-[linear-gradient(150deg,var(--accent),var(--accent-deep))]" />
         )}
-        <span className="absolute inset-0 bg-[linear-gradient(180deg,transparent_25%,rgb(0_0_0/0.78))]" />
+        <span className="absolute inset-0 bg-[linear-gradient(180deg,transparent_20%,rgb(0_0_0/0.55)_52%,rgb(0_0_0/0.88))]" />
         <span className="relative p-3.5">
-          <span className="text-[10px] font-bold tracking-wider text-white/80 uppercase">Latest on the blog</span>
-          <span className="mt-0.5 line-clamp-2 block text-[clamp(15px,4.6cqw,18px)] leading-tight font-bold tracking-tight">
+          <span className="block text-[10px] font-bold tracking-wider text-white/80 uppercase">Latest on the blog</span>
+          <span className="mt-0.5 line-clamp-2 text-[clamp(15px,4.6cqw,18px)] leading-tight font-bold tracking-tight">
             {post.title}
           </span>
         </span>
@@ -71,7 +71,7 @@ export function VideoWidget() {
       aria-label={video ? `Latest video: ${video.title} (opens YouTube in a new tab)` : "YouTube channel (opens in a new tab)"}
       className="icon-press col-span-2 flex flex-col items-center gap-[5px] select-none"
     >
-      <span className="widget-press relative flex aspect-square w-full flex-col justify-between overflow-hidden rounded-[22px] bg-[linear-gradient(160deg,#2a0d0d,#0b0b0d)] p-3 text-left text-white shadow-[0_4px_14px_rgb(0_0_0/0.18)]">
+      <span className="widget-press relative flex aspect-square w-full flex-col justify-between overflow-hidden widget-r bg-[linear-gradient(160deg,#2a0d0d,#0b0b0d)] p-3 text-left text-white shadow-[0_4px_14px_rgb(0_0_0/0.18)]">
         {video && <Image src={video.thumb} alt="" fill sizes="180px" className="object-cover opacity-80" />}
         <span className="relative grid size-8 place-items-center rounded-full bg-[#ff3b30] shadow-lg">
           <Glyph name="play" className="size-4" />
@@ -190,7 +190,7 @@ export function GitHubWidget() {
     >
       <span
         data-shown={shown || undefined}
-        className="widget-press gh-heat flex aspect-[2.05] w-full flex-col gap-[2.2cqw] overflow-hidden rounded-[22px] bg-app-surface p-[3.6cqw] text-left text-app-ink shadow-[0_4px_14px_rgb(0_0_0/0.18)]"
+        className="widget-press gh-heat flex aspect-[2.05] w-full flex-col gap-[2.2cqw] overflow-hidden widget-r bg-app-surface p-[3.6cqw] text-left text-app-ink shadow-[0_4px_14px_rgb(0_0_0/0.18)]"
       >
         <span className="flex items-center gap-2">
           <BrandGlyph mark={github} className="size-[18px] shrink-0" />

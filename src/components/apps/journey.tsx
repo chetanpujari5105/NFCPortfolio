@@ -4,6 +4,7 @@ import Image from "next/image";
 import { GraduationCap, MapPin, Sparkles } from "lucide-react";
 
 import { profile } from "@content/profile";
+import { story } from "@content/story";
 import { timeline } from "@content/timeline";
 import { AppHeader, AppScreen, ListGroup, ListRow } from "@/components/ui/app-shell";
 
@@ -63,7 +64,7 @@ export default function JourneyApp() {
 
       <ListGroup header="My story">
         <div className="space-y-3 px-4 py-4 text-[15px] leading-relaxed text-app-secondary">
-          {profile.story.map((p) => (
+          {story.map((p) => (
             <p key={p}>{p}</p>
           ))}
         </div>

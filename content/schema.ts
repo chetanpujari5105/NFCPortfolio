@@ -31,6 +31,8 @@ export const SocialSchema = z.object({
   url,
 });
 
+export const StorySchema = z.array(z.string()).min(1);
+
 export const ProfileSchema = z.object({
   name: z.string(),
   firstName: z.string(),
@@ -42,7 +44,6 @@ export const ProfileSchema = z.object({
   role: z.string(),
   shortBio: z.string(),
   intro: z.string(),
-  story: z.array(z.string()).min(1),
   footerTagline: z.string(),
   location: z.string(),
   education: z.string(),

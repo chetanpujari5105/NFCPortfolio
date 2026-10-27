@@ -64,7 +64,7 @@ export function ImpactWidget() {
       aria-label={`Impact: ${STATS.map((s) => `${s.format(s.value)} ${s.label}`).join(", ")}. Open Journey`}
       className="icon-press col-span-4 flex flex-col items-center gap-[5px] select-none"
     >
-      <span className="wiggle-item glass-dark flex h-[calc(var(--icon)*2+18px)] w-full items-center gap-3 overflow-hidden rounded-[22px] px-3.5 text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.18)] transition-transform duration-150 ease-out [.icon-press:active_&]:scale-[0.97]">
+      <span className="wiggle-item glass-dark flex h-[calc(var(--icon)*2+18px)] w-full items-center gap-3 overflow-hidden widget-r px-3.5 text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.18)] transition-transform duration-150 ease-out [.icon-press:active_&]:scale-[0.97]">
         <svg
           viewBox={`0 0 ${COLS} ${ROWS}`}
           className="h-[78%] w-[54%] shrink-0"

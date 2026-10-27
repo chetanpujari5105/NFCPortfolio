@@ -22,9 +22,11 @@ import {
   ProjectSchema,
   ReviewSchema,
   ServiceSchema,
+  StorySchema,
   TimelineEntrySchema,
 } from "./schema";
 import { services } from "./services";
+import { story } from "./story";
 import { timeline } from "./timeline";
 
 /**
@@ -33,6 +35,7 @@ import { timeline } from "./timeline";
  */
 export function validateContent() {
   ProfileSchema.parse(profile);
+  StorySchema.parse(story);
   z.array(TimelineEntrySchema).parse(timeline);
   z.array(CourseSchema).parse(courses);
   PlatformsSchema.parse(platforms);

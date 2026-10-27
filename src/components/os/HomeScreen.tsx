@@ -437,15 +437,15 @@ function PageDots({ page, onPage }: { page: number; onPage: (page: number) => vo
   const setSpotlightOpen = useOS((s) => s.setSpotlightOpen);
   return (
     <div className="flex justify-center pt-[1cqh] pb-[1.6cqh]" data-no-swipe>
-      <div className="glass-dark flex h-[30px] items-center gap-1 rounded-full pr-2.5 pl-1 text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.2)]">
+      <div className="glass-chrome flex h-[28px] items-center gap-0.5 rounded-full pr-2 pl-0.5 text-white">
         <button
           type="button"
           data-nav
           aria-label="Search"
           onClick={() => setSpotlightOpen(true)}
-          className="press-spring flex h-[26px] items-center gap-1.5 rounded-full px-2.5 text-[13px] font-medium"
+          className="press-spring flex h-[26px] items-center gap-1 rounded-full px-2.5 text-[12.5px] font-medium tracking-[-0.01em]"
         >
-          <Glyph name="search" className="size-[13px]" />
+          <Glyph name="search" className="size-[12px] opacity-90" />
           Search
         </button>
         {Array.from({ length: PAGES }, (_, i) => (
@@ -457,7 +457,7 @@ function PageDots({ page, onPage }: { page: number; onPage: (page: number) => vo
             onClick={() => onPage(i)}
             className="grid size-[14px] place-items-center"
           >
-            <span className={`size-[7px] rounded-full transition-colors duration-200 ${page === i ? "bg-white" : "bg-white/40"}`} />
+            <span className={`size-[6px] rounded-full transition-colors duration-200 ${page === i ? "bg-white" : "bg-white/35"}`} />
           </button>
         ))}
       </div>
@@ -474,7 +474,7 @@ function Dock() {
       data-dock
       onPointerMove={(e) => e.pointerType === "mouse" && mouseX.set(e.clientX)}
       onPointerLeave={() => mouseX.set(Infinity)}
-      className="glass-dark mx-[5.6cqw] grid grid-cols-4 justify-items-center gap-x-[4.2cqw] rounded-[30px] px-[3.4cqw] py-[1.5cqh] shadow-[inset_0_1px_0_rgb(255_255_255/0.22)]"
+      className="glass-chrome mx-[4.1cqw] grid grid-cols-4 justify-items-center gap-x-[4.2cqw] rounded-[calc(var(--icon)*0.24+3.4cqw)] px-[4.9cqw] py-[1.7cqh]"
     >
       {appsLayout.dock.map((item) => (
         <DockItem key={item.id} mouseX={mouseX}>
