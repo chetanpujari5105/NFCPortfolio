@@ -20,10 +20,10 @@ Status as of 2026-10-27 (autonomous run; specs: `claude-code-master-prompt.md` +
 | Phase | Status |
 |---|---|
 | 1 Scaffold | Done — tokens, fonts, flash-free theme toggle (commit `2b54104`) |
-| 2 Content import | Done |
-| 3 Studio + CSS phone | Not started |
-| 4 OS shell | Not started |
-| 5 Apps | Not started |
+| 2 Content import | Done (`626ea33`) |
+| 3 Studio + CSS phone | Done (`9798123`) |
+| 4 OS shell | Done (`745ea67`) |
+| 5 Apps | Done |
 | 6 Spotlight / keyboard / focus / reduced motion | Not started |
 | 7 3D phone + Ask Chetan | Not started |
 | 8 Polish (SEO, OG, Lighthouse, tests, README) | Not started |
@@ -36,9 +36,18 @@ Status as of 2026-10-27 (autonomous run; specs: `claude-code-master-prompt.md` +
 - **Phase 2** — `content/*.ts` with Zod schemas (type-only imports keep Zod out of the client
   bundle) and `npm run content:check`. Images converted to WebP; dot-grid world map rasterised from
   Natural Earth (public domain). `CONTENT.md` written.
+- **Phase 3** — Studio backdrop, original CSS phone (rim/bezel/island/buttons, 3 finishes), WebGL
+  wallpaper (ribbons/aurora/dusk) with CSS fallback; full-bleed below 600px, side nav on desktop.
+- **Phase 4** — OS shell: hash router with depth-aware history, icon→window zoom (transform +
+  clip-path), Esc / back / chevron / swipe-up to close, Socials folder, wiggle mode, ⌘K Spotlight.
+- **Phase 5** — All 11 apps (Courses, Journey, Expertise sheet, Platforms, Projects, Blog via
+  Substack RSS with fallback, Reviews (verified-only → "coming soon"), Services, Contact, Settings).
+  `/api/contact` → Resend with Zod + honeypot + 3/hour rate limit; returns 503 without a key and the
+  form shows "email me directly". Click-through script (`scripts/check-os.mjs`) passes; no console errors.
 
 ## Needs Chetan
 
 - [ ] **Reviews:** all 5 are `verified: false` in `content/reviews.ts`. Confirm each is a real quote you may publish, then set `verified: true`.
 - [ ] **Prompt Chaining post URL:** not found in the Substack feed/sitemap; the fallback post links to the publication home. Put the real URL in `content/blog.ts` if it exists.
+- [ ] **Contact email delivery:** add `RESEND_API_KEY` (and a verified sender in `CONTACT_FROM_EMAIL`) to Vercel env vars. Until then the form shows "email me directly".
 - [ ] **Packt profile URL:** the old site's Packt links were `#`; Packt shows without a link in `content/platforms.ts`.

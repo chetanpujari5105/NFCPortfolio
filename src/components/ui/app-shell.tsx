@@ -1,6 +1,6 @@
 "use client";
 
-import { Children, type ReactNode } from "react";
+import { Children, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 
@@ -13,7 +13,7 @@ export function AppScreen({ children, className }: { children: ReactNode; classN
   return (
     <div
       className={cn(
-        "no-scrollbar absolute inset-0 overflow-y-auto overscroll-contain px-4 pt-[max(env(safe-area-inset-top),12px)] pb-16 tab:pt-[7cqh]",
+        "no-scrollbar absolute inset-0 overflow-y-auto overscroll-contain px-4 pt-[max(env(safe-area-inset-top),12px)] pb-16 tab:pt-[7cqh] tab:[mask-image:linear-gradient(to_bottom,transparent_4.6cqh,black_6.8cqh)]",
         className,
       )}
     >
@@ -260,6 +260,13 @@ export function Segmented<T extends string>({
   );
 }
 
+/** Remembers the last non-null value, so a closing detail view keeps its content while it slides out. */
+export function useLastValue<T>(value: T | null): T | null {
+  const [last, setLast] = useState(value);
+  if (value !== null && value !== last) setLast(value);
+  return value ?? last;
+}
+
 /** Detail view that slides in from the right over its app. */
 export function PushView({ open, children, label }: { open: boolean; children: ReactNode; label: string }) {
   return (
@@ -287,5 +294,36 @@ export function Stars({ rating }: { rating: number }) {
       {"★".repeat(rating)}
       <span className="text-app-divider">{"★".repeat(5 - rating)}</span>
     </span>
+  );
+}
+
+/** Bottom sheet over its app; the backdrop (and Esc, via the router) closes it. */
+export function Sheet({ open, children, label }: { open: boolean; children: ReactNode; label: string }) {
+  return (
+    <AnimatePresence initial={false}>
+      {open && (
+        <motion.div key="sheet" className="absolute inset-0 z-10" role="region" aria-label={label}>
+          <motion.button
+            type="button"
+            tabIndex={-1}
+            aria-label="Close"
+            onClick={() => goBack()}
+            className="absolute inset-0 bg-black/30"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, transition: { duration: 0.2 } }}
+            exit={{ opacity: 0, transition: { duration: 0.18 } }}
+          />
+          <motion.div
+            className="no-scrollbar absolute inset-x-0 bottom-0 max-h-[78%] overflow-y-auto overscroll-contain rounded-t-[26px] bg-app-background px-4 pt-2 pb-[max(env(safe-area-inset-bottom),28px)] shadow-[0_-10px_40px_rgb(0_0_0/0.18)]"
+            initial={{ transform: "translateY(100%)" }}
+            animate={{ transform: "translateY(0%)", transition: pushTransition }}
+            exit={{ transform: "translateY(100%)", transition: popTransition }}
+          >
+            <span aria-hidden className="mx-auto mb-3 block h-[5px] w-10 rounded-full bg-app-divider" />
+            {children}
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

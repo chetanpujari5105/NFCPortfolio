@@ -62,5 +62,45 @@ log("deep link:", await p2.evaluate(() => location.hash), await p2.title());
 await p2.keyboard.press("Escape"); await p2.waitForTimeout(700);
 log("deep link esc:", await p2.evaluate(() => location.hash));
 
+
+// contact form: validation, then graceful fallback when no RESEND_API_KEY
+const p3 = await ctx.newPage();
+p3.on("pageerror", (e) => errors.push(e.message));
+await p3.goto(base + "/#contact", { waitUntil: "networkidle" }); await p3.waitForTimeout(700);
+await p3.getByRole("button", { name: "Send message" }).click(); await p3.waitForTimeout(200);
+log("contact empty submit: alerts", await p3.locator('[role=alert]').count(), "focused:", await p3.evaluate(() => document.activeElement?.id));
+await p3.fill("#contact-email", "not-an-email"); await p3.getByRole("button", { name: "Send message" }).click(); await p3.waitForTimeout(150);
+log("bad email focused:", await p3.evaluate(() => document.activeElement?.id));
+await p3.fill("#contact-email", "test@example.com"); await p3.fill("#contact-name", "Test Person");
+await p3.fill("#contact-subject", "Hello there"); await p3.fill("#contact-message", "This is a local test message.");
+const [resp] = await Promise.all([p3.waitForResponse("**/api/contact"), p3.getByRole("button", { name: "Send message" }).click()]);
+await p3.waitForTimeout(400);
+log("contact POST:", resp.status(), "fallback shown:", await p3.getByText("email me directly").count());
+await p3.screenshot({ path: `${out}/contact-fallback.png` });
+
+// expertise sheet + Esc, settings toggles + profile push
+await p3.goto(base + "/#expertise", { waitUntil: "networkidle" }); await p3.waitForTimeout(700);
+await p3.getByRole("button", { name: /Prompt Engineering/ }).click(); await p3.waitForTimeout(500);
+log("expertise sheet:", await p3.evaluate(() => location.hash), await p3.getByRole("region", { name: "Expertise details" }).count());
+await p3.keyboard.press("Escape"); await p3.waitForTimeout(500);
+log("sheet esc:", await p3.evaluate(() => location.hash), await p3.getByRole("region", { name: "Expertise details" }).count());
+await p3.goto(base + "/#settings", { waitUntil: "networkidle" }); await p3.waitForTimeout(700);
+await p3.getByRole("switch", { name: "Dark mode" }).click(); await p3.waitForTimeout(700);
+log("dark switch:", await p3.evaluate(() => document.documentElement.classList.contains("dark")));
+await p3.getByRole("radio", { name: "Light", exact: true }).click(); await p3.waitForTimeout(700);
+log("light radio:", await p3.evaluate(() => document.documentElement.classList.contains("dark")));
+await p3.getByRole("switch", { name: "Reduce motion" }).click();
+await p3.getByRole("switch", { name: "Larger text" }).click();
+await p3.getByRole("radio", { name: "Dusk" }).click();
+await p3.getByRole("dialog").getByRole("radio", { name: "Chai" }).click(); await p3.waitForTimeout(300);
+log("prefs:", await p3.evaluate(() => [document.documentElement.hasAttribute("data-reduce-motion"), document.documentElement.dataset.text, document.documentElement.dataset.finish, localStorage.getItem("pp-wallpaper")]));
+await p3.screenshot({ path: `${out}/settings-prefs.png` });
+await p3.reload({ waitUntil: "networkidle" }); await p3.waitForTimeout(500);
+log("prefs after reload:", await p3.evaluate(() => [document.documentElement.hasAttribute("data-reduce-motion"), document.documentElement.dataset.text, document.documentElement.dataset.finish]));
+await p3.getByRole("button", { name: /Chetan Pujari/ }).first().click(); await p3.waitForTimeout(500);
+log("profile push:", await p3.evaluate(() => location.hash));
+await p3.goBack(); await p3.waitForTimeout(500);
+log("profile back:", await p3.evaluate(() => location.hash));
+
 log(errors.length ? "ERRORS:\n" + errors.join("\n") : "no console errors");
 await b.close();
