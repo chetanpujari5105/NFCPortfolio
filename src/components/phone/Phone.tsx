@@ -1,7 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
-import { createPortal } from "react-dom";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
 import dynamic from "next/dynamic";
 import { MotionConfig } from "motion/react";
 
@@ -14,15 +21,21 @@ import { SocialsFolder } from "@/components/os/SocialsFolder";
 import { Spotlight } from "@/components/os/Spotlight";
 import { goBack, useHashRouter } from "@/lib/router";
 import { useOS } from "@/lib/store";
+import { STAGE_3D_QUERY } from "@/lib/theme";
 
+import type { Phone3DProps, Rig } from "./Phone3D";
 import { StatusBar } from "./StatusBar";
 import { Wallpaper } from "./Wallpaper";
 
 type WindowState = { app: AppId; closing: boolean; initial: boolean };
 
-const Phone3D = dynamic(() => import("./Phone3D"), { ssr: false });
-const ENABLE_3D = process.env.NEXT_PUBLIC_ENABLE_3D === "true";
-const DESK_3D = "(min-width: 900px) and (prefers-reduced-motion: no-preference)";
+const Phone3D = dynamic<Phone3DProps>(() => import("./Phone3D"), { ssr: false });
+const loadRig = () => import("./Phone3D").then((m) => m.newRig());
+
+/** How long the CSS phone waits for the 3D phone to make the entrance. */
+const STAGE_WAIT_MS = 900;
+/** CSS phone arrival length (globals.css `phone-arrive`) — the screen wakes just after. */
+const CSS_ARRIVAL_MS = 900;
 
 let webgl: boolean | undefined;
 function hasWebGL() {
@@ -37,36 +50,128 @@ function hasWebGL() {
 }
 
 function subscribe3D(onChange: () => void) {
-  const mq = window.matchMedia(DESK_3D);
+  const mq = window.matchMedia(STAGE_3D_QUERY);
   mq.addEventListener("change", onChange);
   return () => mq.removeEventListener("change", onChange);
 }
 
-/** 3D phone only when flagged, on desktop, with WebGL and motion allowed. */
+/** 3D phone by default on desktop with WebGL, unless the visitor asked for less motion. */
 function useCan3D() {
   const reduceMotion = useOS((s) => s.reduceMotion);
   const media = useSyncExternalStore(
     subscribe3D,
-    () => ENABLE_3D && window.matchMedia(DESK_3D).matches && hasWebGL(),
+    () => window.matchMedia(STAGE_3D_QUERY).matches && hasWebGL(),
     () => false,
   );
   return media && !reduceMotion;
 }
+
+const wake = () => document.documentElement.setAttribute("data-awake", "");
 
 export function Phone() {
   useHashRouter();
   const route = useOS((s) => s.route);
   const reduceMotion = useOS((s) => s.reduceMotion);
   const screenRef = useRef<HTMLDivElement>(null);
+  const bezelRef = useRef<HTMLDivElement>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
   const [win, setWin] = useState<WindowState | null>(null);
   const can3D = useCan3D();
   const [failed3D, setFailed3D] = useState(false);
+  const [rig, setRig] = useState<Rig | null>(null);
   const [host, setHost] = useState<HTMLDivElement | null>(null);
+  const [layout, setLayout] = useState<Pick<Phone3DProps, "hostSize" | "offset"> | null>(null);
   const use3D = can3D && !failed3D;
 
   useEffect(() => {
     useOS.getState().hydratePrefs();
   }, []);
+
+  // Load the 3D chunk only once the home screen has painted and the main thread is idle.
+  useEffect(() => {
+    if (!use3D || rig) return;
+    const idle = window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 200));
+    const cancel = window.cancelIdleCallback ?? window.clearTimeout;
+    const id = idle(() => void loadRig().then(setRig), { timeout: 600 });
+    return () => cancel(id);
+  }, [use3D, rig]);
+
+  // The CSS phone waits briefly so the 3D phone can arrive; otherwise it arrives itself.
+  useEffect(() => {
+    const root = document.documentElement;
+    const started = performance.now();
+    const release = window.setTimeout(
+      () => {
+        if (!root.hasAttribute("data-stage-wait")) return;
+        root.removeAttribute("data-stage-wait");
+        window.setTimeout(wake, CSS_ARRIVAL_MS + 150);
+      },
+      use3D ? STAGE_WAIT_MS : 0,
+    );
+    // CSS-only path (tablet/phone/no WebGL): wake after its arrival
+    if (!root.hasAttribute("data-stage-wait"))
+      window.setTimeout(wake, Math.max(0, CSS_ARRIVAL_MS + 150 - started));
+    return () => window.clearTimeout(release);
+    // Only on mount: later 3D changes swap without an entrance.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Size the 3D screen exactly like the CSS screen, so the swap is pixel-aligned.
+  useLayoutEffect(() => {
+    const wrap = wrapRef.current;
+    const stage = stageRef.current;
+    const bezel = bezelRef.current;
+    if (!use3D || !wrap || !stage || !bezel) return;
+    const measure = () => {
+      const phonePx = wrap.offsetHeight;
+      const inset = phonePx * 0.017;
+      const w = Math.round(wrap.offsetWidth - inset * 2);
+      const h = Math.round(phonePx - inset * 2);
+      // Centre of the CSS phone relative to the stage centre (ignores the arrival transform)
+      let x = 0;
+      let y = 0;
+      for (let el: HTMLElement | null = wrap; el && el !== stage.offsetParent; el = el.offsetParent as HTMLElement | null) {
+        x += el.offsetLeft;
+        y += el.offsetTop;
+      }
+      const cx = x + wrap.offsetWidth / 2 - (stage.offsetLeft + stage.offsetWidth / 2);
+      const cy = y + phonePx / 2 - (stage.offsetTop + stage.offsetHeight / 2);
+      setLayout((prev) =>
+        prev && prev.hostSize.w === w && prev.hostSize.h === h && prev.offset.x === cx && prev.offset.y === cy
+          ? prev
+          : { hostSize: { w, h, phonePx }, offset: { x: cx, y: cy } },
+      );
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(wrap);
+    ro.observe(stage);
+    return () => ro.disconnect();
+  }, [use3D]);
+
+  // Move the live screen (not a copy, nothing remounts) into the 3D host, and back on fallback.
+  const live3D = use3D && !!host && !!rig;
+  useLayoutEffect(() => {
+    const screen = screenRef.current;
+    const target = live3D ? host : bezelRef.current;
+    if (!screen || !target || screen.parentElement === target) return;
+    target.appendChild(screen);
+    const root = document.documentElement;
+    root.toggleAttribute("data-3d", live3D);
+    if (live3D) {
+      const waiting = root.hasAttribute("data-stage-wait");
+      root.removeAttribute("data-stage-wait");
+      if (!waiting) {
+        // Late swap (CSS phone already arrived): appear in place, no second entrance.
+        if (stageRef.current) stageRef.current.style.opacity = "1";
+        wake();
+      }
+    }
+  }, [live3D, host]);
+
+  const onError = useCallback(() => setFailed3D(true), []);
+  const onLanded = useCallback(() => window.setTimeout(wake, 150), []);
 
   // Route → window lifecycle (keeps the window mounted while it animates closed).
   // Adjusted during render when the routed app changes, per React's "storing info from previous renders".
@@ -106,67 +211,77 @@ export function Phone() {
 
   const App = win ? APPS[win.app] : null;
 
-  const screen = (
-    <div ref={screenRef} data-screen className="phone-screen">
-      <Wallpaper />
-      <HomeScreen open={!!win && !win.closing} />
-      {win && App && (
-        <AppWindow
-          key={win.app}
-          app={win.app}
-          title={appsLayout.titles[win.app]}
-          closing={win.closing}
-          initial={win.initial}
-          screenRef={screenRef}
-          onClosed={() => {
-            const app = win.app;
-            setWin(null);
-            screenRef.current
-              ?.querySelector<HTMLElement>(`[data-app-icon="${app}"]`)
-              ?.focus({ preventScroll: true });
-          }}
-        >
-          <App />
-        </AppWindow>
-      )}
-      <SocialsFolder open={route.app === "socials"} screenRef={screenRef} />
-      <Spotlight />
-      <StatusBar onApp={!!win && !win.closing} />
-      <div className="phone-island" aria-hidden />
-    </div>
-  );
-
-  // The CSS phone shows until the 3D host exists (and whenever 3D is off or fails).
-  const live3D = use3D && host;
   return (
     <MotionConfig reducedMotion={reduceMotion ? "always" : "user"}>
-      {use3D ? (
-        <div className="phone-wrap-3d" onPointerOver={warm} onFocus={warm}>
-          <Phone3D onHost={setHost} onError={() => setFailed3D(true)} />
-          {live3D ? createPortal(screen, host) : <CssPhone>{screen}</CssPhone>}
+      {use3D && (
+        <div ref={stageRef} data-stage className="stage" onPointerOver={warm} onFocus={warm}>
+          {rig && layout && (
+            <Phone3D
+              stage={stageRef}
+              rig={rig}
+              hostSize={layout.hostSize}
+              offset={layout.offset}
+              onHost={setHost}
+              onLanded={onLanded}
+              onError={onError}
+            />
+          )}
         </div>
-      ) : (
-        <CssPhone onPointerOver={warm} onFocus={warm}>
-          {screen}
-        </CssPhone>
       )}
+      <CssPhone wrapRef={wrapRef} bezelRef={bezelRef} onPointerOver={warm} onFocus={warm}>
+        <div ref={screenRef} data-screen className="phone-screen">
+          <Wallpaper />
+          <HomeScreen open={!!win && !win.closing} />
+          {win && App && (
+            <AppWindow
+              key={win.app}
+              app={win.app}
+              title={appsLayout.titles[win.app]}
+              closing={win.closing}
+              initial={win.initial}
+              screenRef={screenRef}
+              onClosed={() => {
+                const app = win.app;
+                setWin(null);
+                screenRef.current
+                  ?.querySelector<HTMLElement>(`[data-app-icon="${app}"]`)
+                  ?.focus({ preventScroll: true });
+              }}
+            >
+              <App />
+            </AppWindow>
+          )}
+          <SocialsFolder open={route.app === "socials"} screenRef={screenRef} />
+          <Spotlight />
+          <StatusBar onApp={!!win && !win.closing} />
+          <div className="phone-island" aria-hidden />
+          <div className="screen-off" aria-hidden />
+        </div>
+      </CssPhone>
     </MotionConfig>
   );
 }
 
 function CssPhone({
   children,
+  wrapRef,
+  bezelRef,
   onPointerOver,
   onFocus,
 }: {
   children: ReactNode;
+  wrapRef: React.RefObject<HTMLDivElement | null>;
+  bezelRef: React.RefObject<HTMLDivElement | null>;
   onPointerOver?: (e: { target: EventTarget }) => void;
   onFocus?: (e: { target: EventTarget }) => void;
 }) {
   return (
-    <div className="phone-wrap" onPointerOver={onPointerOver} onFocus={onFocus}>
+    <div ref={wrapRef} className="phone-wrap" onPointerOver={onPointerOver} onFocus={onFocus}>
       <div className="phone-rim">
-        <div className="phone-bezel">{children}</div>
+        {/* The screen is the bezel's only child; <Phone> may move it into the 3D host. */}
+        <div ref={bezelRef} className="phone-bezel">
+          {children}
+        </div>
       </div>
       <span aria-hidden className="phone-btn top-[17%] -left-[2px] h-[3.5%]" />
       <span aria-hidden className="phone-btn top-[24%] -left-[2px] h-[6.5%]" />

@@ -80,6 +80,17 @@ REA stays off (owner's earlier choice); the reference was studied with Playwrigh
 - **Step 1** — Recorded 9 interactions on the reference and on the v2 build (`scripts/feel/record.mjs`,
   `analyze.mjs`), wrote `docs/feel-gap.md`. Biggest gaps: no 3D object, no drag-rotate, closes are not
   gesture-driven, no rubber-band or edge-swipe, swatches and Search don't animate.
+- **Step 2** — `lib/motion.ts` named springs (snappy/smooth/gentle/launch/home), `rubberBand` +
+  `useRubberBand`, momentum `project()`, shared progress values; `lib/gesture.ts` velocity + edge-zone
+  helpers; store grew lock/switcher/panel/brightness/recents/icon order/status-pill events.
+- **Step 3** — 3D phone is the desktop default (flag removed). Original procedural body (71.5×150×8.25
+  proportions, ACES, Lightformer environment, contact shadow), vertical camera pill with two lenses,
+  debossed ⚡ CP mark, pressable side pills, finish colours blend ~400 ms. The live screen DOM is *moved*
+  (not remounted) into drei `<Html transform occlude="blending">` with a rounded occluder, sized 1:1
+  with the CSS phone so the swap is pixel-aligned; it goes `inert` when the back faces you. Drag the
+  stage to spin (6 px threshold, never from the screen), inertia, settle on the back or spring home
+  after 1.2 s; tap/double-click/`R` resets; ±6° parallax. 3D chunk loads at idle; CSS phone waits up to
+  900 ms for the 3D entrance. 6 new stage tests; Playwright limited to 4 workers (WebGL contention).
 
 ## Needs Chetan
 

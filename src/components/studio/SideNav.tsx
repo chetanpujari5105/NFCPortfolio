@@ -16,7 +16,7 @@ const LINKS: { app: AppId; label: string }[] = [
 export function SideNav() {
   const active = useOS((s) => s.route.app);
   return (
-    <aside className="hidden tab:flex tab:w-full tab:max-w-[560px] tab:items-center tab:justify-between tab:gap-4 desk:absolute desk:top-1/2 desk:right-[6vw] desk:w-auto desk:max-w-none desk:-translate-y-1/2 desk:flex-col desk:items-end desk:gap-0 desk:text-right">
+    <aside className="hidden tab:flex tab:w-full tab:max-w-[560px] tab:items-center tab:justify-between tab:gap-4 desk:absolute desk:z-10 desk:top-1/2 desk:right-[6vw] desk:w-auto desk:max-w-none desk:-translate-y-1/2 desk:flex-col desk:items-end desk:gap-0 desk:text-right">
       <div className="desk:mb-9">
         <p className="font-display text-[22px] leading-[0.9] font-extrabold tracking-[-0.01em] [font-stretch:125%] desk:text-[clamp(2.6rem,4.6vw,4.4rem)]">
           <span className="desk:block">{profile.firstName} </span>

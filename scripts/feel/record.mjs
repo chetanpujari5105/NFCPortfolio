@@ -47,7 +47,10 @@ const INIT = () => {
     });
 };
 
+const ONLY = process.env.ONLY?.split(",");
+
 async function scenario(name, run, { mobile = false } = {}) {
+  if (ONLY && !ONLY.includes(name)) return;
   const ctx = await browser.newContext({
     ...(mobile ? { ...devices["iPhone 13"], defaultBrowserType: undefined } : { viewport: { width: 1440, height: 900 } }),
     recordVideo: { dir: out, size: mobile ? { width: 390, height: 844 } : { width: 1440, height: 900 } },

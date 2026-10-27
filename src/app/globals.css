@@ -244,7 +244,8 @@
   --phone-h: min(86dvh, 900px);
   position: relative;
   height: var(--phone-h);
-  aspect-ratio: 9 / 19.5;
+  /* An original device: 71.5 × 150 mm */
+  aspect-ratio: 71.5 / 150;
 }
 
 @media (min-width: 600px) and (max-width: 899.98px) {
@@ -356,14 +357,47 @@
 @keyframes phone-arrive {
   from {
     opacity: 0;
-    transform: translateY(24px) scale(0.96);
+    transform: translateY(40px) scale(0.97);
   }
 }
 
 @media (min-width: 600px) {
   .phone-wrap {
-    animation: phone-arrive 900ms cubic-bezier(0.22, 1.2, 0.36, 1) both;
+    animation: phone-arrive 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
   }
+}
+
+/* Desktop: hold the CSS phone back while the 3D phone loads to make the entrance */
+html[data-stage-wait] .phone-wrap {
+  animation-play-state: paused;
+}
+
+/* Screen "wakes" just after the phone lands */
+.screen-off {
+  position: absolute;
+  inset: 0;
+  z-index: 90;
+  background: #000;
+  pointer-events: none;
+  /* No-JS / slow hydration safety net */
+  animation: screen-wake 420ms ease-out 2.4s both;
+}
+html[data-awake] .screen-off {
+  animation: screen-wake 420ms ease-out both;
+}
+@keyframes screen-wake {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+@media (max-width: 599.98px), (prefers-reduced-motion: reduce) {
+  .screen-off {
+    display: none;
+  }
+}
+html[data-reduce-motion] .screen-off {
+  display: none;
 }
 
 /* ───────────────────────── Home screen ───────────────────────── */
@@ -491,15 +525,32 @@ html[data-reduce-motion] *::after {
   display: none;
 }
 
-/* Optional 3D phone: same footprint as the CSS phone, with room for the tilt */
-.phone-wrap-3d {
-  --phone-h: min(86dvh, 900px);
-  position: relative;
-  display: grid;
-  place-items: center;
-  height: var(--phone-h);
-  width: calc(var(--phone-h) * 0.62);
-}
-.phone-wrap-3d > .phone-wrap {
+/* ───────────────────────── 3D stage (desktop default) ───────────────────────── */
+
+/* The whole studio is the stage: drag anywhere off the screen to spin the phone. */
+.stage {
   position: absolute;
+  inset: 0;
+  z-index: 0;
+  isolation: isolate;
+  cursor: grab;
+  touch-action: none;
+  opacity: 0;
+}
+.stage[data-dragging] {
+  cursor: grabbing;
+}
+.stage-canvas {
+  position: absolute !important;
+  inset: 0;
+}
+.stage-screen {
+  backface-visibility: hidden;
+}
+.stage-screen .phone-screen {
+  cursor: auto;
+}
+/* Once the screen lives in the 3D phone, the CSS frame keeps only its place in the layout */
+html[data-3d] .phone-wrap {
+  visibility: hidden;
 }

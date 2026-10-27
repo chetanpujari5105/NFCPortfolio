@@ -15,8 +15,8 @@ export default async function Home() {
 
   return (
     <main className="relative flex h-dvh flex-col items-center justify-center gap-6 overflow-hidden bg-studio-bg text-studio-ink [background-image:radial-gradient(120%_90%_at_50%_45%,transparent_55%,var(--studio-vignette))] desk:gap-0">
-      <FinishSwatches className="absolute top-7 left-7 hidden tab:flex" />
-      <ThemeToggle className="absolute top-6 right-6 hidden tab:grid" />
+      <FinishSwatches className="absolute top-7 left-7 z-10 hidden tab:flex" />
+      <ThemeToggle className="absolute top-6 right-6 z-10 hidden tab:grid" />
       <ServerDataProvider value={data}>
         <Phone />
       </ServerDataProvider>

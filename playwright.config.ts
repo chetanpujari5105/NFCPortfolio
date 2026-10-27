@@ -5,6 +5,8 @@ const PORT = Number(process.env.PORT ?? 3100);
 export default defineConfig({
   testDir: "./tests",
   fullyParallel: true,
+  // Each desktop page renders WebGL (3D phone + wallpaper); too many at once starve the GPU
+  workers: process.env.CI ? 2 : 4,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? "github" : "list",

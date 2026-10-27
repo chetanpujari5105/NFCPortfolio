@@ -22,6 +22,7 @@ async function home(page: Page) {
 const dialog = (page: Page) => page.locator("[role=dialog][aria-modal=true]");
 
 test("every app opens, sets the hash and title, and closes with Esc", async ({ page }) => {
+  test.setTimeout(60_000); // 11 launches + closes, each a full spring
   const errors = trackErrors(page);
   await home(page);
   for (const item of APPS) {
