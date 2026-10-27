@@ -107,6 +107,16 @@ REA stays off (owner's earlier choice); the reference was studied with Playwrigh
   float/parallax can't skew it), springs reflow, order saved; "Done" exits. Dock magnifies to 1.15. Idle
   float ±3 px / 6 s on the stage (compositor-only, pauses under the pointer). Tests: lock, pager (incl. a
   swipe started on a link widget), pull-to-search, jiggle reorder + persistence, float.
+- **Step 6** — In-app physics live in the shared shell (`app-shell.tsx`), so every app gets them:
+  frosted bar with back/actions that never scrolls away and a small title that fades in as the large
+  one slides under it (large title grows slightly on pull); rubber-band overscroll at both ends for
+  wheel and touch (tighter band for trackpad momentum). Push views: parent shifts −30% and dims,
+  interactive edge-swipe back from the left 24 px (14–40 px where the mobile browser owns the edge),
+  release velocity carried into the close. Sheets: medium/large detents, grabber drag with projection,
+  app behind scales to 0.94 with rounded corners; grabber is also a button. Swipe-left actions: Blog
+  "Share", Courses "Enroll" (full swipe runs it). Blog pull-to-refresh hits the new `/api/feed` route
+  (pill reports the result; a Refresh button does the same). Chips/segmented use a `layoutId`
+  indicator on the snappy spring. 7 new tests (`tests/inapp.spec.ts`), visual baselines refreshed.
 
 ## Needs Chetan
 

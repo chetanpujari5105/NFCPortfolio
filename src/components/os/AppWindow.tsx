@@ -1,8 +1,6 @@
 "use client";
 
 import {
-  createContext,
-  useContext,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -18,7 +16,6 @@ import {
   useMotionValue,
   useTransform,
   type AnimationPlaybackControls,
-  type MotionValue,
 } from "motion/react";
 import { useDrag } from "@use-gesture/react";
 
@@ -30,6 +27,7 @@ import { goHome } from "@/lib/router";
 import { prefersReducedMotion, useOS } from "@/lib/store";
 
 import { Glyph } from "./icons";
+import { WindowCtx, type WindowMotion } from "./window-motion";
 
 const ITEMS = [...appsLayout.block, ...appsLayout.row, ...appsLayout.dock, askApp];
 
@@ -40,10 +38,6 @@ const mix = (a: number, b: number, p: number) => a + (b - a) * p;
 
 type Geometry = Rect & { W: number; H: number; screenR: number };
 
-/** Per-window motion shared with pushed views and sheets inside the app. */
-export type WindowMotion = { push: MotionValue<number>; sheet: MotionValue<number>; width: () => number };
-const WindowCtx = createContext<WindowMotion | null>(null);
-export const useWindowMotion = () => useContext(WindowCtx);
 
 type Props = {
   app: AppId;

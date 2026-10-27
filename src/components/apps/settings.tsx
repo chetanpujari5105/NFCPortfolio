@@ -10,7 +10,7 @@ import { FINISH_INFO, useSetFinish } from "@/components/studio/FinishSwatches";
 import {
   AppHeader,
   AppScreen,
-  BackButton,
+  AppNav,
   ListGroup,
   ListRow,
   PushView,
@@ -82,8 +82,8 @@ function ThemePreview({ theme }: { theme: Theme }) {
 function Profile() {
   return (
     <AppScreen>
-      <div className="mb-4 flex h-[38px] items-center">
-        <BackButton label="Back to Settings" />
+      <div className="mb-4">
+        <AppNav backLabel="Back to Settings" title={profile.name} />
       </div>
       <div className="flex flex-col items-center text-center">
         <span className="relative size-24 overflow-hidden rounded-full shadow-[0_0_0_0.5px_var(--app-divider)]">

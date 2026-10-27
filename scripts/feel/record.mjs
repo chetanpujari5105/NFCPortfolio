@@ -77,7 +77,8 @@ async function scenario(name, run, { mobile = false } = {}) {
   console.log(name, JSON.stringify(report[name]));
 }
 
-const clickName = (page, name) => page.getByRole("button", { name, exact: true }).first().click({ timeout: 8000 });
+// force: the idle float keeps the 3D stage moving ±3px, which Playwright would wait out forever
+const clickName = (page, name) => page.getByRole("button", { name, exact: true }).first().click({ timeout: 8000, force: true });
 const settle = (page, ms = 1200) => page.waitForTimeout(ms);
 
 await scenario("arrival", async (page) => settle(page, 3500));
@@ -146,7 +147,7 @@ await scenario("detail", async (page, mark, notes) => {
   const pick = rows.nth(Math.min(2, n - 1));
   notes.clicked = (await pick.getAttribute("aria-label")) ?? (await pick.innerText()).slice(0, 30);
   mark("open detail");
-  await pick.click({ timeout: 4000 });
+  await pick.click({ timeout: 4000, force: true });
   await settle(page, 1200);
   mark("back");
   await page.keyboard.press("Escape");
@@ -157,13 +158,13 @@ await scenario("finish", async (page, mark) => {
   await settle(page, 2000);
   for (const s of sel.swatches) {
     mark(`swatch ${s}`);
-    await page.getByRole("radio", { name: s }).first().click({ timeout: 4000 }).catch(() => clickName(page, s));
+    await page.getByRole("radio", { name: s }).first().click({ timeout: 4000, force: true }).catch(() => clickName(page, s));
     await settle(page, 900);
   }
   const toggle = page.getByRole("button", { name: /theme|dark|light/i }).first();
   if (await toggle.count()) {
     mark("theme");
-    await toggle.click();
+    await toggle.click({ force: true });
     await settle(page, 1200);
   }
 });

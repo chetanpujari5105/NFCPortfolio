@@ -491,6 +491,23 @@ html:not([data-unlocked]) [data-home-layer] [data-fly] {
   background: rgb(40 40 44 / 0.42);
 }
 
+/* In-app bar: frosted over the content scrolling under it, with a hairline where they meet */
+.nav-material {
+  background: color-mix(in oklab, var(--app-background) 76%, transparent);
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+  backdrop-filter: blur(22px) saturate(180%);
+  box-shadow: 0 0.5px 0 var(--app-divider);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass,
+  .nav-material {
+    background: var(--app-background);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
 @keyframes wiggle {
   0% {
     transform: rotate(-1.6deg);
