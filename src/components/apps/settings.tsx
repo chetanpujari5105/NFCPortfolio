@@ -4,7 +4,6 @@ import Image from "next/image";
 import type { MouseEvent } from "react";
 
 import { profile } from "@content/profile";
-import { settlePanel } from "@/components/os/ControlPanel";
 import { Glyph } from "@/components/os/icons";
 import { socialIcons } from "@/components/os/social-icons";
 import { FINISH_INFO, useSetFinish } from "@/components/studio/FinishSwatches";
@@ -20,6 +19,7 @@ import {
 } from "@/components/ui/app-shell";
 import { useTheme } from "@/components/ui/theme-toggle";
 import { onRadioGroupKeyDown } from "@/lib/a11y";
+import { settlePanel } from "@/lib/panel";
 import { openApp } from "@/lib/router";
 import { useOS, WALLPAPERS, type Wallpaper } from "@/lib/store";
 import { FINISHES, setThemeWithReveal, type Theme } from "@/lib/theme";

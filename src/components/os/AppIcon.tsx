@@ -1,11 +1,12 @@
 "use client";
 
 import { useRef, type CSSProperties, type PointerEvent, type ReactNode } from "react";
-import { animate, motion, useMotionValue } from "motion/react";
+import { useMotionValue } from "motion/react";
+import * as m from "motion/react-m";
 
 import type { HomeItem } from "@content/schema";
 import { setLaunchOrigin } from "@/lib/launch";
-import { springs } from "@/lib/motion";
+import { animateTo, springs } from "@/lib/motion";
 import { openApp } from "@/lib/router";
 import { cn } from "@/lib/utils";
 
@@ -29,7 +30,7 @@ function usePress() {
   const release = () => {
     if (!start.current) return;
     start.current = null;
-    animate(scale, 1, springs.release);
+    animateTo(scale, 1, springs.release);
   };
   return {
     scale,
@@ -37,7 +38,7 @@ function usePress() {
       onPointerDown: (e: PointerEvent) => {
         if (e.button !== 0) return;
         start.current = { x: e.clientX, y: e.clientY };
-        animate(scale, 0.92, springs.snappy);
+        animateTo(scale, 0.92, springs.snappy);
       },
       onPointerMove: (e: PointerEvent) => {
         const s = start.current;
@@ -55,11 +56,11 @@ export function AppIcon({ item, showLabel = true, tile, className }: Props) {
   const { scale, handlers } = usePress();
   const content = (
     <>
-      <motion.span style={{ scale }} className="block">
+      <m.span style={{ scale }} className="block">
         <span className="icon-tile wiggle-item" data-icon-tile={item.app ?? item.id} style={style}>
           {tile ?? <Glyph name={item.icon} />}
         </span>
-      </motion.span>
+      </m.span>
       {showLabel && <span className="icon-label max-w-[calc(var(--icon)+14px)] truncate">{item.label}</span>}
     </>
   );

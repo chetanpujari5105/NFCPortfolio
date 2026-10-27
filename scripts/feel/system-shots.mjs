@@ -5,6 +5,7 @@ const b = await chromium.launch({ args: ["--use-angle=metal", "--ignore-gpu-bloc
 const page = await b.newPage({ viewport: { width: 1440, height: 900 } });
 await page.addInitScript(() => sessionStorage.setItem("pp-unlocked", "1"));
 await page.goto("http://localhost:3100/");
+await page.mouse.move(40, 40);
 await page.waitForSelector("html[data-3d]", { timeout: 20000 });
 const scr = await page.locator("[data-screen]").boundingBox();
 const clip = { x: scr.x - 10, y: scr.y - 10, width: scr.width + 20, height: scr.height + 20 };

@@ -4,6 +4,7 @@ const b = await chromium.launch({ args: ["--use-angle=metal", "--ignore-gpu-bloc
 const page = await b.newPage({ viewport: { width: 1440, height: 900 } });
 await page.addInitScript(() => sessionStorage.setItem("pp-unlocked", "1"));
 await page.goto("http://localhost:3100/#blog");
+await page.mouse.move(40, 40);
 await page.waitForSelector("html[data-3d]", { timeout: 20000 });
 await page.waitForTimeout(1500);
 const scr = await page.locator("[data-screen]").boundingBox();
@@ -37,6 +38,7 @@ await page.keyboard.press("Escape");
 await page.waitForTimeout(1200);
 // courses detail + edge swipe halfway
 await page.goto("http://localhost:3100/#courses");
+await page.mouse.move(40, 40);
 await page.waitForSelector("html[data-3d]", { timeout: 20000 });
 await page.waitForTimeout(1500);
 await page.mouse.move(cx, cy);
@@ -52,6 +54,7 @@ await page.mouse.up();
 await page.waitForTimeout(800);
 // expertise sheet
 await page.goto("http://localhost:3100/#expertise");
+await page.mouse.move(40, 40);
 await page.waitForSelector("html[data-3d]", { timeout: 20000 });
 await page.waitForTimeout(1500);
 await page.mouse.move(cx, cy);

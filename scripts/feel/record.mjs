@@ -28,17 +28,19 @@ const INIT = () => {
       const out = [];
       const t0 = performance.now();
       const tick = () => {
-        const el = [...document.querySelectorAll("div")].find((d) => {
-          const r = d.getBoundingClientRect();
-          return getComputedStyle(d).transform.startsWith("matrix3d") && r.height > 300 && r.height < 1000;
-        });
-        if (el) {
+        // Mine publishes its angle; the reference is read from its CSS 3D matrix.
+        const stage = document.querySelector("[data-stage]");
+        const el = stage?.dataset.roty
+          ? null
+          : [...document.querySelectorAll("div")].find((d) => {
+              const r = d.getBoundingClientRect();
+              return getComputedStyle(d).transform.startsWith("matrix3d") && r.height > 300 && r.height < 1000;
+            });
+        if (stage?.dataset.roty) out.push([Math.round(performance.now() - t0), Math.round(Number(stage.dataset.roty))]);
+        else if (el) {
           const m = getComputedStyle(el).transform.match(/matrix3d\((.+)\)/)[1].split(",").map(Number);
           // Y rotation ≈ atan2(m[8], m[0]) for the CSS matrix
           out.push([Math.round(performance.now() - t0), Math.round((Math.atan2(-m[8], m[0]) * 180) / Math.PI)]);
-        } else {
-          const stage = document.querySelector("[data-stage]");
-          if (stage?.dataset.roty) out.push([Math.round(performance.now() - t0), Math.round(Number(stage.dataset.roty))]);
         }
         if (performance.now() - t0 < ms) requestAnimationFrame(tick);
         else resolve(out);
@@ -64,6 +66,7 @@ async function scenario(name, run, { mobile = false } = {}) {
   const notes = {};
   try {
     await page.goto(base + "/", { waitUntil: "load" });
+    await page.mouse.move(40, 40); // a visitor is here: the 3D stage loads on first intent
     mark("loaded");
     await run(page, mark, notes);
   } catch (e) {

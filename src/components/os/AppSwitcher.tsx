@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
-import { animate, motion, useMotionValue, useTransform, type MotionValue } from "motion/react";
+import { animate, useMotionValue, useTransform, type MotionValue } from "motion/react";
+import * as m from "motion/react-m";
 import { useDrag } from "@use-gesture/react";
 
 import { appsLayout, askApp } from "@content/apps";
@@ -163,15 +164,15 @@ function Switcher({
         }
       }}
     >
-      <motion.div
+      <m.div
         aria-hidden
         style={{ opacity: backdrop }}
         className="absolute inset-0 bg-black/45 backdrop-blur-[26px]"
       />
       {layout && count === 0 && (
-        <motion.p style={{ opacity: appear }} className="absolute inset-x-0 top-1/2 text-center text-[15px] font-medium text-white/80">
+        <m.p style={{ opacity: appear }} className="absolute inset-x-0 top-1/2 text-center text-[15px] font-medium text-white/80">
           No recent apps
-        </motion.p>
+        </m.p>
       )}
       {layout &&
         recents.map((app, i) => (
@@ -239,7 +240,7 @@ function Card({
   const opacity = useTransform([appear, y], ([a, dy]: number[]) => a * (1 - Math.min(1, Math.max(0, -dy / H))));
 
   return (
-    <motion.div
+    <m.div
       data-card={app}
       style={{ transform, opacity, width: W, height: H, transformOrigin: "0 0" } as unknown as CSSProperties}
       className="absolute top-0 left-0"
@@ -264,7 +265,7 @@ function Card({
         <div inert className="pointer-events-none absolute inset-0">
           {App && <App />}
         </div>
-        <motion.div aria-hidden style={{ opacity: shade }} className="absolute inset-0 bg-black" />
+        <m.div aria-hidden style={{ opacity: shade }} className="absolute inset-0 bg-black" />
       </div>
       <button
         type="button"
@@ -290,6 +291,6 @@ function Card({
       >
         ×
       </button>
-    </motion.div>
+    </m.div>
   );
 }

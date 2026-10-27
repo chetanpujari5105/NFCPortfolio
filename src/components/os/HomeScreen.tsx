@@ -1,13 +1,16 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
-import { animate, motion, useMotionValue, useSpring, useTransform, type MotionValue } from "motion/react";
+import { useMotionValue, useSpring, useTransform, type MotionValue } from "motion/react";
+import * as m from "motion/react-m";
 import { useDrag } from "@use-gesture/react";
 
 import { appsLayout, askApp } from "@content/apps";
 import type { HomeItem } from "@content/schema";
 import { startedIn } from "@/lib/gesture";
 import {
+  animateTo,
   HOME_SCALE_OPEN,
   haptic,
   homePagerX,
@@ -23,11 +26,13 @@ import { ENABLE_ASK } from "@/lib/router";
 import { prefersReducedMotion, useOS } from "@/lib/store";
 
 import { AppIcon } from "./AppIcon";
-import { BlogWidget, ExpertiseStack, VideoWidget } from "./HomeWidgets";
 import { Glyph } from "./icons";
 import { ImpactWidget } from "./ImpactWidget";
 import { socialIcons, FOLDER_SOCIALS } from "./social-icons";
 import { WorkWidget } from "./WorkWidget";
+
+// Page 2 starts off-screen: its widgets (and next/image) load right after hydration
+const Widgets = dynamic(() => import("./HomeWidgets").then((mod) => mod.WidgetsPage), { ssr: false });
 
 const LONG_PRESS_MS = 500;
 const PAGES = 2;
@@ -145,7 +150,7 @@ export function HomeScreen({ open }: { open: boolean }) {
   const goToPage = (next: number, focus?: "first" | "last", velocity = 0) => {
     const p = Math.max(0, Math.min(PAGES - 1, next));
     useOS.getState().setHomePage(p);
-    animate(homePagerX, -p * width.current, prefersReducedMotion() ? { duration: 0 } : withVelocity("smooth", velocity));
+    animateTo(homePagerX, -p * width.current, prefersReducedMotion() ? { duration: 0 } : withVelocity("smooth", velocity));
     if (focus)
       requestAnimationFrame(() =>
         requestAnimationFrame(() => {
@@ -160,7 +165,7 @@ export function HomeScreen({ open }: { open: boolean }) {
     searchProgress.set(Math.max(0, Math.min(1.12, rubberBand(amount, SEARCH_PULL * 1.6) / SEARCH_PULL)));
   const settleSearch = (velocity: number) => {
     if (searchProgress.get() > 0.5 || velocity > 500) useOS.getState().setSpotlightOpen(true);
-    else animate(searchProgress, 0, withVelocity("snappy", -velocity / SEARCH_PULL));
+    else animateTo(searchProgress, 0, withVelocity("snappy", -velocity / SEARCH_PULL));
   };
   useDrag(
     (s) => {
@@ -307,7 +312,7 @@ export function HomeScreen({ open }: { open: boolean }) {
       dragY.set(py - slots.current[nearest].y);
       if (last) {
         useOS.getState().setIconOrder(next);
-        Promise.all([animate(dragX, 0, springs.smooth), animate(dragY, 0, springs.smooth)]).then(() => {
+        Promise.all([animateTo(dragX, 0, springs.smooth), animateTo(dragY, 0, springs.smooth)]).then(() => {
           setDragId(null);
           setDragOrder(null);
         });
@@ -320,7 +325,7 @@ export function HomeScreen({ open }: { open: boolean }) {
   const byId = (id: string) => REORDERABLE.find((i) => i.id === id)!;
 
   return (
-    <motion.div
+    <m.div
       ref={layerRef}
       data-home-layer
       inert={open || locked}
@@ -358,7 +363,7 @@ export function HomeScreen({ open }: { open: boolean }) {
       onKeyDown={(e) => moveFocus(e, goToPage)}
     >
       <div ref={viewportRef} className="relative min-h-0 flex-1 overflow-hidden">
-        <motion.div style={{ x: homePagerX }} className="flex h-full">
+        <m.div style={{ x: homePagerX }} className="flex h-full">
           <nav aria-label="Apps" data-home-page="0" inert={page !== 0} className="flex w-full shrink-0 flex-col px-[5.6cqw]">
             <div ref={gridRef} className="relative grid grid-cols-4 gap-x-[4.2cqw] gap-y-[2.3cqh]">
               <Fly>
@@ -368,7 +373,7 @@ export function HomeScreen({ open }: { open: boolean }) {
                 <WorkWidget />
               </Fly>
               {shown.map((id, i) => (
-                <motion.div
+                <m.div
                   key={id}
                   data-reorder={id}
                   layout={dragId !== id}
@@ -382,7 +387,7 @@ export function HomeScreen({ open }: { open: boolean }) {
                   data-dragging={dragId === id || undefined}
                 >
                   <div data-fly>{iconFor(byId(id))}</div>
-                </motion.div>
+                </m.div>
               ))}
               {ENABLE_ASK && (
                 <div data-fly className="flex justify-center">
@@ -393,12 +398,10 @@ export function HomeScreen({ open }: { open: boolean }) {
           </nav>
           <section aria-label="Widgets" data-home-page="1" inert={page !== 1} className="w-full shrink-0 px-[5.6cqw]">
             <div className="grid grid-cols-4 gap-x-[4.2cqw] gap-y-[2.3cqh]">
-              <BlogWidget />
-              <VideoWidget />
-              <ExpertiseStack />
+              <Widgets />
             </div>
           </section>
-        </motion.div>
+        </m.div>
       </div>
 
       <PageDots page={page} onPage={(p) => goToPage(p)} />
@@ -416,8 +419,8 @@ export function HomeScreen({ open }: { open: boolean }) {
         </button>
       )}
 
-      <motion.div aria-hidden style={{ opacity: dim }} className="pointer-events-none absolute inset-0 bg-black" />
-    </motion.div>
+      <m.div aria-hidden style={{ opacity: dim }} className="pointer-events-none absolute inset-0 bg-black" />
+    </m.div>
   );
 }
 
@@ -493,8 +496,8 @@ function DockItem({ mouseX, children }: { mouseX: MotionValue<number>; children:
   });
   const scale = useSpring(target, springs.snappy);
   return (
-    <motion.div ref={ref} style={{ scale, transformOrigin: "50% 100%" }}>
+    <m.div ref={ref} style={{ scale, transformOrigin: "50% 100%" }}>
       <div data-fly>{children}</div>
-    </motion.div>
+    </m.div>
   );
 }

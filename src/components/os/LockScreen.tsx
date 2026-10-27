@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { animate, motion, stagger, useMotionValue, useTransform } from "motion/react";
+import { useMotionValue, useTransform } from "motion/react";
+import * as m from "motion/react-m";
 import { useDrag } from "@use-gesture/react";
 
 import { profile } from "@content/profile";
-import { haptic, rubberBand, springs, unlockProgress, withVelocity } from "@/lib/motion";
+import { animateTo, haptic, rubberBand, springs, unlockProgress, withVelocity } from "@/lib/motion";
 import { prefersReducedMotion, useOS } from "@/lib/store";
 
 import { Glyph } from "./icons";
@@ -26,15 +27,44 @@ function useNow() {
   return now;
 }
 
+/** Clock face text; self-contained so the pre-hydration script below can run the same code. */
+function clockText(d: Date) {
+  return [
+    d.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" }),
+    d.getHours() + ":" + String(d.getMinutes()).padStart(2, "0"),
+  ];
+}
+
+/**
+ * Fills in the date and time straight after the server markup, before any JS loads: the clock is
+ * the largest thing on a first visit, so it paints with the page instead of after hydration.
+ */
+const FILL_CLOCK = `(function(){var t=(${clockText.toString()})(new Date()),p=document.currentScript.previousElementSibling.children;p[0].textContent=t[0];p[1].textContent=t[1]})()`;
+
 /** Home icons fly in from slightly larger, 20 ms apart, on the gentle spring. */
 export function flyInHome(screen: HTMLElement | null) {
   const items = screen?.querySelectorAll<HTMLElement>("[data-home-layer] [data-fly]");
   if (!items?.length) return;
-  if (prefersReducedMotion()) {
-    animate(items, { opacity: [0, 1] }, { duration: 0.2 });
-    return;
-  }
-  animate(items, { opacity: [0, 1], scale: [1.25, 1] }, { ...springs.gentle, delay: stagger(0.02) });
+  const reduce = prefersReducedMotion();
+  items.forEach((el, i) => {
+    el.style.opacity = "0";
+    const settle = () => el.style.removeProperty(reduce ? "opacity" : "scale");
+    if (reduce) {
+      animateTo(0, 1, { duration: 0.2, onUpdate: (p) => (el.style.opacity = String(p)) }).then(settle);
+      return;
+    }
+    animateTo(0, 1, {
+      ...springs.gentle,
+      delay: i * 0.02,
+      onUpdate: (p) => {
+        el.style.opacity = String(Math.min(1, p));
+        el.style.scale = String(1.25 - 0.25 * p);
+      },
+    }).then(() => {
+      el.style.removeProperty("opacity");
+      settle();
+    });
+  });
 }
 
 /**
@@ -69,11 +99,11 @@ export function LockScreen() {
       unlockProgress.set(1);
     };
     if (prefersReducedMotion()) {
-      animate(ref.current!, { opacity: 0 }, { duration: 0.2 }).then(done);
+      ref.current!.animate({ opacity: [1, 0] }, { duration: 200, fill: "forwards" }).finished.then(done);
       flyInHome(screen);
       return;
     }
-    animate(y, -height(), withVelocity("smooth", Math.min(velocity, -1200))).then(done);
+    animateTo(y, -height(), withVelocity("smooth", Math.min(velocity, -1200))).then(done);
     window.setTimeout(() => flyInHome(screen), 60);
   };
 
@@ -91,7 +121,7 @@ export function LockScreen() {
       if (last) {
         const v = vy * dy * 1000;
         if (-my > H * 0.3 || v < -600) commit(v);
-        else animate(y, 0, withVelocity("snappy", v));
+        else animateTo(y, 0, withVelocity("snappy", v));
       }
     },
     { target: ref, axis: "y", filterTaps: true, pointer: { capture: true } },
@@ -99,18 +129,17 @@ export function LockScreen() {
 
   if (!locked) return null;
 
-  const time = now ? `${now.getHours()}:${String(now.getMinutes()).padStart(2, "0")}` : "";
-  const date = now?.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" }) ?? "";
+  const [date, time] = now ? clockText(now) : ["", ""];
   const latest = posts[0];
 
   return (
-    <motion.div
+    <m.div
       ref={ref}
       data-lock
       style={{ y }}
       className="absolute inset-0 z-56 flex touch-none flex-col items-center px-[6cqw] pt-[max(env(safe-area-inset-top),11cqh)] pb-[max(env(safe-area-inset-bottom),3cqh)] text-white select-none [background:linear-gradient(180deg,rgb(0_0_0/0.28),rgb(0_0_0/0.05)_40%,rgb(0_0_0/0.35))]"
     >
-      <motion.div style={{ scale: clockScale, opacity: clockOpacity }} className="flex flex-col items-center">
+      <m.div style={{ scale: clockScale, opacity: clockOpacity }} className="flex flex-col items-center">
         <p suppressHydrationWarning className="text-[17px] font-semibold tracking-wide text-white/85">
           {date}
         </p>
@@ -120,10 +149,11 @@ export function LockScreen() {
         >
           {time || " "}
         </p>
-      </motion.div>
+      </m.div>
+      <script dangerouslySetInnerHTML={{ __html: FILL_CLOCK }} />
 
       {latest && (
-        <motion.div style={{ opacity: clockOpacity }} className="glass-dark mt-[5cqh] flex w-full items-center gap-3 rounded-[22px] p-3 shadow-[inset_0_1px_0_rgb(255_255_255/0.2)]">
+        <m.div style={{ opacity: clockOpacity }} className="glass-dark mt-[5cqh] flex w-full items-center gap-3 rounded-[22px] p-3 shadow-[inset_0_1px_0_rgb(255_255_255/0.2)]">
           <span
             aria-hidden
             className="grid size-[38px] shrink-0 place-items-center rounded-[10px] text-white"
@@ -139,10 +169,10 @@ export function LockScreen() {
             <span className="block truncate text-[14px] font-semibold">New on Substack: {latest.title}</span>
             <span className="block truncate text-[12.5px] text-white/75">{profile.name}</span>
           </span>
-        </motion.div>
+        </m.div>
       )}
 
-      <motion.button
+      <m.button
         type="button"
         style={{ opacity: hintOpacity }}
         onClick={(e) => e.detail === 0 && commit()}
@@ -152,8 +182,8 @@ export function LockScreen() {
           <path d="m6 15 6-6 6 6" />
         </svg>
         Swipe up to open
-      </motion.button>
+      </m.button>
       <span aria-hidden className="mt-2 h-[5px] w-[36%] max-w-[140px] rounded-full bg-white/85" />
-    </motion.div>
+    </m.div>
   );
 }

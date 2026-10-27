@@ -23,6 +23,15 @@ export const test = base.extend<{ float: boolean; banner: boolean }>({
         });
       });
     }
+    // The 3D stage loads on the first sign of a visitor. Tests stand in for one with a no-op wheel
+    // on the window (nothing else listens there), repeated until the stage is live.
+    await page.addInitScript(() => {
+      const id = window.setInterval(() => {
+        if (innerWidth < 900 || document.documentElement.hasAttribute("data-3d")) return window.clearInterval(id);
+        window.dispatchEvent(new WheelEvent("wheel"));
+      }, 50);
+      window.setTimeout(() => window.clearInterval(id), 20_000);
+    });
     await provide(page);
   },
 });

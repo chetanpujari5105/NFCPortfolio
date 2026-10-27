@@ -23,7 +23,7 @@ export function FinishSwatches({ className }: { className?: string }) {
   const finish = useOS((s) => s.finish);
   const set = useSetFinish();
   return (
-    <div role="radiogroup" aria-label="Phone finish" onKeyDown={onRadioGroupKeyDown} className={cn("flex items-center gap-3", className)}>
+    <div role="radiogroup" aria-label="Phone finish" onKeyDown={onRadioGroupKeyDown} className={cn(className ?? "flex", "items-center gap-3")}>
       {FINISHES.map((f) => (
         <button
           key={f}

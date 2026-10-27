@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState, type RefObject } from "react";
-import { animate, motion, useMotionValue, useTransform } from "motion/react";
+import { animate, useMotionValue, useTransform } from "motion/react";
+import * as m from "motion/react-m";
 import { useDrag } from "@use-gesture/react";
 
 import { releaseVelocity } from "@/lib/gesture";
@@ -108,7 +109,7 @@ export function NotificationBanner({ screenRef }: { screenRef: RefObject<HTMLDiv
 
   if (!shown || !post) return null;
   return (
-    <motion.button
+    <m.button
       ref={ref}
       type="button"
       data-banner
@@ -145,6 +146,6 @@ export function NotificationBanner({ screenRef }: { screenRef: RefObject<HTMLDiv
         <span className="block truncate text-[14px] font-semibold">New post: {post.title}</span>
         <span className="block truncate text-[12.5px] text-white/75">{post.subtitle}</span>
       </span>
-    </motion.button>
+    </m.button>
   );
 }

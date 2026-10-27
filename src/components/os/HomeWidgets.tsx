@@ -124,3 +124,14 @@ export function ExpertiseStack() {
     </button>
   );
 }
+
+/** Everything on home page 2. */
+export function WidgetsPage() {
+  return (
+    <>
+      <BlogWidget />
+      <VideoWidget />
+      <ExpertiseStack />
+    </>
+  );
+}

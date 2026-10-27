@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { motionValue, useTransform, type MotionValue, type Transition } from "motion/react";
+import { animateSingleValue, motionValue, useTransform, type MotionValue, type Transition, type ValueAnimationTransition } from "motion/react";
 
 /*
  * One motion system for the whole OS. Everything a visitor can touch moves on a named spring,
@@ -29,6 +29,15 @@ export type SpringName = keyof typeof springs;
 
 /** A named spring that hands off a gesture's velocity (units per second). */
 export const withVelocity = (name: SpringName, velocity = 0): Transition => ({ ...springs[name], velocity });
+
+/**
+ * Animates one motion value (or a plain number, read through `onUpdate`). The home screen only
+ * ever moves values, so it uses this instead of `animate`, which also carries sequences and
+ * element animation; that keeps them out of the first-load bundle.
+ */
+export function animateTo(value: MotionValue<number> | number, target: number, transition?: ValueAnimationTransition<number>) {
+  return animateSingleValue(value, target, transition);
+}
 
 /** Strong ease-out, kept only for opacity crossfades (reduced motion). */
 export const easeOut = [0.23, 1, 0.32, 1] as const;

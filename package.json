@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "cn": "cn build --content 'src/**/*.{ts,tsx}' --content 'content/**/*.ts' -o src/lib/cn-tables.ts --css src/app/globals.css -q",
+    "prebuild": "npm run cn",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",

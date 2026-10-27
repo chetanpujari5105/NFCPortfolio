@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useRef, useState } from "react";
+import * as m from "motion/react-m";
 import { Check, Link2, Moon, Sun } from "lucide-react";
 
 import { useTheme } from "@/components/ui/theme-toggle";
@@ -43,6 +43,10 @@ function PillIcon({ pill }: { pill: PillEvent }) {
 export function StatusPill() {
   const pill = useOS((s) => s.pill);
   const hidePill = useOS((s) => s.hidePill);
+  // The last message stays rendered while the pill shrinks, so it can fade out
+  const [last, setLast] = useState<PillEvent | null>(pill);
+  if (pill && pill !== last) setLast(pill);
+  const shown = pill ?? last;
   const theme = useTheme();
   const lastTheme = useRef<string | null>(null);
 
@@ -59,7 +63,7 @@ export function StatusPill() {
 
   return (
     <>
-      <motion.button
+      <m.button
         type="button"
         layout
         transition={MORPH}
@@ -71,22 +75,23 @@ export function StatusPill() {
         style={{ borderRadius: 999 }}
         className={cn("status-pill", pill && "status-pill-open")}
       >
-        <AnimatePresence mode="popLayout" initial={false}>
-          {pill && (
-            <motion.span
-              key={pill.id}
-              layout="position"
-              initial={{ opacity: 0, scale: 0.9, filter: "blur(4px)" }}
-              animate={{ opacity: 1, scale: 1, filter: "blur(0px)", transition: { ...springs.snappy, delay: 0.06 } }}
-              exit={{ opacity: 0, scale: 0.9, filter: "blur(4px)", transition: { duration: 0.12 } }}
-              className="flex min-w-0 items-center gap-2 px-3.5 text-[13.5px] font-semibold whitespace-nowrap text-white"
-            >
-              <PillIcon pill={pill} />
-              <span className="truncate">{pill.text}</span>
-            </motion.span>
-          )}
-        </AnimatePresence>
-      </motion.button>
+        {shown && (
+          <m.span
+            key={shown.id}
+            layout="position"
+            initial={{ opacity: 0, scale: 0.9, filter: "blur(4px)" }}
+            animate={
+              pill
+                ? { opacity: 1, scale: 1, filter: "blur(0px)", transition: { ...springs.snappy, delay: 0.06 } }
+                : { opacity: 0, scale: 0.9, filter: "blur(4px)", transition: { duration: 0.12 } }
+            }
+            className="flex min-w-0 items-center gap-2 px-3.5 text-[13.5px] font-semibold whitespace-nowrap text-white"
+          >
+            <PillIcon pill={shown} />
+            <span className="truncate">{shown.text}</span>
+          </m.span>
+        )}
+      </m.button>
       <span role="status" aria-live="polite" className="sr-only">
         {pill?.text ?? ""}
       </span>

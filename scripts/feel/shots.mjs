@@ -12,6 +12,7 @@ const errors = [];
 p.on("pageerror", (e) => errors.push(e.message));
 p.on("console", (m) => m.type() === "error" && errors.push(m.text()));
 await p.goto(base + "/", { waitUntil: "load" });
+await p.mouse.move(40, 40);
 for (const t of [300, 700, 1200, 2500]) {
   await p.waitForTimeout(t - (t > 300 ? [300, 700, 1200, 2500][[300, 700, 1200, 2500].indexOf(t) - 1] : 0));
   await p.screenshot({ path: `${out}/load-${t}.png` });

@@ -10,23 +10,19 @@ import {
   type ReactNode,
 } from "react";
 import dynamic from "next/dynamic";
-import { MotionConfig } from "motion/react";
+import { LazyMotion, MotionConfig } from "motion/react";
 
 import { appsLayout } from "@content/apps";
 import type { AppId } from "@content/schema";
 import { APPS, preloadApp } from "@/components/apps/registry";
-import { AppSwitcher } from "@/components/os/AppSwitcher";
-import { AppWindow } from "@/components/os/AppWindow";
-import { BrightnessDim, ControlPanel, settlePanel } from "@/components/os/ControlPanel";
+import { BrightnessDim } from "@/components/os/BrightnessDim";
 import { HomeScreen } from "@/components/os/HomeScreen";
 import { LockScreen } from "@/components/os/LockScreen";
-import { NotificationBanner } from "@/components/os/NotificationBanner";
-import { SocialsFolder } from "@/components/os/SocialsFolder";
-import { Spotlight } from "@/components/os/Spotlight";
 import { StatusPill } from "@/components/os/StatusPill";
+import { settlePanel } from "@/lib/panel";
 import { goBack, goHome, useHashRouter } from "@/lib/router";
 import { useOS } from "@/lib/store";
-import { STAGE_3D_QUERY } from "@/lib/theme";
+import { STAGE_3D_QUERY, STAGE_INTENT } from "@/lib/theme";
 
 import type { Phone3DProps, Rig } from "./Phone3D";
 import { StatusBar } from "./StatusBar";
@@ -36,6 +32,19 @@ import { Wallpaper } from "./Wallpaper";
 type WindowState = { app: AppId; closing: boolean; initial: boolean; next?: AppId };
 
 const Phone3D = dynamic<Phone3DProps>(() => import("./Phone3D"), { ssr: false });
+
+// `m` components render and follow motion values straight away; animation/layout features arrive async
+const loadMotionFeatures = () => import("@/lib/motion-features").then((mod) => mod.default);
+
+// Layers that start closed load right after hydration instead of in the first bundle
+const AppWindow = dynamic(() => import("@/components/os/AppWindow").then((m) => m.AppWindow), { ssr: false });
+const AppSwitcher = dynamic(() => import("@/components/os/AppSwitcher").then((m) => m.AppSwitcher), { ssr: false });
+const Spotlight = dynamic(() => import("@/components/os/Spotlight").then((m) => m.Spotlight), { ssr: false });
+const SocialsFolder = dynamic(() => import("@/components/os/SocialsFolder").then((m) => m.SocialsFolder), { ssr: false });
+const ControlPanel = dynamic(() => import("@/components/os/ControlPanel").then((m) => m.ControlPanel), { ssr: false });
+const NotificationBanner = dynamic(() => import("@/components/os/NotificationBanner").then((m) => m.NotificationBanner), {
+  ssr: false,
+});
 const loadRig = () => import("./Phone3D").then((m) => m.newRig());
 
 /** How long the CSS phone waits for the 3D phone to make the entrance. */
@@ -99,13 +108,25 @@ export function Phone() {
     return () => cancel(id);
   }, []);
 
-  // Load the 3D chunk only once the home screen has painted and the main thread is idle.
+  // The 3D stage loads on the visitor's first sign of life (pointer, wheel, key or touch), once the
+  // main thread is idle. Its WebGL setup is one long task, so it never runs during first load.
+  // Early intent gets the 3D entrance; later intent swaps the 3D phone in place.
   useEffect(() => {
     if (!use3D || rig) return;
     const idle = window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 200));
     const cancel = window.cancelIdleCallback ?? window.clearTimeout;
-    const id = idle(() => void loadRig().then(setRig), { timeout: 600 });
-    return () => cancel(id);
+    let id = 0;
+    const load = () => {
+      stop();
+      id = idle(() => void loadRig().then(setRig), { timeout: 600 });
+    };
+    const stop = () => STAGE_INTENT.forEach((type) => window.removeEventListener(type, load));
+    if (document.documentElement.hasAttribute("data-intent")) load();
+    else STAGE_INTENT.forEach((type) => window.addEventListener(type, load, { passive: true }));
+    return () => {
+      stop();
+      cancel(id);
+    };
   }, [use3D, rig]);
 
   // The CSS phone waits briefly so the 3D phone can arrive; otherwise it arrives itself.
@@ -243,6 +264,7 @@ export function Phone() {
   const App = win ? APPS[win.app] : null;
 
   return (
+    <LazyMotion features={loadMotionFeatures} strict>
     <MotionConfig reducedMotion={reduceMotion ? "always" : "user"}>
       {use3D && (
         <div ref={stageRef} data-stage className="stage" onPointerOver={warm} onFocus={warm}>
@@ -300,6 +322,7 @@ export function Phone() {
         </div>
       </CssPhone>
     </MotionConfig>
+    </LazyMotion>
   );
 }
 

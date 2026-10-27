@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { animate, motion, useMotionValueEvent, useTransform } from "motion/react";
+import { animate, useMotionValueEvent, useTransform } from "motion/react";
+import * as m from "motion/react-m";
 
 import { appsLayout, askApp } from "@content/apps";
 import { courses } from "@content/courses";
@@ -183,7 +184,7 @@ function SpotlightPanel({ open }: { open: boolean }) {
       aria-label="Search"
       className={cn("absolute inset-0 z-60 flex flex-col", !open && "pointer-events-none")}
     >
-      <motion.button
+      <m.button
         type="button"
         tabIndex={-1}
         aria-label="Close search"
@@ -191,7 +192,7 @@ function SpotlightPanel({ open }: { open: boolean }) {
         style={{ opacity: backdrop }}
         className="absolute inset-0 bg-black/30 backdrop-blur-[22px]"
       />
-      <motion.div
+      <m.div
         style={{ y: panelY, opacity: panelOpacity }}
         className="relative mx-4 mt-[max(env(safe-area-inset-top),14px)] tab:mt-[7.5cqh]"
       >
@@ -257,7 +258,7 @@ function SpotlightPanel({ open }: { open: boolean }) {
             </li>
           ))}
         </ul>
-      </motion.div>
+      </m.div>
     </div>
   );
 }

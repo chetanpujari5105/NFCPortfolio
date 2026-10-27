@@ -73,8 +73,9 @@ Mobile LCP is Lighthouse's simulated estimate; a real 4× CPU-throttled run pain
 **Toolbox used:** Context7 (use-gesture, drei/R3F docs; drei's `Html` source read directly in
 `node_modules` for the `occlude="blending"` behaviour), emil-design-eng / animate / apple-design
 (springs, interruptibility, gestures), impeccable + web-design-guidelines, vercel-react-best-practices,
-Playwright (recordings, gesture tests), ffmpeg (frame analysis). New packages: `@use-gesture/react`,
-`maath`. No three.js/R3F skill or plugin exists in the skills registry this session; none installed.
+Playwright (recordings, gesture tests), ffmpeg (frame analysis), Turbopack's bundle analyzer
+(`next analyze`), Lighthouse 12 (`npx lighthouse`). New packages: `@use-gesture/react`, `maath`. The existing
+`cn` package now runs its build step (`npm run cn`, compiled class tables) before every build. No three.js/R3F skill or plugin exists in the skills registry this session; none installed.
 REA stays off (owner's earlier choice); the reference was studied with Playwright recordings instead.
 
 - **Step 1** — Recorded 9 interactions on the reference and on the v2 build (`scripts/feel/record.mjs`,
@@ -136,6 +137,26 @@ REA stays off (owner's earlier choice); the reference was studied with Playwrigh
   Apple web-app meta (black-translucent status bar). Launch before an app's chunk arrives lands on a
   skeleton instead of a blank screen. 4 new phone tests drive real touch events over CDP. Fixed a
   step-7 CSS slip that un-hid the frame's buttons on phones.
+- **Step 9** — Speed. Initial JS on `/` is **196.6 KB gzipped** (was 290 KB at step 8;
+  `node scripts/js-budget.mjs`, legacy `nomodule` polyfill excluded since modern browsers never fetch
+  it). About 134 KB of that is React + Next itself. How: closed layers (app window, switcher,
+  Spotlight, Socials, Control Center, banner) load after hydration; `LazyMotion` + `m.*` with the
+  feature bundle loaded async; the home path animates motion values through `animateTo`
+  (`animateSingleValue`) instead of `animate`, which also carries sequences and element/WAAPI
+  animation; page-2 widgets load after hydration (takes `next/image` with them); the status pill
+  drops `AnimatePresence`; `cn` is a plain join, and Tailwind conflict merging (`cnMerge`, `cn`
+  package with tables compiled from our own classes before every build) is only used by the app
+  shell and Control Center, which load later. The 3D stage now loads on the visitor's first pointer
+  move / wheel / key / touch (noted by the pre-paint script, so a move before hydration counts);
+  its WebGL setup is one 70–90 ms task, so it never runs during first load or an interaction. The
+  lock-screen clock and date are filled by an inline script right after the markup, so the largest
+  text paints with the page and no longer shifts layout (CLS 0.044 → 0).
+  Long tasks during 23 desktop + 21 phone interactions: **none** (`node scripts/longtasks.mjs`).
+  Lighthouse 12 (production build, local): desktop **100 / 100 / 100 / 100** (LCP 0.7 s, TBT 0 ms);
+  mobile **91 / 100 / 100 / 100**, steady over 4 runs (simulated slow 4G + 4× CPU, LCP 3.5 s
+  estimate); with real DevTools throttling mobile is 98 (LCP 1.6 s). `npm test`: 119 passed + 1
+  flaky (the desktop jiggle-drag test, which passes on its retry under full parallel load) /
+  24 skipped by viewport. Re-recorded all scenarios: `docs/feel-gap.md` "After".
 
 ## Needs Chetan
 

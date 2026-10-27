@@ -61,8 +61,9 @@ export function ThemeToggle({ className }: { className?: string }) {
         });
       }}
       className={cn(
-        "relative grid size-10 place-items-center rounded-full border border-studio-line text-studio-ink transition-transform duration-150 ease-out active:scale-[0.94]",
-        className,
+        // Position and display come from the caller when it places the button
+        className ?? "relative grid",
+        "size-10 place-items-center rounded-full border border-studio-line text-studio-ink transition-transform duration-150 ease-out active:scale-[0.94]",
       )}
     >
       {/* Both glyphs render; CSS picks one so there's no flash before hydration */}

@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { animate } from "motion/react";
 
 import { profile } from "@content/profile";
 import { openApp } from "@/lib/router";
-import { easeOut } from "@/lib/motion";
+import { animateTo, easeOut } from "@/lib/motion";
 import { prefersReducedMotion } from "@/lib/store";
 import { worldRows } from "@/lib/world-map";
 
@@ -38,7 +37,7 @@ function CountUp({ value, format }: { value: number; format: (n: number) => stri
       el.textContent = format(value);
       return;
     }
-    const controls = animate(0, value, {
+    const controls = animateTo(0, value, {
       duration: 1.6,
       ease: easeOut,
       onUpdate: (n) => (el.textContent = format(n)),

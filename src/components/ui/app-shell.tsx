@@ -14,7 +14,8 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
-import { animate, LayoutGroup, motion, useMotionValue, useTransform, type MotionValue } from "motion/react";
+import { animate, LayoutGroup, useMotionValue, useTransform, type MotionValue } from "motion/react";
+import * as m from "motion/react-m";
 import { useDrag } from "@use-gesture/react";
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 
@@ -24,7 +25,7 @@ import { edgeZone, releaseVelocity, startedIn } from "@/lib/gesture";
 import { fadeTransition, haptic, project, rubberBand, springs, withVelocity } from "@/lib/motion";
 import { goBack } from "@/lib/router";
 import { prefersReducedMotion } from "@/lib/store";
-import { cn } from "@/lib/utils";
+import { cnMerge as cn } from "@/lib/cn-merge";
 
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 
@@ -240,7 +241,7 @@ export function AppScreen({
   );
 
   return (
-    <motion.div
+    <m.div
       style={{ x: shiftX, scale, borderRadius: radius, transformOrigin: "50% 0%" }}
       className="absolute inset-0 overflow-hidden bg-app-background"
     >
@@ -249,14 +250,14 @@ export function AppScreen({
           ref={barRef}
           className="pointer-events-none absolute inset-x-0 top-0 z-20 px-4 pt-[max(env(safe-area-inset-top),12px)] pb-1.5 tab:pt-[7cqh]"
         >
-          <motion.div aria-hidden style={{ opacity: barOpacity }} className="nav-material absolute inset-0" />
+          <m.div aria-hidden style={{ opacity: barOpacity }} className="nav-material absolute inset-0" />
           <div ref={setSlot} className="relative flex h-[38px] items-center justify-between gap-2" />
           {onRefresh && (
-            <motion.div
+            <m.div
               style={{ opacity: refreshing ? 1 : spinOpacity, y: spinY }}
               className="absolute inset-x-0 top-full flex justify-center"
             >
-              <motion.svg
+              <m.svg
                 aria-hidden
                 viewBox="0 0 24 24"
                 style={{ rotate: spinRotate }}
@@ -267,13 +268,13 @@ export function AppScreen({
                 strokeLinecap="round"
               >
                 <path d="M12 3a9 9 0 1 0 9 9" />
-              </motion.svg>
+              </m.svg>
               {refreshing && (
                 <span role="status" className="sr-only">
                   Refreshing
                 </span>
               )}
-            </motion.div>
+            </m.div>
           )}
         </div>
         <div
@@ -284,10 +285,10 @@ export function AppScreen({
             className,
           )}
         >
-          <motion.div style={{ y: pull }}>{children}</motion.div>
+          <m.div style={{ y: pull }}>{children}</m.div>
         </div>
       </ScreenCtx.Provider>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -324,13 +325,13 @@ export function AppNav({
         <BackButton label={backLabel} />
       </span>
       {title && screen && (
-        <motion.span
+        <m.span
           aria-hidden
           style={{ opacity: screen.titleOpacity }}
           className="min-w-0 flex-1 truncate text-center text-[16px] font-semibold tracking-tight"
         >
           {title}
-        </motion.span>
+        </m.span>
       )}
       {action && <span className="pointer-events-auto flex items-center gap-2">{action}</span>}
     </>
@@ -368,13 +369,13 @@ export function AppHeader({
   return (
     <header className="mb-5">
       <AppNav title={title} backLabel={backLabel} action={action} />
-      <motion.h1
+      <m.h1
         ref={h1}
         style={{ scale, transformOrigin: "0% 50%" }}
         className="mt-2.5 text-[34px] leading-[1.08] font-bold tracking-[-0.02em]"
       >
         {title}
-      </motion.h1>
+      </m.h1>
       {subtitle && <p className="mt-1 text-[14px] leading-snug text-app-muted">{subtitle}</p>}
     </header>
   );
@@ -538,7 +539,7 @@ export function SwipeRow({
 
   return (
     <div className={cn("relative overflow-hidden", className)}>
-      <motion.button
+      <m.button
         type="button"
         tabIndex={open ? 0 : -1}
         aria-hidden={!open}
@@ -549,12 +550,12 @@ export function SwipeRow({
         style={{ width: actionWidth }}
         className="absolute inset-y-0 right-0 flex items-center justify-end bg-finish text-[13px] font-semibold text-finish-ink"
       >
-        <motion.span style={{ opacity: labelOpacity }} className="flex w-[84px] flex-col items-center gap-1">
+        <m.span style={{ opacity: labelOpacity }} className="flex w-[84px] flex-col items-center gap-1">
           {icon}
           {label}
-        </motion.span>
-      </motion.button>
-      <motion.div
+        </m.span>
+      </m.button>
+      <m.div
         ref={ref}
         data-swipe-row
         style={{ x }}
@@ -573,7 +574,7 @@ export function SwipeRow({
         }}
       >
         {children}
-      </motion.div>
+      </m.div>
     </div>
   );
 }
@@ -621,7 +622,7 @@ export function Chip({
   const body = (
     <>
       {grouped && active && (
-        <motion.span layoutId="chip-indicator" transition={springs.snappy} className="absolute inset-0 rounded-full bg-app-ink" />
+        <m.span layoutId="chip-indicator" transition={springs.snappy} className="absolute inset-0 rounded-full bg-app-ink" />
       )}
       <span className="relative">{children}</span>
     </>
@@ -686,7 +687,7 @@ export function Switch({
         checked ? "bg-available" : "bg-app-divider",
       )}
     >
-      <motion.span
+      <m.span
         animate={{ x: checked ? 20 : 0 }}
         transition={springs.snappy}
         initial={false}
@@ -725,7 +726,7 @@ export function Segmented<T extends string>({
             )}
           >
             {value === o.value && (
-              <motion.span
+              <m.span
                 layoutId="segment-indicator"
                 transition={springs.snappy}
                 className="absolute inset-0 rounded-[8px] bg-app-group shadow-sm"
@@ -836,9 +837,9 @@ export function PushView({ open, children, label }: { open: boolean; children: R
   if (!mounted) return null;
   return (
     <>
-      <motion.div aria-hidden style={{ opacity: dim }} className="pointer-events-none absolute inset-0 z-10 bg-black/20" />
+      <m.div aria-hidden style={{ opacity: dim }} className="pointer-events-none absolute inset-0 z-10 bg-black/20" />
       <LayerCtx.Provider value="push">
-        <motion.div
+        <m.div
           ref={panelRef}
           role="region"
           aria-label={label}
@@ -847,7 +848,7 @@ export function PushView({ open, children, label }: { open: boolean; children: R
           className="absolute inset-0 z-10 touch-pan-y bg-app-background shadow-[-12px_0_32px_rgb(0_0_0/0.12)]"
         >
           {children}
-        </motion.div>
+        </m.div>
       </LayerCtx.Provider>
     </>
   );
@@ -1008,7 +1009,7 @@ export function Sheet({ open, children, label }: { open: boolean; children: Reac
   if (!mounted) return null;
   return (
     <div ref={wrapRef} className="absolute inset-0 z-10" role="region" aria-label={label}>
-      <motion.button
+      <m.button
         type="button"
         tabIndex={-1}
         aria-label="Close"
@@ -1017,7 +1018,7 @@ export function Sheet({ open, children, label }: { open: boolean; children: Reac
         className="absolute inset-0 bg-black/30"
       />
       <LayerCtx.Provider value="sheet">
-        <motion.div
+        <m.div
           ref={panelRef}
           data-sheet
           style={{ y, opacity: fade }}
@@ -1049,7 +1050,7 @@ export function Sheet({ open, children, label }: { open: boolean; children: Reac
           >
             {children}
           </div>
-        </motion.div>
+        </m.div>
       </LayerCtx.Provider>
     </div>
   );

@@ -32,3 +32,36 @@ velocity: no pause, and no visible overshoot past the front.
 ### Long tasks (before)
 Reference: one 70–100 ms task during load in every scenario. Ours: 63 + 157 ms on load, none
 during interactions.
+
+## After (this branch, step 9 build, recorded 2026-10-27)
+
+Same scenarios, same recorder and analyzer, production build on `localhost:3100`. Videos in
+`docs/feel/videos/after/`, frame strips in `docs/feel/frames/s9/` (both gitignored). The recorder
+moves the mouse once after load, because the 3D stage now loads on the visitor's first pointer
+move, wheel, key or touch.
+
+| Interaction | Before (v2) | After (measured) |
+|---|---|---|
+| First load / arrival | Flat frame rises 24 px on a fixed 900 ms curve; long tasks 63 + 157 ms. | The 3D phone fades, rises and squares up in one spring: ≈440 ms of motion, then the screen wakes (≈520 ms) onto the lock screen. The clock is already painted with the page. Load long tasks: 53 + 78 ms, only once a visitor is present; none for a visit with no input. |
+| Mouse hover / parallax | Nothing moves. | The phone leans toward the pointer and squares up over the screen. The lean settles in ≈280 ms, then small corrections follow the pointer. |
+| Drag-rotate and let go | Not possible. | Drag on the stage spins the phone (800 px → 397°). Released slowly, it holds for the 1.2 s idle pause, then springs to the front: `397 → 390 → 378 → 368 → 363 → 360` (≈400 ms, no overshoot). A flick keeps spinning with its velocity (`tests/stage.spec.ts`). |
+| Open app ×3 | Grows from the icon in ≈440 ms. | Grows from the icon in 360–440 ms; the home screen scales back, dims and blurs, and content goes from blurred to sharp. |
+| Close app ×3 (Esc) | Into its icon, 280–320 ms. | Into its icon, 240–280 ms. The home indicator also works as a swipe: the app follows the finger and flies into its icon with the release velocity. Swipe and hold opens the app switcher. |
+| Scroll inside an app | Hard stop at the top. | The large title collapses into a frosted bar. Past either end the list rubber-bands and springs back (≈320 ms). |
+| Detail view + back | Fixed 360 ms slide; parent static. | Spring push: the parent shifts −30 % and dims. Back takes ≈280 ms, and an edge swipe from the left follows the finger. |
+| Finish swatches | Instant swap. | The body colour blends over ≈400 ms; the status pill announces theme changes. |
+| Search | Appears instantly. | A pull-down on home tracks the finger; ⌘K or the button opens it in ≈320 ms, and closing takes ≈240 ms. |
+| Home | — | Unlock: the sheet follows the finger and the icons fly in 20 ms apart. Swiping pages with momentum, long-press jiggle and a drag reorder are all recorded. |
+| Mobile (iPhone 13, touch) | Full-screen OS. | Full-screen OS with a lock screen, safe areas, no page bounce, an installable PWA and real touch gestures. No long tasks. |
+
+### Long tasks (after)
+None during interactions. `node scripts/longtasks.mjs` drives 23 desktop and 21 phone
+interactions (open, scroll and close five apps, page swipes, pull-down search with typing,
+Control Center with a dark-mode toggle, the app switcher). The only tasks over 50 ms are the 3D
+stage's one-time WebGL setup (≈50–80 ms) right after the first input; phones never load it.
+
+### Remaining differences, on purpose
+- The reference's flick decays toward the front without a pause. Ours keeps spinning with the
+  release velocity, then waits 1.2 s before returning, so a visitor can look at the back.
+- Without any pointer, wheel, key or touch input the desktop shows the flat CSS phone (fully
+  working). The 3D phone swaps in place at the first input.

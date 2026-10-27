@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
-import { animate, motion, useMotionValueEvent, useTransform } from "motion/react";
+import { useMotionValueEvent, useTransform } from "motion/react";
+import * as m from "motion/react-m";
 import { useDrag, type FullGestureState } from "@use-gesture/react";
 import { Accessibility, ALargeSmall, Moon, Play, Sun, SunDim } from "lucide-react";
 
@@ -10,10 +11,11 @@ import { FINISH_INFO, useSetFinish } from "@/components/studio/FinishSwatches";
 import { useTheme } from "@/components/ui/theme-toggle";
 import { onRadioGroupKeyDown } from "@/lib/a11y";
 import { releaseVelocity } from "@/lib/gesture";
-import { fadeTransition, haptic, panelProgress, rubberBand, withVelocity } from "@/lib/motion";
-import { prefersReducedMotion, useOS, WALLPAPERS } from "@/lib/store";
+import { haptic, panelProgress, rubberBand } from "@/lib/motion";
+import { settlePanel } from "@/lib/panel";
+import { useOS, WALLPAPERS } from "@/lib/store";
 import { FINISHES, setThemeWithReveal } from "@/lib/theme";
-import { cn } from "@/lib/utils";
+import { cnMerge as cn } from "@/lib/cn-merge";
 
 import { useServerData } from "./server-data";
 
@@ -25,14 +27,6 @@ const WALLPAPER_SWATCH: Record<(typeof WALLPAPERS)[number], string> = {
   aurora: "radial-gradient(80% 50% at 50% 25%, #3fe0b0, transparent 70%), linear-gradient(180deg,#041a1a,#020509)",
   dusk: "radial-gradient(90% 60% at 50% 100%, var(--accent), transparent 70%), linear-gradient(180deg,#2a1640,#c0587a 70%,#f2a65a)",
 };
-
-/** Settles the panel open or closed, carrying the gesture's velocity (progress units per second). */
-export function settlePanel(open: boolean, velocity = 0) {
-  const { setPanelOpen } = useOS.getState();
-  setPanelOpen(open);
-  if (prefersReducedMotion()) animate(panelProgress, open ? 1 : 0, fadeTransition);
-  else animate(panelProgress, open ? 1 : 0, withVelocity(open ? "snappy" : "smooth", velocity));
-}
 
 function Tile({ children, className, style }: { children: ReactNode; className?: string; style?: CSSProperties }) {
   return (
@@ -171,7 +165,7 @@ export function ControlPanel() {
         className="absolute top-0 right-0 z-[76] h-[max(env(safe-area-inset-top),12px)] w-[42%] cursor-pointer touch-none tab:h-[6.2cqh]"
       />
       <div ref={layerRef} data-control-panel className="cc-layer absolute inset-0 z-[75] touch-none">
-        <motion.button
+        <m.button
           type="button"
           tabIndex={-1}
           aria-label="Close Control Center"
@@ -179,7 +173,7 @@ export function ControlPanel() {
           style={{ opacity: backdrop, backdropFilter: blur, WebkitBackdropFilter: blur }}
           className="absolute inset-0 bg-black/30"
         />
-        <motion.div
+        <m.div
           ref={panelRef}
           role="dialog"
           aria-modal="true"
@@ -290,21 +284,8 @@ export function ControlPanel() {
               </a>
             </span>
           </Tile>
-        </motion.div>
+        </m.div>
       </div>
     </>
-  );
-}
-
-/** Screen brightness from Control Center: a dimming layer over everything on the screen. */
-export function BrightnessDim() {
-  const brightness = useOS((s) => s.brightness);
-  if (brightness >= 1) return null;
-  return (
-    <div
-      aria-hidden
-      className="pointer-events-none absolute inset-0 z-[79] bg-black"
-      style={{ opacity: (1 - brightness) * 0.75 }}
-    />
   );
 }

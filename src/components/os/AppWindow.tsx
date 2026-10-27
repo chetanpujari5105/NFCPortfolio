@@ -12,11 +12,11 @@ import {
 } from "react";
 import {
   animate,
-  motion,
   useMotionValue,
   useTransform,
   type AnimationPlaybackControls,
 } from "motion/react";
+import * as m from "motion/react-m";
 import { useDrag } from "@use-gesture/react";
 
 import { appsLayout, askApp } from "@content/apps";
@@ -282,12 +282,12 @@ export function AppWindow({ app, title, closing, initial, quick, screenRef, onCl
   const motionCtx = useMemo<WindowMotion>(() => ({ push, sheet, width: () => geo.current?.W ?? 400 }), [push, sheet]);
 
   return (
-    <motion.div
+    <m.div
       style={{ transform: dragTransform, transformOrigin: "50% 100%" } as unknown as CSSProperties}
       className="pointer-events-none absolute inset-0 z-40"
       data-app-window={app}
     >
-      <motion.div
+      <m.div
         ref={windowRef}
         role="dialog"
         aria-modal="true"
@@ -297,13 +297,13 @@ export function AppWindow({ app, title, closing, initial, quick, screenRef, onCl
         style={style}
         className="pointer-events-auto absolute inset-0 overflow-hidden bg-app-background text-app-ink outline-none will-change-transform"
       >
-        <motion.div style={{ opacity: contentOpacity, filter: contentFilter }} className="absolute inset-0">
+        <m.div style={{ opacity: contentOpacity, filter: contentFilter }} className="absolute inset-0">
           <WindowCtx.Provider value={motionCtx}>{children}</WindowCtx.Provider>
-        </motion.div>
+        </m.div>
 
         {/* The icon's face, fading out as the window grows */}
         {item && (
-          <motion.div
+          <m.div
             aria-hidden
             style={{
               opacity: overlayOpacity,
@@ -312,7 +312,7 @@ export function AppWindow({ app, title, closing, initial, quick, screenRef, onCl
             className="pointer-events-none absolute inset-0 grid place-items-center text-white"
           >
             <Glyph name={item.icon} className="w-[54cqmin]" />
-          </motion.div>
+          </m.div>
         )}
 
         <div
@@ -323,7 +323,7 @@ export function AppWindow({ app, title, closing, initial, quick, screenRef, onCl
         >
           <span className="h-[5px] w-[36%] max-w-[140px] rounded-full bg-app-ink/85" />
         </div>
-      </motion.div>
-    </motion.div>
+      </m.div>
+    </m.div>
   );
 }

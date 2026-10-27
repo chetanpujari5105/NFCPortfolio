@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, type FormEvent, type ReactNode } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence } from "motion/react";
+import * as m from "motion/react-m";
 import { ArrowUp, Check, Copy, Mail } from "lucide-react";
 
 import { profile } from "@content/profile";
@@ -318,7 +319,7 @@ export default function ContactApp() {
       {/* Paper-plane fly-off */}
       <AnimatePresence>
         {flying > 0 && status === "sent" && (
-          <motion.svg
+          <m.svg
             key={flying}
             viewBox="0 0 24 24"
             aria-hidden
@@ -339,13 +340,13 @@ export default function ContactApp() {
               d="M21.6 2.4 9.9 14.9l2.3 6.1c.3.9 1.5.9 1.8.1L21.6 2.4Z"
               opacity=".7"
             />
-          </motion.svg>
+          </m.svg>
         )}
       </AnimatePresence>
 
       <AnimatePresence>
         {toast && (
-          <motion.div
+          <m.div
             role="status"
             initial={{ opacity: 0, transform: "translate(-50%, -12px)" }}
             animate={{
@@ -357,7 +358,7 @@ export default function ContactApp() {
             className="glass absolute top-[max(env(safe-area-inset-top),12px)] left-1/2 z-30 w-[86%] rounded-[16px] px-4 py-3 text-center text-[14px] font-medium shadow-lg tab:top-[6.5cqh]"
           >
             {toast}
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </>

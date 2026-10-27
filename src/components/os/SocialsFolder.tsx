@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence } from "motion/react";
+import * as m from "motion/react-m";
 
 import { profile } from "@content/profile";
 import { easeOut } from "@/lib/motion";
@@ -36,7 +37,7 @@ export function SocialsFolder({ open, screenRef }: { open: boolean; screenRef: R
   return (
     <AnimatePresence>
       {open && (
-        <motion.div
+        <m.div
           key="folder"
           role="dialog"
           aria-modal="true"
@@ -53,7 +54,7 @@ export function SocialsFolder({ open, screenRef }: { open: boolean; screenRef: R
             onClick={goBack}
             className="absolute inset-0 bg-black/25 backdrop-blur-[18px]"
           />
-          <motion.div
+          <m.div
             ref={panelRef}
             style={{ transformOrigin: origin } as CSSProperties}
             initial={reduce ? false : { transform: "scale(0.3)", opacity: 0 }}
@@ -85,8 +86,8 @@ export function SocialsFolder({ open, screenRef }: { open: boolean; screenRef: R
                 );
               })}
             </div>
-          </motion.div>
-        </motion.div>
+          </m.div>
+        </m.div>
       )}
     </AnimatePresence>
   );
