@@ -1,4 +1,4 @@
-// Usage: node scripts/check-3d.mjs <outDir> [baseUrl] — needs a server built/run with NEXT_PUBLIC_ENABLE_3D=true
+// Usage: node scripts/check-3d.mjs <outDir> [baseUrl]
 import { chromium } from "@playwright/test";
 const [out = "screens", base = "http://localhost:3200"] = process.argv.slice(2);
 const b = await chromium.launch({ args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"] });

@@ -6,7 +6,8 @@ Services, Contact, Settings), with a Socials folder, ⌘K Spotlight, deep links 
 `/#courses/google-veo`) and light/dark themes. Below 600px the site *is* the phone.
 
 Built with Next.js 16 (App Router, Cache Components), React 19, Tailwind CSS v4, Motion, Zustand
-and Zod. Optional: a React Three Fiber 3D phone and an "Ask Chetan" AI app, both off by default.
+and Zod. On desktop the phone turns into a React Three Fiber 3D model (CSS phone without WebGL or
+with reduced motion). Optional: an "Ask Chetan" AI app, off by default.
 
 - **Edit content:** everything visitors read is in `content/*.ts` — see [CONTENT.md](CONTENT.md).
 - **Status / to-do for Chetan:** [docs/progress.md](docs/progress.md).
@@ -17,7 +18,7 @@ Requires Node.js 20.9+ (tested on Node 24).
 
 ```bash
 npm install
-cp .env.example .env.local   # optional: fill in keys (see below)
+cp .env.example .env.local   # optional: fill in keys (see "Deploy to Vercel")
 npm run dev                  # http://localhost:3000
 ```
 
@@ -42,41 +43,28 @@ Extra scripts (run against a server on :3100): `node scripts/check-os.mjs <outDi
 `node scripts/a11y.mjs` (axe + keyboard), `node scripts/screenshots.mjs <outDir> [path]`
 (3 sizes × 2 themes).
 
-## Environment variables
+## Deploy to Vercel
 
-All optional; the site degrades gracefully without them. Secrets stay on the server.
+1. [vercel.com/new](https://vercel.com/new) → import `chetanpujari5105/NFCPortfolio`. Next.js is
+   detected; keep the default build settings (`npm ci`, `npm run build`) and production branch `main`.
+2. Add any variables below under *Settings → Environment Variables* (all optional), then **Deploy**.
+3. Add `chetanpujari.com` under *Settings → Domains*.
+
+CLI: `npx vercel link`, `npx vercel env add <NAME> production` per variable, then `npx vercel --prod`.
 
 | Variable | Used for | Without it |
 |---|---|---|
-| `RESEND_API_KEY` | Contact form email via Resend | Form shows "email me directly" |
-| `CONTACT_TO_EMAIL` | Where messages go | `profile.email` |
-| `CONTACT_FROM_EMAIL` | Verified sender, e.g. `Chetan <hello@chetanpujari.com>` | `onboarding@resend.dev` (Resend test sender) |
-| `NEXT_PUBLIC_ENABLE_ASK` | Show the Ask Chetan app (`true`) | Hidden |
-| `OPENAI_API_KEY` | Ask Chetan answers | App shows "email me directly" |
+| `RESEND_API_KEY` | Contact form email via Resend (server only) | Form shows "email me directly" |
+| `CONTACT_TO_EMAIL` | Where contact messages go | `profile.email` |
+| `CONTACT_FROM_EMAIL` | Sender on a domain verified in Resend, e.g. `Chetan <hello@chetanpujari.com>` | `onboarding@resend.dev` (Resend test sender) |
+| `NEXT_PUBLIC_ENABLE_ASK` | `true` shows the Ask Chetan app | Hidden |
+| `OPENAI_API_KEY` | Ask Chetan answers (server only) | App shows "email me directly" |
 | `OPENAI_MODEL` | Model for Ask Chetan | `gpt-5-mini` |
-| `NEXT_PUBLIC_ENABLE_3D` | 3D phone on desktop (`true`) | CSS phone |
-| `NEXT_PUBLIC_SITE_URL` | Canonical URL for SEO / OG | Vercel production URL, then `https://chetanpujari.com` |
+| `GITHUB_TOKEN` | GitHub heatmap via GraphQL; a fine-grained token with no permissions is enough (server only) | Parses the public contributions page |
+| `NEXT_PUBLIC_SITE_URL` | Canonical URL for SEO, sitemap and OG images | `VERCEL_PROJECT_PRODUCTION_URL` (set by Vercel), then `https://chetanpujari.com` |
 
-`NEXT_PUBLIC_*` values are baked in at build time — redeploy after changing them.
-
-## Deploy to Vercel
-
-**Dashboard:** push this repo to GitHub → [vercel.com/new](https://vercel.com/new) → import it →
-framework "Next.js" is detected (no settings to change) → add the environment variables above
-under *Settings → Environment Variables* → Deploy. Add your domain under *Settings → Domains*.
-
-**CLI:**
-
-```bash
-npm i -g vercel          # or use npx vercel
-vercel link              # create/link the project
-vercel env add RESEND_API_KEY production   # repeat for each variable you need
-vercel                   # preview deployment
-vercel --prod            # production
-```
-
-For real contact emails, verify your domain in Resend and set `CONTACT_FROM_EMAIL` to an address
-on it.
+`NEXT_PUBLIC_*` values are baked in at build time, so redeploy after changing them. For local
+development, copy `.env.example` to `.env.local`.
 
 ## Credits
 
