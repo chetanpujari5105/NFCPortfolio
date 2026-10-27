@@ -24,7 +24,8 @@ async function home(page: Page) {
   await expect(page.locator("[data-app-icon]").first()).toBeVisible();
 }
 
-const dialog = (page: Page) => page.locator("[role=dialog][aria-modal=true]");
+// App windows only (Control Center and the switcher are dialogs too)
+const dialog = (page: Page) => page.locator("[data-app-window] > [role=dialog]");
 
 test("every app opens, sets the hash and title, and closes with Esc", async ({ page }) => {
   test.setTimeout(60_000); // 11 launches + closes, each a full spring

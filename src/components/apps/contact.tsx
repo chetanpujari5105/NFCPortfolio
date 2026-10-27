@@ -132,6 +132,7 @@ export default function ContactApp() {
           company: "",
         });
         useOS.getState().setContactSubject("");
+        useOS.getState().showPill("done", "Message sent");
         showToast(`Sent! ${profile.responseTime}`);
       } else if (data.reason === "invalid") {
         setErrors(data.fieldErrors);

@@ -35,7 +35,7 @@ async function share(title: string, url: string) {
     if (navigator.share) await navigator.share({ title, url });
     else {
       await navigator.clipboard.writeText(url);
-      useOS.getState().showPill("done", "Link copied");
+      useOS.getState().showPill("done", "Link copied", "link");
     }
   } catch {
     // Share sheet dismissed, or clipboard blocked

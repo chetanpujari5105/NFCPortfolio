@@ -4,6 +4,7 @@ import Image from "next/image";
 import type { MouseEvent } from "react";
 
 import { profile } from "@content/profile";
+import { settlePanel } from "@/components/os/ControlPanel";
 import { Glyph } from "@/components/os/icons";
 import { socialIcons } from "@/components/os/social-icons";
 import { FINISH_INFO, useSetFinish } from "@/components/studio/FinishSwatches";
@@ -261,6 +262,13 @@ export default function SettingsApp() {
             leading={<RowIcon glyph="newspaper" colors={["#8e8e93", "#48484a"]} />}
             title="Larger text"
             trailing={<Switch checked={largeText} label="Larger text" onChange={setLargeText} />}
+          />
+          <ListRow
+            leading={<RowIcon glyph="gear" colors={["#636366", "#1c1c1e"]} />}
+            title="Control Center"
+            subtitle="Or pull down from the top-right corner of the screen."
+            chevron
+            onClick={() => settlePanel(true)}
           />
         </ListGroup>
 

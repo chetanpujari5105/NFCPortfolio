@@ -12,7 +12,7 @@ const screen = (page: Page) => page.locator("[data-screen]");
 /** Deep-link into an app and wait until the phone is still (3D swap done, parallax at rest). */
 async function open(page: Page, hash: string) {
   await page.goto(`/#${hash}`);
-  await expect(page.locator("[role=dialog][aria-modal=true]").first()).toBeVisible();
+  await expect(page.locator("[data-app-window] > [role=dialog]")).toBeVisible();
   await page.waitForFunction(() => innerWidth < 900 || document.documentElement.hasAttribute("data-3d"), null, {
     timeout: 25_000,
   });

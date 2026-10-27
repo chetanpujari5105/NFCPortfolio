@@ -9,7 +9,7 @@ test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => sessionStorage.setItem("pp-unlocked", "1"));
 });
 
-const dialog = (page: Page) => page.locator("[role=dialog][aria-modal=true][aria-label]:not([aria-label='App switcher'])");
+const dialog = (page: Page) => page.locator("[data-app-window] > [role=dialog]");
 
 async function home(page: Page) {
   await page.goto("/");

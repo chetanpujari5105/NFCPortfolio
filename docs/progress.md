@@ -117,6 +117,16 @@ REA stays off (owner's earlier choice); the reference was studied with Playwrigh
   "Share", Courses "Enroll" (full swipe runs it). Blog pull-to-refresh hits the new `/api/feed` route
   (pill reports the result; a Refresh button does the same). Chips/segmented use a `layoutId`
   indicator on the snappy spring. 7 new tests (`tests/inapp.spec.ts`), visual baselines refreshed.
+- **Step 7** — System UI. The camera cutout is now a status pill that grows sideways (own spring,
+  content blurs in) for "Message sent", "Link copied", "Theme: Dark/Light" (from any toggle) and a
+  progress ring while Blog refreshes; tap collapses it; a polite live region reads the same text.
+  Control Center: pull down from the top-right corner (follows the finger, rubber-bands past open,
+  settles with velocity) or tap the battery corner; dark mode, reduce motion, larger text, finish,
+  wallpaper, brightness (dims the screen), Now Playing (latest video or the channel). Closes by swipe
+  up, Esc (focus returns) or tapping outside; Settings has a Control Center row as the no-gesture
+  path. Notification banner 8 s after unlock if Blog wasn't opened, once per session; tap opens the
+  post from the banner, swipe up/Esc/timeout dismisses. Haptic ticks on toggles and thresholds. 6 new
+  tests (`tests/system.spec.ts`); tests opt out of the banner via a fixture option.
 
 ## Needs Chetan
 

@@ -15,10 +15,8 @@ export type Route = {
 };
 
 /** Short-lived message shown by the status pill (morphs out of the camera cutout). */
-export type PillEvent =
-  | { kind: "done"; text: string; id: number }
-  | { kind: "info"; text: string; id: number }
-  | { kind: "progress"; text: string; id: number };
+export type PillIcon = "check" | "moon" | "sun" | "link";
+export type PillEvent = { kind: "done" | "info" | "progress"; text: string; id: number; icon?: PillIcon };
 
 type OSState = {
   route: Route;
@@ -55,7 +53,7 @@ type OSState = {
   setHomePage: (page: number) => void;
   forgetRecent: (app: AppId) => void;
   setIconOrder: (order: string[]) => void;
-  showPill: (kind: PillEvent["kind"], text: string) => number;
+  showPill: (kind: PillEvent["kind"], text: string, icon?: PillIcon) => number;
   hidePill: (id?: number) => void;
   setContactSubject: (subject: string) => void;
   hydratePrefs: () => void;
@@ -71,7 +69,7 @@ export const PREF_KEYS = {
 /** Session flag: the lock screen shows once per browser session. */
 export const UNLOCK_KEY = "pp-unlocked";
 
-function readSession(key: string) {
+export function readSession(key: string) {
   try {
     return sessionStorage.getItem(key);
   } catch {
@@ -147,10 +145,10 @@ export const useOS = create<OSState>()((set, get) => ({
     writeStored(PREF_KEYS.iconOrder, JSON.stringify(iconOrder));
     set({ iconOrder });
   },
-  showPill: (kind, text) => {
+  showPill: (kind, text, icon) => {
     const id = ++pillSeq;
     window.clearTimeout(pillTimer);
-    set({ pill: { kind, text, id } });
+    set({ pill: { kind, text, id, icon } });
     // Progress stays until replaced; messages collapse on their own.
     if (kind !== "progress") pillTimer = window.setTimeout(() => get().hidePill(id), 2600);
     return id;

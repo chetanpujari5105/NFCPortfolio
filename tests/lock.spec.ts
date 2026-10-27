@@ -2,7 +2,7 @@ import { expect, test, type Page } from "./fixtures";
 
 /* The lock screen: a fresh context starts a new session, so it shows; a reload keeps the session. */
 
-const dialog = (page: Page) => page.locator("[role=dialog][aria-modal=true][aria-label]");
+const dialog = (page: Page) => page.locator("[data-app-window] > [role=dialog]");
 
 async function drag(page: Page, from: { x: number; y: number }, to: { x: number; y: number }, opts: { steps?: number; hold?: number; delay?: number } = {}) {
   const { steps = 12, hold = 0, delay = 0 } = opts;

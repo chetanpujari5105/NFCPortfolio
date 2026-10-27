@@ -17,10 +17,13 @@ import type { AppId } from "@content/schema";
 import { APPS, preloadApp } from "@/components/apps/registry";
 import { AppSwitcher } from "@/components/os/AppSwitcher";
 import { AppWindow } from "@/components/os/AppWindow";
+import { BrightnessDim, ControlPanel, settlePanel } from "@/components/os/ControlPanel";
 import { HomeScreen } from "@/components/os/HomeScreen";
 import { LockScreen } from "@/components/os/LockScreen";
+import { NotificationBanner } from "@/components/os/NotificationBanner";
 import { SocialsFolder } from "@/components/os/SocialsFolder";
 import { Spotlight } from "@/components/os/Spotlight";
+import { StatusPill } from "@/components/os/StatusPill";
 import { goBack, goHome, useHashRouter } from "@/lib/router";
 import { useOS } from "@/lib/store";
 import { STAGE_3D_QUERY } from "@/lib/theme";
@@ -202,9 +205,12 @@ export function Phone() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
-      const { spotlightOpen, setSpotlightOpen, wiggle, setWiggle, route, switcherOpen, setSwitcherOpen } =
+      const { spotlightOpen, setSpotlightOpen, wiggle, setWiggle, route, switcherOpen, setSwitcherOpen, panelOpen } =
         useOS.getState();
-      if (switcherOpen) setSwitcherOpen(false);
+      if (panelOpen) {
+        settlePanel(false);
+        document.querySelector<HTMLElement>("[data-panel-handle]")?.focus({ preventScroll: true });
+      } else if (switcherOpen) setSwitcherOpen(false);
       else if (spotlightOpen) setSpotlightOpen(false);
       else if (wiggle) setWiggle(false);
       else if (route.app) goBack();
@@ -286,7 +292,10 @@ export function Phone() {
           <Spotlight />
           <AppSwitcher screenRef={screenRef} />
           <StatusBar onApp={!!win && !win.closing} />
-          <div className="phone-island" aria-hidden />
+          <NotificationBanner screenRef={screenRef} />
+          <ControlPanel />
+          <StatusPill />
+          <BrightnessDim />
           <div className="screen-off" aria-hidden />
         </div>
       </CssPhone>
