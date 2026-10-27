@@ -492,10 +492,32 @@ html[data-reduce-motion] .screen-off {
   position: relative;
   z-index: 1;
 }
+/* Glyph shadow takes the tile's own deep colour, so it reads as depth, not dirt */
 .icon-tile > svg {
-  width: 54%;
-  height: 54%;
-  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.18)) drop-shadow(0 1.5px 3px rgb(0 0 0 / 0.12));
+  --glyph-shade: color-mix(in oklab, color-mix(in oklab, var(--c2, #000), #000 45%) 55%, transparent);
+  width: var(--glyph, 54%);
+  height: var(--glyph, 54%);
+  filter: drop-shadow(0 1px 0.5px var(--glyph-shade)) drop-shadow(0 2px 3px var(--glyph-shade));
+}
+/* Optical sizing: open, pointy shapes sit larger than dense, boxy ones */
+.icon-tile > [data-glyph="star"],
+.icon-tile > [data-glyph="sparkles"],
+.icon-tile > [data-glyph="bolt"],
+.icon-tile > [data-glyph="cap"] {
+  --glyph: 60%;
+}
+.icon-tile > [data-glyph="rocket"],
+.icon-tile > [data-glyph="sprout"] {
+  --glyph: 58%;
+}
+.icon-tile > [data-glyph="globe"],
+.icon-tile > [data-glyph="gear"],
+.icon-tile > [data-glyph="chat"] {
+  --glyph: 55%;
+}
+.icon-tile > [data-glyph="newspaper"],
+.icon-tile > [data-glyph="plane"] {
+  --glyph: 52%;
 }
 .icon-brand > svg {
   filter: none;

@@ -3,6 +3,11 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
+  experimental: {
+    // The build cache served a stale globals.css through the Tailwind loader (edits to plain CSS
+    // rules never reached the bundle). Clean builds take ~5 s, so builds always start cold.
+    turbopackFileSystemCacheForBuild: false,
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     qualities: [70, 80],

@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 
 /*
  * Original glyph set for the home screen. Every glyph is drawn on a 24×24 grid,
@@ -132,9 +132,17 @@ export const glyphs: Record<string, ReactNode> = {
   ),
 };
 
+/** A glyph lit from above: full colour at the top, a touch deeper at the bottom (gives it weight). */
 export function Glyph({ name, className }: { name: string; className?: string }) {
+  const id = `g${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden className={className}>
+    <svg viewBox="0 0 24 24" fill={`url(#${id})`} aria-hidden className={className} data-glyph={name}>
+      <defs>
+        <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="currentColor" />
+          <stop offset="1" stopColor="currentColor" stopOpacity="0.84" />
+        </linearGradient>
+      </defs>
       {glyphs[name] ?? glyphs.sparkles}
     </svg>
   );
