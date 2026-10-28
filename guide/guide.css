@@ -1,0 +1,133 @@
+/* Print stylesheet for the guide. Fonts are local files from @fontsource (no hotlinking). */
+@font-face { font-family: "Archivo"; src: url("%ARCHIVO%") format("woff2"); font-weight: 100 900; font-stretch: 62% 125%; }
+@font-face { font-family: "Inter"; src: url("%INTER%") format("woff2"); font-weight: 100 900; }
+@font-face { font-family: "JetBrains Mono"; src: url("%MONO%") format("woff2"); font-weight: 100 800; }
+
+:root {
+  --ink: #1d1e22;
+  --muted: #5d636e;
+  --line: #e3e5ea;
+  --accent: #ffb800;
+  --accent-ink: #8a5f00;
+  --paper: #ffffff;
+  --code-bg: #f6f7f9;
+  --studio: #151619;
+}
+
+@page { size: A4; }
+* { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+html { font-size: 9.6pt; }
+body { margin: 0; font-family: "Inter", -apple-system, sans-serif; color: var(--ink); line-height: 1.55; background: var(--paper); font-feature-settings: "cv11", "ss01"; }
+a { color: inherit; }
+a.link { color: #0b57d0; text-decoration: none; border-bottom: 0.5pt solid rgb(11 87 208 / 0.35); overflow-wrap: anywhere; }
+p, li { orphans: 3; widows: 3; }
+p { margin: 0 0 0.75em; }
+strong { font-weight: 650; }
+ul, ol { padding-left: 1.3em; margin: 0 0 0.9em; }
+li { margin: 0.18em 0; }
+li::marker { color: var(--accent-ink); font-weight: 600; }
+code { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 0.86em; background: var(--code-bg); border: 0.5pt solid var(--line); border-radius: 3px; padding: 0.05em 0.3em; overflow-wrap: anywhere; }
+
+/* ── Headings ── */
+h1, h2, h3, .step-title, .callout-title, .kicker, .toc-row.l1 { font-family: "Archivo", sans-serif; }
+.chapter-head { break-before: page; break-after: avoid; margin: 0 0 7mm; padding-top: 2mm; }
+.chapter-head .kicker { display: inline-block; font-size: 8pt; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-ink); padding-bottom: 2.5mm; border-bottom: 2.2pt solid var(--accent); margin-bottom: 4mm; font-stretch: 112%; }
+h1 { font-size: 27pt; line-height: 1.05; font-weight: 800; font-stretch: 125%; letter-spacing: -0.01em; margin: 0; }
+h2 { font-size: 14.5pt; font-weight: 750; font-stretch: 118%; margin: 7mm 0 2.5mm; break-after: avoid; line-height: 1.2; }
+h3 { font-size: 11pt; font-weight: 700; margin: 5mm 0 2mm; break-after: avoid; }
+h2 + p, h3 + p { break-before: avoid; }
+/* Keep a heading or intro line with the start of the code block below it */
+p:has(+ .code), h2:has(+ .code), h2:has(+ p + .code) { break-after: avoid; }
+p:has(+ .code) { break-inside: avoid; }
+
+/* ── Code ── */
+.code { margin: 2.5mm 0 4mm; border: 0.6pt solid var(--line); border-radius: 5px; background: var(--code-bg); position: relative; break-before: avoid; }
+.code-label { font-family: "Archivo", sans-serif; font-stretch: 112%; font-size: 6.4pt; font-weight: 800; letter-spacing: 0.16em; color: var(--muted); padding: 2mm 3.2mm 0; }
+.code[data-kind="prompt"] .code-label { color: var(--accent-ink); }
+.code[data-kind="prompt"] { border-left: 2.2pt solid var(--accent); }
+.code pre { margin: 0; padding: 1.4mm 3.2mm 2.6mm; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 7.6pt; line-height: 1.5; white-space: pre-wrap; overflow-wrap: break-word; word-break: normal; orphans: 3; widows: 3; background: transparent !important; }
+.code pre code { background: none; border: 0; padding: 0; font-size: inherit; }
+.code pre a { color: inherit; text-decoration: underline; text-decoration-color: rgb(11 87 208 / 0.4); }
+.code .line { display: inline; }
+.done { font-weight: 600; color: #14632f; background: #eef8f1; border-radius: 4px; padding: 1.6mm 2.6mm; break-inside: avoid; break-before: avoid; }
+
+/* ── Tables ── */
+table { width: 100%; border-collapse: collapse; margin: 2mm 0 5mm; font-size: 8.2pt; line-height: 1.4; break-inside: auto; }
+th { text-align: left; font-weight: 700; background: #f3f4f6; border-bottom: 0.8pt solid #cfd3da; padding: 1.6mm 2mm; }
+td { border-bottom: 0.5pt solid var(--line); padding: 1.5mm 2mm; vertical-align: top; }
+tr { break-inside: avoid; }
+td code { font-size: 0.92em; }
+td:first-child code { white-space: nowrap; overflow-wrap: normal; }
+/* break-word (not anywhere) so table columns size to their longest word */
+td a.link { overflow-wrap: break-word; }
+
+/* ── Callouts ── */
+.callout { border-radius: 6px; padding: 3mm 4mm 1.5mm; margin: 4mm 0; break-inside: avoid; border-left: 2.5pt solid; }
+.callout-title { font-weight: 800; font-stretch: 112%; font-size: 8.6pt; letter-spacing: 0.02em; margin-bottom: 1.2mm; }
+.callout.tip { background: #fff8e1; border-color: var(--accent); }
+.callout.warning { background: #fff1f0; border-color: #e5484d; }
+.callout.note { background: #f0f4ff; border-color: #3e63dd; }
+.callout.check { background: #eef8f1; border-color: #2f9e5b; }
+.callout ul { margin-bottom: 1.5mm; }
+
+.decision { border: 1.2pt solid var(--ink); border-radius: 8px; padding: 4mm 5mm 1.5mm; margin: 5mm 0; background: linear-gradient(180deg, #fffaf0, #fff); break-inside: avoid; }
+.decision p:first-child strong:first-child { color: var(--accent-ink); }
+
+.trouble { border: 0.6pt solid var(--line); border-left: 2.5pt solid #8a8f98; border-radius: 6px; padding: 3mm 4mm 1mm; margin: 0 0 3.5mm; break-inside: avoid; }
+.trouble p { margin-bottom: 1.4mm; }
+.trouble p:first-child { margin-bottom: 2mm; }
+.trouble p:first-child strong { font-size: 9.6pt; }
+
+/* ── Steps ── */
+.step { display: grid; grid-template-columns: 9mm 1fr; gap: 3.5mm; border: 0.6pt solid var(--line); border-radius: 7px; padding: 3.5mm 4mm 1.5mm 3.5mm; margin: 3.5mm 0; background: #fcfcfd; break-inside: avoid; }
+.step-num { width: 8mm; height: 8mm; border-radius: 50%; background: var(--accent); color: #1d1e22; font-family: "Archivo", sans-serif; font-weight: 800; font-size: 11pt; display: grid; place-items: center; }
+.step-title { font-weight: 750; font-stretch: 115%; font-size: 11pt; margin: 0.6mm 0 1.6mm; }
+.step .code { margin: 2mm 0 2.5mm; }
+.step .done { margin-bottom: 2mm; }
+
+/* ── Worksheet ── */
+.worksheet table { font-size: 8.6pt; }
+.worksheet th:first-child, .worksheet td:first-child { width: 44%; }
+.worksheet td { height: 9mm; }
+.worksheet td:last-child { border-bottom: 0.6pt dashed #b9bec7; }
+
+/* ── Figures ── */
+.fig { margin: 3mm 0 5mm; break-inside: avoid; text-align: center; }
+.fig img { max-width: 100%; max-height: 112mm; border-radius: 5px; box-shadow: 0 0.6mm 2.4mm rgb(0 0 0 / 0.16); }
+.fig.tall img { max-height: 118mm; }
+.fig figcaption { font-size: 7.8pt; color: var(--muted); margin-top: 2mm; line-height: 1.35; }
+.figures, .figures-3 { display: grid; gap: 4mm; margin: 2mm 0 2mm; break-inside: avoid; align-items: start; }
+.figures { grid-template-columns: 1fr 1fr; }
+.figures-3 { grid-template-columns: 1fr 1fr 1fr; }
+.figures .fig, .figures-3 .fig { margin: 0; }
+.figures-3 .fig img { max-height: 98mm; }
+
+/* ── Table of contents ── */
+.toc-head { break-before: auto; }
+.toc-row { display: flex; align-items: baseline; text-decoration: none; gap: 2mm; padding: 0.9mm 0; break-inside: avoid; }
+.toc-row.l1 { font-weight: 750; font-stretch: 112%; font-size: 10.4pt; margin-top: 2.6mm; }
+.toc-row.l2 { font-size: 8.8pt; color: #3b3f47; padding-left: 9mm; }
+.toc-num { display: inline-block; width: 9mm; color: var(--accent-ink); }
+.toc-dots { flex: 1; border-bottom: 0.7pt dotted #b9bec7; transform: translateY(-0.8mm); }
+.toc-page { font-variant-numeric: tabular-nums; min-width: 6mm; text-align: right; }
+
+/* ── Quick reference: one dense page ── */
+.quickref { font-size: 8.3pt; line-height: 1.42; }
+.quickref table { font-size: 7.9pt; margin-bottom: 3mm; }
+.quickref td { padding: 1mm 2mm; }
+.quickref ol { margin-bottom: 2mm; }
+.quickref p { margin-bottom: 1.6mm; }
+
+/* ── Cover ── */
+body.cover-page { background: var(--studio); }
+.cover { width: 210mm; height: 296.5mm; overflow: hidden; color: #f2f2f4; padding: 20mm 18mm 16mm; display: flex; flex-direction: column;
+  background: radial-gradient(120% 70% at 30% 35%, #23252b 0%, #151619 55%, #0d0e10 100%); }
+.cover-tag { font-family: "Archivo", sans-serif; font-stretch: 118%; font-weight: 700; font-size: 8pt; letter-spacing: 0.2em; color: var(--accent); border: 0.8pt solid rgb(255 184 0 / 0.5); border-radius: 999px; padding: 1.6mm 3.6mm; }
+.cover-title { font-family: "Archivo", sans-serif; font-weight: 850; font-stretch: 125%; font-size: 37pt; line-height: 1.02; letter-spacing: -0.015em; margin: 12mm 0 5mm; }
+.cover-title span { display: block; color: var(--accent); }
+.cover-sub { font-size: 13pt; color: #c9cbd1; margin: 0 0 10mm; max-width: 150mm; }
+.cover-shots { position: relative; flex: 1; }
+.cover-hero { position: absolute; left: -2mm; top: 0; width: 160mm; border-radius: 4mm; box-shadow: 0 3mm 12mm rgb(0 0 0 / 0.55); border: 0.6pt solid #2c2e34; }
+.cover-mobile { position: absolute; right: 2mm; top: 66mm; width: 47mm; border-radius: 7mm; box-shadow: 0 4mm 14mm rgb(0 0 0 / 0.6); border: 1.6mm solid #050506; }
+.cover-foot { display: flex; justify-content: space-between; align-items: baseline; border-top: 0.6pt solid #34363d; padding-top: 4mm; font-size: 10pt; color: #b5b8bf; }
+.cover-foot strong { color: #fff; font-weight: 650; }

@@ -47,3 +47,8 @@ next-env.d.ts
 /docs/feel/frames
 /docs/feel/ref
 docs/v4/**/*.webm
+
+# guide build scratch
+/guide/.build/
+# original prompts used as guide sources: personal details, keep local
+/guide-sources/
