@@ -1208,12 +1208,54 @@ Ideas for going further. Each one is a good "Fix list" item.
 ![The original app icons, checked at 60 px and 180 px.](images/icons.jpg)
 :::
 
+## Optional: an iOS 18 icon pack
+
+The template ships with its own original icons. If you'd rather your apps look like the phone's
+system apps, the original site uses a free pack: **iOS 18 App Icons** by David Akhmedbayev on
+Figma Community (CC BY 4.0). Duplicate the file into your Figma drafts, then run this prompt.
+It adds the pack behind a switch, so your original icons stay one setting away.
+
+::: warning
+The Figma file is free to use, but the app designs it shows are Apple's trademarks, and the
+file's author asks you to follow the owner's guidance. Read Apple's trademark guidelines before
+you put these on a public site, and credit the pack. If in doubt, keep the original set.
+:::
+
+```prompt 10-optional-icon-pack.md
+Add an optional icon pack for my own apps. Keep the original icons as the fallback.
+
+Pack: "iOS 18 App Icons • Free Resource" by David Akhmedbayev, Figma Community, CC BY 4.0.
+My duplicated copy: {{FIGMA_FILE_LINK}}
+
+1. Export the light-theme icons I map below as SVG (PNG at 3x only if one has raster
+   effects). Use my logged-in Figma session through Claude in Chrome, or the Figma REST API
+   if I put a read-only FIGMA_TOKEN in .env.local (never commit it). Never type my password.
+   If a login or captcha appears, stop and tell me.
+2. Mapping (my app -> pack icon): {{APP_1}} -> {{PACK_ICON_1}}, {{APP_2}} -> {{PACK_ICON_2}}, ...
+   An app with no match keeps its original icon. Brand tiles (LinkedIn, X, YouTube and the
+   rest) stay official. Check each export is the full icon on a clean squircle.
+3. Save them to public/icons/ios18/ as 180x180 WebP under 20 KB each, full bleed (the site's
+   squircle mask is the edge), plus a LICENSE.txt with the author, source link, CC BY 4.0
+   and what you changed.
+4. Draw them as the tile face everywhere an app icon appears: home, dock, folder previews,
+   launch animation, app switcher, lock-screen notification, banner and the OG image. Keep the
+   squircle mask, press dim, labels and spacing. Put it behind NEXT_PUBLIC_ICON_PACK=ios18;
+   unset or "original" keeps today's icons.
+5. Credit it in Settings -> About -> Credits and the README: "iOS 18 App Icons by David
+   Akhmedbayev, CC BY 4.0, via Figma Community. iPhone and the app designs they depict are
+   trademarks of Apple Inc."
+6. Run lint, typecheck, build and tests with the pack on and off. Update the home screenshot
+   baselines on purpose and say which ones changed.
+```
+
+✅ You're done when both settings build and pass, and Settings → Credits names the pack.
+
 ## Originality and brand use, in plain words
 
-- **Your design is yours.** The icons, wallpaper, phone model and code in this template are original. Keep anything you add original too.
+- **Your design is yours.** The icons, wallpaper, phone model and code in this template are original. Keep anything you add original too, or licensed for reuse and credited.
 - **Study, don't copy.** It's fine to admire another site and describe how it *feels*. Never copy its code, text, images, icons, fonts or 3D models.
 - **Brand logos only link to your own profiles.** The LinkedIn, X, YouTube and other marks are there so visitors recognise where a link goes. Use the official mark, in its own colours, undistorted, and only on links to your profiles.
-- **Don't use other companies' product designs or logos.** No real phone models, no company logos on the phone, no copies of system app icons.
+- **Don't use other companies' product designs or logos.** No real phone models and no company logos on the phone. The template ships no system app icons. The iOS 18 pack above is the one opt-in exception: credit it and follow its owner's guidance.
 - **Reviews and numbers must be true.** Only publish real quotes with permission, and real stats.
 
 # Credits, licenses and links
@@ -1238,6 +1280,7 @@ Ideas for going further. Each one is a good "Fix list" item.
 ## Assets and licenses
 
 - Brand marks: [Simple Icons](https://simpleicons.org/) (CC0) and [Font Awesome Free](https://fontawesome.com/license/free) (CC BY 4.0, the LinkedIn mark).
+- Optional app icons (not in the template): iOS 18 App Icons by David Akhmedbayev, CC BY 4.0, via Figma Community. iPhone and the app designs they depict are trademarks of Apple Inc.
 - Map data: [Natural Earth](https://www.naturalearthdata.com/) (public domain).
 - Fonts in this guide: Archivo, Inter and JetBrains Mono (SIL Open Font License), via Fontsource.
 
