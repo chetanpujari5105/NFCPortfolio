@@ -119,8 +119,40 @@ export function slotBox(p: Pick<Placed, "col" | "row" | "w" | "h">, g: HomeGeome
 
 /** The pages themselves. Memoised: opening an app re-renders the layer, never the icons. */
 const Pages = memo(function Pages({ placed, pages, page, geo }: { placed: Placed[]; pages: number; page: number; geo: HomeGeometry }) {
+  const stripRef = useRef<HTMLDivElement>(null);
+  // Pages wholly off to the side skip style, layout and paint (a theme switch or a launch then
+  // restyles one page, not the GitHub heatmap's 238 squares as well). Decided from the pager's
+  // own position, never by `content-visibility: auto`: inside the 3D phone's transform Chrome's
+  // on-screen test misjudges the current page after a tilt or a flip and stops painting it.
+  useLayoutEffect(() => {
+    const strip = stripRef.current;
+    // The grid, not the strip's parent (the Apps nav is `display: contents` and measures 0)
+    const viewport = strip?.closest<HTMLElement>("[data-home-grid]");
+    if (!strip || !viewport) return;
+    let width = viewport.clientWidth;
+    const sync = () => {
+      if (!width) return;
+      const left = -homePagerX.get();
+      for (const el of strip.children as HTMLCollectionOf<HTMLElement>) {
+        const start = Number(el.dataset.homePage) * width;
+        const off = start + width <= left + 0.5 || start >= left + width - 0.5;
+        if (off !== el.hasAttribute("data-offscreen")) el.toggleAttribute("data-offscreen", off);
+      }
+    };
+    sync();
+    const ro = new ResizeObserver(() => {
+      width = viewport.clientWidth;
+      sync();
+    });
+    ro.observe(viewport);
+    const stop = homePagerX.on("change", sync);
+    return () => {
+      ro.disconnect();
+      stop();
+    };
+  }, [pages]);
   return (
-    <m.div style={{ x: homePagerX }} className="flex h-full">
+    <m.div ref={stripRef} style={{ x: homePagerX }} className="flex h-full">
       {Array.from({ length: pages }, (_, index) => (
         <div
           key={index}
@@ -128,9 +160,7 @@ const Pages = memo(function Pages({ placed, pages, page, geo }: { placed: Placed
           aria-label={`Home page ${index + 1} of ${pages}`}
           data-home-page={index}
           inert={page !== index}
-          // Pages off to the side skip style and layout until they slide in (a theme switch or a
-          // launch then restyles one page, not the GitHub heatmap's 238 squares as well)
-          className="relative h-full w-full shrink-0 [content-visibility:auto]"
+          className="relative h-full w-full shrink-0 data-offscreen:[content-visibility:hidden]"
         >
           {placed.map((p, i) => {
             if (p.page !== index) return null;

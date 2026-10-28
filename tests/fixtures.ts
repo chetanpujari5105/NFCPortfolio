@@ -37,3 +37,20 @@ export async function settled(page: import("@playwright/test").Page) {
     { timeout: 25_000 },
   );
 }
+
+/**
+ * Home entries on a page that aren't painted where they say they are: the centre of each slot
+ * must hit-test to the slot itself. A page Chrome has wrongly skipped keeps its layout but stops
+ * painting and hit-testing, so size, opacity and visibility checks alone would pass.
+ */
+export async function unpainted(page: import("@playwright/test").Page, homePage = 0) {
+  return page.evaluate(
+    (n) =>
+      [...document.querySelectorAll<HTMLElement>(`[data-home-page='${n}'] [data-home-key]`)].flatMap((slot) => {
+        const r = slot.getBoundingClientRect();
+        const hit = document.elementFromPoint(r.x + r.width / 2, r.y + Math.min(r.height / 2, r.width / 2));
+        return hit && slot.contains(hit) ? [] : [slot.dataset.homeKey!];
+      }),
+    homePage,
+  );
+}
