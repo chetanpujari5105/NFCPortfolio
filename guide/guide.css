@@ -44,6 +44,9 @@ p:has(+ .code) { break-inside: avoid; }
 .code { margin: 2.5mm 0 4mm; border: 0.6pt solid var(--line); border-radius: 5px; background: var(--code-bg); position: relative; break-before: avoid; }
 .code-label { font-family: "Archivo", sans-serif; font-stretch: 112%; font-size: 6.4pt; font-weight: 800; letter-spacing: 0.16em; color: var(--muted); padding: 2mm 3.2mm 0; }
 .code[data-kind="prompt"] .code-label { color: var(--accent-ink); }
+/* Never leave a label alone at the foot of a page: it travels with the first lines of its code */
+.code-label { break-after: avoid; }
+.code pre { break-before: avoid; }
 .code[data-kind="prompt"] { border-left: 2.2pt solid var(--accent); }
 .code pre { margin: 0; padding: 1.4mm 3.2mm 2.6mm; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 7.6pt; line-height: 1.5; white-space: pre-wrap; overflow-wrap: break-word; word-break: normal; orphans: 3; widows: 3; background: transparent !important; }
 .code pre code { background: none; border: 0; padding: 0; font-size: inherit; }
@@ -104,9 +107,9 @@ td a.link { overflow-wrap: break-word; }
 
 /* ── Table of contents ── */
 .toc-head { break-before: auto; }
-.toc-row { display: flex; align-items: baseline; text-decoration: none; gap: 2mm; padding: 0.9mm 0; break-inside: avoid; }
-.toc-row.l1 { font-weight: 750; font-stretch: 112%; font-size: 10.4pt; margin-top: 2.6mm; }
-.toc-row.l2 { font-size: 8.8pt; color: #3b3f47; padding-left: 9mm; }
+.toc-row { display: flex; align-items: baseline; text-decoration: none; gap: 2mm; padding: 0.15mm 0; break-inside: avoid; }
+.toc-row.l1 { font-weight: 750; font-stretch: 112%; font-size: 10.2pt; margin-top: 1.3mm; }
+.toc-row.l2 { font-size: 8.6pt; color: #3b3f47; padding-left: 9mm; }
 .toc-num { display: inline-block; width: 9mm; color: var(--accent-ink); }
 .toc-dots { flex: 1; border-bottom: 0.7pt dotted #b9bec7; transform: translateY(-0.8mm); }
 .toc-page { font-variant-numeric: tabular-nums; min-width: 6mm; text-align: right; }
@@ -131,3 +134,7 @@ body.cover-page { background: var(--studio); }
 .cover-mobile { position: absolute; right: 2mm; top: 66mm; width: 47mm; border-radius: 7mm; box-shadow: 0 4mm 14mm rgb(0 0 0 / 0.6); border: 1.6mm solid #050506; }
 .cover-foot { display: flex; justify-content: space-between; align-items: baseline; border-top: 0.6pt solid #34363d; padding-top: 4mm; font-size: 10pt; color: #b5b8bf; }
 .cover-foot strong { color: #fff; font-weight: 650; }
+
+/* "Copy it from prompts/…" under a prompt */
+.copy-from { font-size: 7.8pt; color: var(--muted); margin: -2mm 0 4mm; break-before: avoid; }
+.step .copy-from { margin-bottom: 2.5mm; }

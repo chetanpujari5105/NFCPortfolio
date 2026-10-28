@@ -2,7 +2,7 @@
 
 *A 3D phone-style personal website. No coding experience needed.*
 
-by **Chetan Pujari** · October 2026 · v1.0
+by **Chetan Pujari** · October 2026 · v1.1
 
 ![The 3D phone on desktop](images/hero-front.jpg)
 
@@ -29,7 +29,7 @@ Every section of your portfolio is an app on the home screen: your courses or pr
 
 ![The finished site on a desktop: the 3D phone, the name and nav on the right, finish swatches top-left.](images/hero-front.jpg)
 
-![Home page 2: the live GitHub heatmap, latest blog post and video.](images/page2.jpg)
+![Home page 2: the live GitHub heatmap, the latest blog post, a YouTube card and the Expertise stack.](images/page2.jpg)
 ![An open app (Courses). It grows out of its icon and flies back into it.](images/app-courses.jpg)
 
 
@@ -45,11 +45,34 @@ Every section of your portfolio is an app on the home screen: your courses or pr
 ## Features
 
 - **3D phone you can turn over.** Drag beside it (never on the screen) and it settles on its front or back. Clicks never move it.
-- **A real phone feel.** Lock screen with swipe up, apps that launch from their icon and close with a swipe on the home bar, an app switcher, two home pages, pull-down search, jiggle mode to rearrange icons.
+- **A real phone feel.** Lock screen with swipe up, apps that launch from their icon and close with a swipe on the home bar, an app switcher, home pages you swipe between, pull-down search.
+- **A home screen visitors can edit.** Long-press an icon to move apps, make folders, remove apps, edit the dock and add apps back from the App Library.
+- **Fits every phone.** The home screen works out its columns, icon size and pages from the screen it's on, from a small 320×568 phone to a phone on its side.
 - **Live content.** A GitHub contribution heatmap, your latest blog posts from RSS, your latest YouTube video, and a contact form that emails you.
 - **Installable.** "Add to Home Screen" on a phone opens it full screen like an app.
 - **Your look.** Light and dark themes, three phone finishes, three wallpapers. Larger text and reduce-motion settings.
-- **Fast and accessible.** Our build scored Lighthouse 100 on desktop and 90+ on mobile for performance, and 100 for accessibility, best practices and SEO.
+- **Fast and accessible.** Apps start opening in the same frame as the tap, and repeat visits load almost at once, even offline. Our build scored Lighthouse 100 on desktop and 93 on mobile for performance, and 100 for accessibility, best practices and SEO.
+
+## New in v5
+
+Version 1.1 of this guide adds v5 of the site, and the template includes all of it. On Path B it's Prompt 7.
+
+- **Fits every phone.** Nothing is cut off on any of 17 tested screen sizes, with the browser toolbars and the keyboard showing, and in landscape. Icons that don't fit move to the next page, like on a real phone.
+- **Folders.** Drop one app on another and hold: they make a folder you can name. The Socials folder is a normal folder now.
+- **Remove apps, and the App Library.** Press "–" to take an app off the home screen. It waits in the App Library (the "+" in edit mode, or Settings → Home Screen) until you add it back. Settings can't be removed, and a reset brings back the original layout.
+- **Speed.** Every app's code is on the device before the first tap, so a window starts growing in the same frame. Launches settle in about 0.4 s instead of 0.85 s on a slowed-down phone, and a service worker makes repeat visits load in about 70 ms.
+
+![Long-press any icon: edit mode. Icons wiggle, "–" removes, "+" opens the App Library.](images/v5-edit-mode.jpg)
+![Drop an app on another and hold: a new folder, ready to name.](images/v5-folder-new.jpg)
+![The App Library lists what's off the home screen. Tap one to add it back.](images/v5-app-library.jpg)
+
+
+![A small phone (320×568): three columns, nothing cut off.](images/v5-fit-320x568.jpg)
+![A large phone (430×932): bigger icons, more rows.](images/v5-fit-430x932.jpg)
+![The Socials folder, open.](images/v5-folder-socials.jpg)
+
+
+![A phone on its side (844×390): seven columns, still one screen.](images/v5-fit-844x390.jpg)
 
 
 # 2. Two ways to do it
@@ -60,7 +83,7 @@ You can get the same site in two ways. Both use Claude Code, an AI assistant tha
 Start from the finished template, fill in a worksheet about yourself, and run one prompt that puts your details, photos and colours into the site. Best for most people, including non-developers.
 
 **Path B: From Scratch.** About 1 to 2 days of Claude Code time (mostly waiting while it works).
-Run the same series of six prompts that built the original site. You'll watch it being built phase by phase, and you can change the design along the way. Best if you want to learn how it works, or want something quite different.
+Run the same series of seven prompts that built the original site. You'll watch it being built phase by phase, and you can change the design along the way. Best if you want to learn how it works, or want something quite different.
 
 
 **Not sure?** Pick Path A. You can still change anything afterwards, and the "Fix list" prompt (Chapter 6) works on both.
@@ -69,7 +92,7 @@ Run the same series of six prompts that built the original site. You'll watch it
 |---|---|---|
 | Time | 1–2 hours | 1–2 days of Claude Code time |
 | You start with | The template (working site with sample content) | An empty folder |
-| Prompts to run | 1, plus fix lists | 6 in order, plus fix lists |
+| Prompts to run | 1, plus fix lists | 7 in order, plus fix lists |
 | Usage of your Claude plan | Low | High (expect to hit usage limits and type `continue`) |
 | Result | The same site, with your content | Your own build, which you can steer as it grows |
 
@@ -187,6 +210,8 @@ Set up my toolbox for building a website with Next.js, React Three Fiber and Pla
 4. Tell me which tools need a Claude Code restart to load, and what to type after restarting.
 ```
 
+Copy it from [prompts/01-toolbox.md](https://github.com/chetanpujari5105/pocket-portfolio-template/blob/main/prompts/01-toolbox.md)
+
 ✅ You're done when Claude Code shows a table of your tools, says which ones it installed, and `claude mcp list` shows `context7 ... Connected` after a restart.
 
 > ⚠️ **Warning**
@@ -269,7 +294,7 @@ cd my-portfolio
 
 No GitHub yet? Download the template as a ZIP from its page and unzip it anywhere.
 
-✅ You have a folder with `START-HERE.md`, `content/` and `src/` inside.
+✅ You have a folder with `START-HERE.md`, `content/`, `prompts/` and `src/` inside.
 
 
 ### Step 2: Open it in Claude Code
@@ -335,6 +360,8 @@ Sources (read all of them first):
 7. Report: what you changed, the screenshot paths, test results, and the "Needs me" list.
 ```
 
+Copy it from [prompts/02-personalize.md](https://github.com/chetanpujari5105/pocket-portfolio-template/blob/main/prompts/02-personalize.md)
+
 ✅ You're done when Claude Code reports that every check passed and shows you the screenshot list and a short "Needs me" list.
 
 ![The template before: the sample persona "Alex Rivera".](images/template-mobile.jpg)
@@ -349,17 +376,18 @@ Start the site and open it:
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) and click through this list. Note anything you want changed.
+Open `http://localhost:3000` in your browser and click through this list. Note anything you want changed.
 
 1. The lock screen: swipe up (or click) to open.
 2. Your name and nav beside the phone; the green status pill.
 3. Drag beside the phone to turn it over. Check your initials on the back. Click **Flip** to turn it back.
 4. Open every app on page 1 and in the dock. Read every line for typos.
 5. Swipe to page 2: GitHub heatmap, latest post, video.
-6. Open Socials and click each icon: does it go to *your* profile?
-7. Contact: the "To" address is yours.
-8. Settings: switch dark mode, finishes and wallpapers.
-9. Open the site on your phone too (Chapter 8 shows how, after deploying).
+6. Long-press an icon: make a folder, remove an app and add it back from the App Library. Then **Settings → Home Screen → Reset** puts your layout back.
+7. Open Socials and click each icon: does it go to *your* profile?
+8. Contact: the "To" address is yours.
+9. Settings: switch dark mode, finishes and wallpapers.
+10. Open the site on your phone too (Chapter 8 shows how, after deploying).
 
 ✅ You're done when every app shows your content and every link goes to your profiles.
 
@@ -390,6 +418,8 @@ Rules:
 - Commit with a clear message, then report item by item: done / not done and why.
 ```
 
+Copy it from [prompts/09-fix-list.md](https://github.com/chetanpujari5105/pocket-portfolio-template/blob/main/prompts/09-fix-list.md)
+
 ✅ You're done when every item is marked "done" (or has a clear reason why not) and the checks pass.
 
 > 💡 **Tip**
@@ -399,7 +429,7 @@ Rules:
 
 # 9. Path B: From Scratch
 
-This path rebuilds the whole site with the same six prompts that built the original, cleaned up so they work for anyone. Run them in order, in an empty folder, each in the same Claude Code session if you can.
+This path rebuilds the whole site with the same seven prompts that built the original, cleaned up so they work for anyone. Run them in order, in an empty folder, each in the same Claude Code session if you can.
 
 > 📝 **Note**
 >
@@ -420,6 +450,8 @@ Before you start:
 | `{{YOUR_ONE_LINER}}` | I make design and AI feel easy. |
 | `{{YOUR_EMAIL}}` | hello@example.com |
 | `{{YOUR_DOMAIN}}` | example.com |
+| `{{YOUR_SITE_URL}}` | https://your-project.vercel.app (your live address, once it's online) |
+| `{{YOUR_YOUTUBE_HANDLE}}` | @your_channel |
 | `{{YOUR_OLD_SITE_URL}}` | https://old.example.com (or delete the line) |
 | `{{YOUR_BLOG_RSS_URL}}` | https://yourname.substack.com/feed |
 | `{{YOUR_GITHUB_USERNAME}}` | your GitHub username |
@@ -591,6 +623,8 @@ with back, Esc or a swipe. All content comes from /content. Theme and finish sur
 Only verified reviews show. Lint, type-check, build and tests pass; Lighthouse targets are met.
 ```
 
+Copy it from [prompts/03-build-spec.md](https://github.com/chetanpujari5105/pocket-portfolio-template/blob/main/prompts/03-build-spec.md)
+
 ✅ You're done when `pocket-portfolio-spec.md` is saved in your project folder, with every placeholder filled in.
 
 ## Prompt 2: the master prompt
@@ -648,6 +682,8 @@ Ground rules:
 Start now with Step 0.
 ```
 
+Copy it from [prompts/04-master-prompt.md](https://github.com/chetanpujari5105/pocket-portfolio-template/blob/main/prompts/04-master-prompt.md)
+
 ✅ You're done when Claude Code has shown its tools table and plan, finished Phase 1, committed it, and given you a 3-line summary.
 
 ## Prompt 3: run all phases without stopping
@@ -662,6 +698,8 @@ going. After each phase, still run the checks, review the screenshots, commit, a
 lines to docs/progress.md. When everything is done, give me one report: what was built, the
 Lighthouse scores, the test results, the "Needs me" list, and how to run the site.
 ```
+
+Copy it from [prompts/05-run-all-phases.md](https://github.com/chetanpujari5105/pocket-portfolio-template/blob/main/prompts/05-run-all-phases.md)
 
 ✅ You're done when all 8 phases are committed, `npm test` passes, and you have the final report. Open the site with `npm run dev` and try it.
 
@@ -761,6 +799,8 @@ When finished, give me one report: what changed, before/after notes, Lighthouse 
 results, the "Needs me" list, and how to run it.
 ```
 
+Copy it from [prompts/06-v3-3d-phone.md](https://github.com/chetanpujari5105/pocket-portfolio-template/blob/main/prompts/06-v3-3d-phone.md)
+
 ✅ You're done when the desktop shows a 3D phone you can turn over, apps close by swiping the home bar into their icon, the lock screen unlocks with a swipe, and all tests pass.
 
 ## Prompt 5 (v4): stable phone, brand icons, GitHub heatmap, polish
@@ -833,11 +873,131 @@ in docs/progress.md. Keep initial JS at most 200 KB gzipped and no long tasks. R
 changed, screenshot paths, test results and the "Needs me" list.
 ```
 
+Copy it from [prompts/07-v4-polish.md](https://github.com/chetanpujari5105/pocket-portfolio-template/blob/main/prompts/07-v4-polish.md)
+
 ✅ You're done when clicking anywhere never moves the phone, a drag turns it and it stays on the face where it settles, the social links show the real brand marks, and page 2 shows your GitHub heatmap.
 
 ## Prompt 6: the "Fix list"
 
 Use the same "Fix list" prompt as Path A (Chapter 6). It works the same way on a site you built from scratch. Run it as many times as you like.
+
+## Prompt 7 (v5): fit every phone, home-screen editing, speed
+
+**What it does:** makes the home screen fit any phone and browser by working out the grid from the space it really gets, adds real home-screen editing (folders, removing apps, an App Library, dock editing, reset), and makes apps open instantly with prefetching and a service worker. Run it after Prompt 5, once your site is online, and check the result on your own phone. **Time:** 4–8 hours. **What you'll see:** 3 commits (one per problem), a contact sheet of screenshots at 17 screen sizes, and a before/after speed table in `docs/v5/speed.md`.
+
+```prompt
+I opened my live site ({{YOUR_SITE_URL}}) on my phone and found three problems. Fix all of them
+on a new branch, feat/v5-mobile, created from main. Work autonomously; don't ask me questions.
+Anything that needs me goes on the "Needs me" list in docs/progress.md. Use Context7 for
+Next.js, Motion, use-gesture and Serwist docs before writing code; use my design and motion
+skills; use Playwright for device emulation, traces and videos.
+
+First write failing Playwright tests that reproduce problems 1 and 2, using the device matrix
+below and a 4x CPU-throttled phone profile. Then fix them.
+
+Problem 1: fit every phone, every browser, every orientation. Nothing on the home screen, lock
+screen, an app or a system panel may ever be clipped or hidden behind browser toolbars.
+1. Use the real visible height: 100dvh (falling back to 100svh, then 100vh), plus
+   window.visualViewport written to a --vvh CSS variable. Respect all four
+   env(safe-area-inset-*) with viewport-fit=cover, and interactive-widget=resizes-content so
+   the Contact form stays visible with the keyboard open.
+2. Calculate the home-screen grid from the space available, in a useHomeLayout() hook:
+   columns (4 on phones, 3 below 340px, 5-6 on tablets and landscape), icon size
+   min(width-based, height-based) clamped to 48-68px with labels and gaps scaling, and how
+   many rows fit.
+3. Overflow goes to the next page like a real phone: items fill pages in order, widgets take
+   whole cells (Impact 4x2, Work with me 2x2, GitHub 4x2, Blog 4x2, YouTube 2x2, Expertise
+   stack 2x2), page dots appear automatically. Never shrink icons below 48px. Under 600px of
+   usable height, large widgets move to their own page.
+4. With no latest video, the YouTube widget shows a proper channel card: the YouTube logo,
+   {{YOUR_YOUTUBE_HANDLE}} and "Watch on YouTube". The Expertise stack is a real stacked-cards
+   widget that never overflows.
+5. The lock screen, apps, Control Center, app switcher, sheets, Spotlight, banner and status
+   pill all use the measured height and safe areas. App content scrolls with nothing under
+   the home indicator.
+6. Landscape on phones must not break: a rotate hint or a 6-7 column home screen, whichever
+   looks better. Stop Android text auto-zoom (text-size-adjust: 100%), match the theme-color
+   meta to the wallpaper, and never let the page itself scroll or bounce.
+
+Device matrix (tests and screenshots for every one): 320x568, 375x667, 375x812, 393x852,
+430x932, 390x664 (Safari with toolbar), 412x915, 412x780 (Chrome with toolbar), 392x690 (Brave
+with toolbars), 360x740, 360x800, 360x640, 280x653 and 673x841 (a folding phone), 744x1133,
+844x390 and 740x360 (landscape). For every size: every icon, label and widget sits fully
+inside the visible area above the Search pill and dock with at least 8px margin (assert with
+bounding boxes); nothing clips (scrollHeight <= clientHeight); every app scrolls to its last
+element above the home indicator; with the viewport 300px shorter (keyboard), the focused
+Contact field and Send stay visible. Save light and dark screenshots to docs/v5/fit/, make a
+contact sheet and look at all of it yourself. Also run WebKit with the iPhone presets. Put "test
+on a real iPhone Safari, Samsung Internet and the LinkedIn/Instagram in-app browsers" on the
+"Needs me" list.
+
+Problem 2: apps must feel instant. Targets on a 4x throttled phone with Fast 4G: tap to first
+reaction 50ms or less; the window starts expanding within one frame and never waits on the
+network; title and first content readable within 250ms; launch settles by 380ms, close by
+300ms, app switching by 450ms; 60fps swipes and scrolling; no long tasks. Repeat visits load
+almost instantly from cache.
+1. Find the real cause first: record a trace (cold load, open and close Journey, Courses, Blog)
+   and write where the time goes, with numbers, to docs/v5/speed.md.
+2. Never wait for code on tap: prefetch every app's chunk when the home screen is idle
+   (requestIdleCallback, 1500ms timeout) and again on pointerdown of its icon. If a chunk still
+   isn't ready, the launch runs anyway with the skeleton and the content fades in.
+3. Make the launch cheap: no filter: blur() during launch on phones (opacity and scale only),
+   no backdrop-filters under the animating window while it moves, contain: layout paint on
+   app screens.
+4. Fast first renders: above-the-fold first, content-visibility: auto for long lists, correct
+   image sizes, priority only for the first visible image.
+5. Tune the launch spring to about 350ms and the close to about 280ms, readable by 40%
+   progress, always interruptible.
+6. Add a service worker with Serwist (the serwist package; @serwist/next needs webpack, so
+   bundle sw/sw.ts with esbuild after next build): cache the app shell, chunks, fonts and
+   icons; stale-while-revalidate for RSS, GitHub and YouTube data; it must not break the dev
+   server, and new deploys activate on the next load.
+7. Keep the budgets: initial JS at most 200 KB gzipped, Lighthouse mobile 92+ and desktop 100.
+Add tests/speed.spec.ts (CPU throttled via CDP) as its own Playwright project that runs last
+and alone, one test at a time (throttled browsers side by side double every number): open 5
+apps from a fresh load; the window moves within 50ms of the click, the title shows within
+400ms, and no chunk request happens after the tap. Put the before/after timing table in
+docs/v5/speed.md.
+
+Problem 3: real home-screen editing, saved per visitor in localStorage (versioned key, with a
+migration from the current icon order).
+- Edit mode: long-press an icon or an empty spot for 500ms. Icons wiggle, removable ones show
+  a "-" badge, a "Done" pill shows top-right and a "+" top-left opens the App Library. Outside
+  edit mode, a long-press opens a frosted context menu: Open, Share (brand links), Edit Home
+  Screen, Remove App.
+- Folders: drag one app onto another and hold about 400ms to make a folder with a default
+  name from their category (Social, Learn, About Me, Work, or "Folder"); drag more apps onto
+  it to add them; tapping zooms it open (3x3 grid, pages past 9, home screen blurred behind);
+  tap the title in edit mode to rename; drag an app out past the folder's edge to put it back
+  on the home screen; a folder with one app left dissolves. The Socials folder becomes a
+  regular folder that exists by default.
+- Remove: the "-" badge opens a sheet with "Remove from Home Screen" (the app stays in the App
+  Library) and Cancel; the icon shrinks away and neighbours reflow on springs. Settings can't
+  be removed, so people can always get things back.
+- App Library: a sheet (from "+" in edit mode and Settings > Home Screen) listing everything
+  not on the home screen; tapping one adds it to the first free slot. Settings > Home Screen
+  > "Reset Home Screen Layout" restores the default, with a confirm sheet.
+- Dock: in edit mode, drag apps into or out of the dock (at most 4 items; folders allowed).
+- Feel and access: drags follow the finger, other icons make room on springs, holding at an
+  edge for about 600ms changes page. In edit mode, arrow keys move the focused icon, Delete
+  removes it, F makes a folder with the next icon, and screen readers announce each change.
+  Reduced motion turns wiggle and springs into fades.
+- Load the editor as its own chunk, fetched at idle with the apps, so a press never requests
+  script during a launch and tests/speed.spec.ts still passes.
+- Tests (tests/home-edit.spec.ts, mouse and touch): create, rename, add a third app, drag one
+  out, dissolve, remove and restore from the App Library, drag into the dock, reset, persist
+  across a reload, and still fit at 320x568 and 392x690 with everything added back.
+
+Process: Problem 1, then 2, then 3. After each: npm run lint && npm run typecheck && npm run
+build && npm test, review the device-matrix screenshots and video, commit, and add 2-3 lines to
+docs/progress.md. When finished, fast-forward main and push so Vercel deploys, then run the
+device-matrix screenshots and the speed test against {{YOUR_SITE_URL}}. Report what changed,
+the before/after speed table, the contact sheet paths, test results and the "Needs me" list.
+```
+
+Copy it from [prompts/08-v5-mobile-speed-folders.md](https://github.com/chetanpujari5105/pocket-portfolio-template/blob/main/prompts/08-v5-mobile-speed-folders.md)
+
+✅ You're done when nothing is cut off at any size in the matrix (including your own phone), apps start opening in the same frame as the tap, and you can make a folder, remove an app and bring it back from the App Library.
 
 
 # 11. Put it online
@@ -1033,6 +1193,20 @@ If it still times out, ask Claude Code to push a few commits at a time.
 **Do:** check the new screenshots look right, then run `npx playwright test --update-snapshots` once.
 
 
+**I changed the apps in `content/apps.ts`, but my home screen still shows the old layout**
+
+**Why:** since v5, every visitor's home-screen layout (including yours) is saved in their browser, so edits they made aren't lost. Your browser still has the layout from before your change.
+
+**Do:** open **Settings → Home Screen → Reset Home Screen**. New visitors get your new layout straight away. Returning visitors keep their own, and a new app waits for them in the App Library.
+
+
+**After a deploy, the phone still shows the old version**
+
+**Why:** the service worker loads the saved copy first, so repeat visits are instant. The new version downloads in the background and takes over on the next load.
+
+**Do:** reload the page once more. While you're developing, `npm run dev` doesn't use the service worker at all.
+
+
 ## Talking to Claude Code
 
 - **After a network error, type `continue`.** It resumes the same task. You don't need to paste the prompt again.
@@ -1096,7 +1270,7 @@ Built your own? I'd love to see it. Tag me on LinkedIn ([linkedin.com/in/chetan-
 
 # Quick Reference
 
-**The 6 prompts**
+**The 7 prompts** (each one is also a file in the template's `prompts/` folder)
 
 1. **Build spec:** save as `pocket-portfolio-spec.md`; describes the whole site.
 2. **Master prompt:** toolbox, browser, reference notes, then Phase 1.
@@ -1104,8 +1278,9 @@ Built your own? I'd love to see it. Tag me on LinkedIn ([linkedin.com/in/chetan-
 4. **v3:** real 3D phone, springs and gestures, lock screen, switcher, PWA.
 5. **v4:** stable phone, flagship look, brand marks, GitHub heatmap.
 6. **Fix list:** a numbered list of changes, checked and committed.
+7. **v5:** fits every phone, folders and App Library, instant app opens.
 
-Path A uses one prompt: **Personalize my portfolio**, then fix lists.
+Path A uses one prompt: **Personalize my portfolio** (`prompts/02-personalize.md`), then fix lists.
 
 **Key commands**
 

@@ -1,5 +1,7 @@
 // Builds the guide: guide/content.md → HTML book → A4 PDF (+ a GitHub Markdown version and the
-// prompts as plain files). Usage: npm run guide   (node guide/build.mjs [--keep-html])
+// prompts as plain files). Usage: npm run guide   (node guide/build.mjs [--keep-html] [--template <dir>])
+// A prompt fence names its file (```prompt 03-build-spec.md): the build writes it to guide/prompts/
+// (and <dir>/prompts/ with --template) and adds a "Copy it from" link to the template repo under it.
 //
 // Pass 1 renders the body with placeholder page numbers in the table of contents, reads each
 // page's text with pdftotext (poppler) to find where every chapter and section landed, then
@@ -20,12 +22,18 @@ const root = resolve(here, "..");
 const TITLE = "Build Your Own Pocket Portfolio with Claude Code";
 const SUBTITLE = "A 3D phone-style personal website. No coding experience needed.";
 const AUTHOR = "Chetan Pujari";
-const VERSION = "v1.0";
+const VERSION = "v1.1";
 const DATE = "October 2026";
 const OUT_PDF = join(here, "Build-Your-Own-Pocket-Portfolio.pdf");
 const OUT_MD = join(here, "Build-Your-Own-Pocket-Portfolio.md");
 const tmp = join(here, ".build");
 const keepHtml = process.argv.includes("--keep-html");
+const templateDir = process.argv.includes("--template") ? resolve(process.argv[process.argv.indexOf("--template") + 1]) : null;
+const PROMPTS_URL = "https://github.com/chetanpujari5105/pocket-portfolio-template/blob/main/prompts/";
+const fenceInfo = (info) => {
+  const [kind, file] = info.trim().split(/\s+/);
+  return { kind, file };
+};
 
 const source = await readFile(join(here, "content.md"), "utf8");
 
@@ -47,18 +55,21 @@ const slug = (s) =>
 
 const md = new MarkdownIt({ html: true, linkify: true, typographer: false });
 // Example and placeholder addresses stay plain text, so every link in the PDF goes somewhere real
-const isPlaceholder = (url) => /\{\{|&lt;|&#x3C;|<|%3C|YOUR-|yourname|yourdomain|example\.com|localhost/i.test(url);
+// Not linked: placeholders and local addresses, and API endpoints that only work inside a command
+const isPlaceholder = (url) => /\{\{|&lt;|&#x3C;|<|%3C|YOUR-|yourname|yourdomain|example\.com|localhost|mcp\.context7\.com\/mcp/i.test(url);
 
 md.renderer.rules.fence = (tokens, idx) => {
   const t = tokens[idx];
-  const kind = KINDS[t.info.trim()] ?? { lang: "bash", label: "CODE" };
+  const { kind: kindName, file } = fenceInfo(t.info);
+  const kind = KINDS[kindName] ?? { lang: "bash", label: "CODE" };
   let html = highlighter.codeToHtml(t.content.replace(/\n$/, ""), { lang: kind.lang, theme: "github-light" });
   html = html.replace(/<pre class="shiki[^"]*"[^>]*>/, "<pre>");
   // Bare URLs inside code are clickable too (shiki keeps a URL inside one span)
   html = html.replace(/(>[^<]*?)(https?:\/\/[^\s<"'`)]+[^\s<"'`).,:;])/g, (m, pre, url) =>
     isPlaceholder(url) ? m : `${pre}<a href="${url.replace(/&amp;/g, "&")}">${url}</a>`,
   );
-  return `<div class="code" data-kind="${t.info.trim()}"><div class="code-label">${kind.label}</div>${html}</div>\n`;
+  const copy = file ? `<p class="copy-from">Copy it from <a class="link" href="${PROMPTS_URL}${file}">prompts/${file}</a></p>\n` : "";
+  return `<div class="code" data-kind="${kindName}"><div class="code-label">${kind.label}</div>${html}</div>\n${copy}`;
 };
 
 // Images become captioned figures; a paragraph holding only images loses its <p>
@@ -285,7 +296,19 @@ function toGithubMarkdown(src) {
   const out = [];
   let box = null;
   let chapterNo = 0;
+  let promptFile = null;
   for (const line of lines) {
+    const fence = line.match(/^```(\w+)(?:\s+(\S+))?\s*$/);
+    if (fence) {
+      promptFile = fence[2] ?? null;
+      out.push(box === "quote" ? `> \`\`\`${fence[1]}` : `\`\`\`${fence[1]}`);
+      continue;
+    }
+    if (promptFile && /^```\s*$/.test(line)) {
+      out.push(line, "", `Copy it from [prompts/${promptFile}](${PROMPTS_URL}${promptFile})`);
+      promptFile = null;
+      continue;
+    }
     const open = line.match(/^:::\s*(\w[\w-]*)\s*(.*)$/);
     if (open) {
       const [, name, rest] = open;
@@ -320,19 +343,20 @@ await writeFile(
   `# ${TITLE}\n\n*${SUBTITLE}*\n\nby **${AUTHOR}** · ${DATE} · ${VERSION}\n\n![The 3D phone on desktop](images/hero-front.jpg)\n\n## Contents\n\n${tocMd}\n\n${toGithubMarkdown(source)}`,
 );
 
-// Every prompt as its own file, named after the section it sits in
-await rm(join(here, "prompts"), { recursive: true, force: true });
-await mkdir(join(here, "prompts"), { recursive: true });
-let section = "prompt";
+// Every named prompt as its own file, in guide/prompts/ and (with --template) the template's prompts/
+const promptDirs = [join(here, "prompts"), ...(templateDir ? [join(templateDir, "prompts")] : [])];
+for (const dir of promptDirs) {
+  await rm(dir, { recursive: true, force: true });
+  await mkdir(dir, { recursive: true });
+}
 let count = 0;
 for (const t of md.parse(source, {})) {
-  if (t.type === "inline" && (t.map ? true : false) && /^#{1,2} /.test(source.split("\n")[t.map[0]])) section = t.content;
-  if (t.type === "fence" && t.info.trim() === "prompt") {
-    count++;
-    await writeFile(join(here, "prompts", `${String(count).padStart(2, "0")}-${slug(section)}.md`), t.content);
-  }
+  const { kind, file } = fenceInfo(t.info ?? "");
+  if (t.type !== "fence" || kind !== "prompt" || !file) continue;
+  count++;
+  for (const dir of promptDirs) await writeFile(join(dir, file), t.content);
 }
 
 if (!keepHtml) await rm(tmp, { recursive: true, force: true });
 const size = (await readFile(OUT_PDF)).length;
-console.log(`${OUT_PDF.replace(root + "/", "")}: ${pageCount(OUT_PDF)} pages, ${(size / 1024 / 1024).toFixed(2)} MB; ${count} prompts → guide/prompts/`);
+console.log(`${OUT_PDF.replace(root + "/", "")}: ${pageCount(OUT_PDF)} pages, ${(size / 1024 / 1024).toFixed(2)} MB; ${count} prompts → ${promptDirs.map((d) => d.replace(root + "/", "")).join(", ")}`);

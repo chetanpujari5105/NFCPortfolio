@@ -48,11 +48,11 @@ for (const theme of ["dark", "light"]) {
   await ready3D(page);
   await page.screenshot({ path: join(outDir, `front-${theme}.png`) });
   if (theme === "dark") {
-    await page.getByRole("button", { name: "Page 2 of 2" }).click();
+    await page.getByRole("button", { name: /^Page 2 of \d+$/ }).click();
     await overScreen(page);
     await page.waitForTimeout(1500);
     await page.screenshot({ path: join(outDir, `page2-${theme}.png`) });
-    await page.getByRole("button", { name: "Page 1 of 2" }).click();
+    await page.getByRole("button", { name: /^Page 1 of \d+$/ }).click();
     await page.waitForTimeout(800);
     await page.locator('[data-app-icon="courses"]').first().click();
     await overScreen(page);
@@ -70,6 +70,14 @@ for (const theme of ["dark", "light"]) {
     await page.waitForTimeout(1600);
     await page.screenshot({ path: join(outDir, `back-${theme}.png`) });
   }
+  await ctx.close();
+}
+
+// Desktop: the other two finishes, light theme
+for (const finish of ["graphite", "chai"]) {
+  const { ctx, page } = await open(desktop, { theme: "light", finish });
+  await ready3D(page);
+  await page.screenshot({ path: join(outDir, `front-${finish}-light.png`) });
   await ctx.close();
 }
 
