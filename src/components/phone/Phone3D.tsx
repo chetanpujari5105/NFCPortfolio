@@ -3,9 +3,9 @@
 // Imperative three.js frame-loop code: materials, camera and the shared rig are mutated on purpose.
 /* eslint-disable react-hooks/immutability */
 
-import { Component, useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
+import { Component, Suspense, useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
 import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
-import { ContactShadows, Environment, Html, Lightformer, RoundedBox } from "@react-three/drei";
+import { ContactShadows, Environment, Html, Lightformer, useGLTF } from "@react-three/drei";
 import { easing } from "maath";
 import * as THREE from "three";
 
@@ -15,19 +15,18 @@ import { startedIn } from "@/lib/gesture";
 import { useOS } from "@/lib/store";
 
 /*
- * The 3D phone: an original device modelled here in code (no downloaded model). The live OS
- * screen is real DOM, moved into the drei <Html transform> host by <Phone>, so it stays crisp
- * and clickable; `occlude="blending"` lets the body hide it when the back faces the camera.
+ * The 3D phone: the iPhone 18 Pro Max model (public/models, see scripts/optimize-phone-model.mjs),
+ * scaled to the same proportions as the CSS phone (lib/device.ts). The live OS screen is real DOM,
+ * moved into the drei <Html transform> host by <Phone>, so it stays crisp and clickable;
+ * `occlude="blending"` lets the body hide it when the back faces the camera.
  *
- * World units: the phone is 9 units tall (163.5 mm): a 77.5 × 163.5 × 8.8 mm flagship (lib/device.ts).
+ * World units: the phone is 9 units tall (163.35 mm): 78 × 163.35 × 8.7 mm.
  */
 
 export const PHONE_H = 9;
 export const PHONE_W = PHONE_H * DEVICE.aspect;
 const DEPTH = PHONE_H * DEVICE.depth;
 const RADIUS = PHONE_H * DEVICE.radius;
-/** The polished chamfer: exactly the metal lip the CSS phone draws as its rim */
-const CHAMFER = PHONE_H * DEVICE.rim;
 /** Screen inset from the outer edge, same ratio as the CSS phone (rim + bezel) */
 export const SCREEN_INSET = PHONE_H * SCREEN_INSET_RATIO;
 export const SCREEN_W = PHONE_W - SCREEN_INSET * 2;
@@ -35,7 +34,14 @@ export const SCREEN_H = PHONE_H - SCREEN_INSET * 2;
 /** Display corners concentric with the outer corners */
 const SCREEN_R = RADIUS - SCREEN_INSET;
 const FRONT_Z = DEPTH / 2;
-const BACK_Z = -DEPTH / 2;
+
+const MODEL_URL = "/models/iphone-18-pro-max-burgundy.glb";
+/** The model as exported, in metres: Y up, the display facing +Z, the frame from y = 0 to 163.35 mm */
+const MODEL = { bottom: -0.000015, height: 0.163353, front: 0.004322 };
+const MODEL_SCALE = PHONE_H / MODEL.height;
+// Fetch the model as soon as this chunk loads (on the visitor's first sign of life), not on mount.
+// Meshopt only: the Draco decoder would come from a CDN, and the file doesn't use it.
+useGLTF.preload(MODEL_URL, false);
 
 const DEG = Math.PI / 180;
 /** Pointer parallax, at most this far either way, eased slowly */
@@ -120,87 +126,7 @@ function flipRig(rig: Rig) {
   rig.invalidate();
 }
 
-/* ───────────────────────────── Branding texture ───────────────────────────── */
-
-/** ⚡ CP mark + name, drawn once into a canvas and used as an alpha map (debossed look). */
-function useMarkTexture() {
-  return useMemo(() => {
-    const c = document.createElement("canvas");
-    c.width = 512;
-    c.height = 1024;
-    const g = c.getContext("2d")!;
-    g.fillStyle = "#000";
-    g.fillRect(0, 0, c.width, c.height);
-    g.fillStyle = "#fff";
-    // Original bolt, drawn as a polygon
-    g.save();
-    g.translate(256, 470);
-    g.beginPath();
-    const bolt = [
-      [18, -92],
-      [-46, 10],
-      [-6, 10],
-      [-22, 92],
-      [46, -14],
-      [6, -14],
-      [22, -92],
-    ];
-    bolt.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y)));
-    g.closePath();
-    g.fill();
-    g.restore();
-    const family = getComputedStyle(document.body).fontFamily || "sans-serif";
-    g.textAlign = "center";
-    g.textBaseline = "middle";
-    g.font = `800 92px ${family}`;
-    g.fillText("CP", 256, 640);
-    g.font = `600 30px ${family}`;
-    g.globalAlpha = 0.85;
-    g.fillText("Chetan Pujari", 256, 930);
-    const tex = new THREE.CanvasTexture(c);
-    tex.anisotropy = 4;
-    return tex;
-  }, []);
-}
-
-/* ───────────────────────────── Surface textures ───────────────────────────── */
-
-/** Small seeded PRNG, so the brushed grain is the same on every load (and in screenshots). */
-function seeded(seed: number) {
-  let s = seed >>> 0;
-  return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 2 ** 32);
-}
-
-/**
- * Roughness for the frame's side walls. ExtrudeGeometry gives the walls v = 1 − z, so a texture
- * that only varies along v maps straight across the frame's depth: polished chamfer bands at both
- * edges, fine brushed grain (lines running round the perimeter) in between.
- */
-function useFrameRoughness() {
-  return useMemo(() => {
-    const c = document.createElement("canvas");
-    c.width = 4;
-    c.height = 512;
-    const g = c.getContext("2d")!;
-    const rand = seeded(7);
-    const band = Math.ceil((CHAMFER / DEPTH) * c.height) + 2;
-    for (let y = 0; y < c.height; y++) {
-      const polished = y < band || y >= c.height - band;
-      const r = polished ? 0.12 : 0.3 + (rand() - 0.5) * 0.14;
-      const v = Math.round(r * 255);
-      g.fillStyle = `rgb(${v},${v},${v})`;
-      g.fillRect(0, y, c.width, 1);
-    }
-    const tex = new THREE.CanvasTexture(c);
-    tex.colorSpace = THREE.NoColorSpace;
-    tex.wrapS = THREE.RepeatWrapping;
-    tex.wrapT = THREE.ClampToEdgeWrapping;
-    // v ∈ [1 − DEPTH + CHAMFER, 1 + CHAMFER] → [0, 1]
-    tex.repeat.set(1, 1 / DEPTH);
-    tex.offset.set(0, -(1 - DEPTH + CHAMFER) / DEPTH);
-    return tex;
-  }, []);
-}
+/* ───────────────────────────── Glass sheen ───────────────────────────── */
 
 /** A faint diagonal reflection across the front glass (alpha only, drawn over the live screen). */
 function useGlassSheen() {
@@ -228,18 +154,21 @@ function useGlassSheen() {
 
 /* ───────────────────────────── The device ───────────────────────────── */
 
-/** Side buttons: side (−1 left, 1 right), centre from the top and height (share of the phone's height). */
-const BUTTONS: { side: -1 | 1; at: number; h: number; flush?: boolean }[] = [
-  { side: -1, at: 0.17, h: 0.036 }, // action
-  { side: -1, at: 0.245, h: 0.058 }, // volume up
-  { side: -1, at: 0.315, h: 0.058 }, // volume down
-  { side: 1, at: 0.27, h: 0.09 }, // side button
-  { side: 1, at: 0.585, h: 0.05, flush: true }, // camera control
-];
+/** The model's coloured parts: the metal frame (and plateau) and the back glass family. */
+const FRAME_MATERIALS = /^COLOUR_Cherry_(Side_Panel|Side_Panel_Gloss|Aniso|Screws|Button_Detail_Border)$/;
+const BACK_MATERIALS = /^COLOUR_Cherry_(Backpanel|Apple|Plastic|Antenna|Side_Button_Detail)$/;
+/** Each group's main surface: the others keep their brightness relative to it when tinted */
+const FRAME_REF = "COLOUR_Cherry_Side_Panel";
+const BACK_REF = "COLOUR_Cherry_Backpanel";
 
-/** Back camera plateau (an original layout): full-width, three lenses in a row, flash + sensor at the end. */
-const PLATEAU = { margin: 0.13, h: 1.62, r: 0.46 };
-const LENSES = [-1.32, -0.42, 0.48];
+/** The camera control is the model's one separate button: it presses in (metres, model space). */
+const BUTTON_NODES = ["Side_Button", "Side_Button_Detail_Border"];
+const BUTTON_TRAVEL = 0.0003;
+const BUTTON_HIT = { position: [0.0389, 0.0514, 0] as const, size: [0.0024, 0.0175, 0.004] as const };
+
+type Tinted = { material: THREE.MeshStandardMaterial; base: THREE.Color; part: "frame" | "back"; share: number };
+
+const luminance = (c: THREE.Color) => 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
 
 function Device({
   rig,
@@ -258,86 +187,79 @@ function Device({
 }) {
   const group = useRef<THREE.Group>(null);
   const host = useRef<HTMLDivElement | null>(null);
-  const buttons = useRef<(THREE.Mesh | null)[]>([]);
   const finish = useOS((s) => s.finish);
-  const mark = useMarkTexture();
-  const roughness = useFrameRoughness();
+  const { scene } = useGLTF(MODEL_URL, false);
   const sheen = useGlassSheen();
   // Make the entrance only if the CSS phone is still waiting for us (first load on desktop).
   const [arrive] = useState(() => document.documentElement.hasAttribute("data-stage-wait"));
   const arrival = useRef({ p: arrive ? 0 : 1, v: 0, landed: !arrive });
   const tilt = useRef({ x: 0, y: 0 });
-  const colors = useMemo(() => ({ frame: new THREE.Color(), back: new THREE.Color() }), []);
-  const press = useRef(BUTTONS.map(() => 0));
+  const press = useRef(0);
   const invalidate = useThree((s) => s.invalidate);
 
-  const geo = useMemo(() => {
-    // Flat sides; a thin, softly rounded chamfer where the frame meets the glass (front and back).
-    // Its normals sweep from facing you to facing sideways, so some part always catches a light.
-    const body = new THREE.ExtrudeGeometry(roundedRect(PHONE_W - CHAMFER * 2, PHONE_H - CHAMFER * 2, RADIUS - CHAMFER), {
-      depth: DEPTH - CHAMFER * 2,
-      bevelEnabled: true,
-      bevelThickness: CHAMFER,
-      bevelSize: CHAMFER,
-      bevelSegments: 4,
-      curveSegments: 48,
-    });
-    body.center();
-    const glass = new THREE.ShapeGeometry(roundedRect(PHONE_W - CHAMFER * 2, PHONE_H - CHAMFER * 2, RADIUS - CHAMFER), 48);
-    const screen = new THREE.ShapeGeometry(roundedRect(SCREEN_W, SCREEN_H, SCREEN_R), 32);
-    const plateau = new THREE.ExtrudeGeometry(roundedRect(PHONE_W - PLATEAU.margin * 2, PLATEAU.h, PLATEAU.r), {
-      depth: 0.05,
-      bevelEnabled: true,
-      bevelThickness: 0.025,
-      bevelSize: 0.025,
-      bevelSegments: 3,
-      curveSegments: 40,
-    });
-    const markPlane = new THREE.PlaneGeometry(1.6, 3.2);
-    return { body, glass, screen, plateau, markPlane };
-  }, []);
-
-  const mats = useMemo(
-    () => ({
-      // Brushed anodized sides: roughness ~0.3 with grain, anisotropic along the perimeter
-      frame: new THREE.MeshPhysicalMaterial({ metalness: 1, roughness: 1, roughnessMap: roughness, anisotropy: 0.55, envMapIntensity: 1.3 }),
-      // Matte anodized back
-      back: new THREE.MeshPhysicalMaterial({ metalness: 0.9, roughness: 0.46, envMapIntensity: 0.95 }),
-      // Plateau, lens rings and buttons: the same metal, a little more polished
-      trim: new THREE.MeshPhysicalMaterial({ metalness: 1, roughness: 0.22, envMapIntensity: 1.25 }),
-      // Cover glass over the bezel: true black (the sheen plane carries the glass reflection)
-      glass: new THREE.MeshBasicMaterial({ color: "#000000" }),
-      sapphire: new THREE.MeshPhysicalMaterial({ color: "#0b0b0d", roughness: 0.08, metalness: 0.2, clearcoat: 1, clearcoatRoughness: 0.05 }),
-      lens: new THREE.MeshPhysicalMaterial({ color: "#000000", roughness: 0.03, metalness: 0.1, clearcoat: 1, clearcoatRoughness: 0, iridescence: 0.4, iridescenceIOR: 1.6, envMapIntensity: 0.8 }),
-      lensBarrel: new THREE.MeshPhysicalMaterial({ color: "#141417", roughness: 0.35, metalness: 0.8 }),
-      lensInner: new THREE.MeshPhysicalMaterial({ color: "#2a2a30", roughness: 0.25, metalness: 1 }),
-      sheen: new THREE.MeshBasicMaterial({ map: sheen, transparent: true, depthWrite: false, toneMapped: false }),
-    }),
-    [roughness, sheen],
+  const geo = useMemo(() => ({ screen: new THREE.ShapeGeometry(roundedRect(SCREEN_W, SCREEN_H, SCREEN_R), 32) }), []);
+  const sheenMat = useMemo(
+    () => new THREE.MeshBasicMaterial({ map: sheen, transparent: true, depthWrite: false, toneMapped: false }),
+    [sheen],
   );
   useEffect(
     () => () => {
-      Object.values(geo).forEach((g) => g.dispose());
-      Object.values(mats).forEach((m) => m.dispose());
-      [mark, roughness, sheen].forEach((t) => t.dispose());
+      geo.screen.dispose();
+      sheenMat.dispose();
+      sheen.dispose();
     },
-    [geo, mats, mark, roughness, sheen],
+    [geo, sheenMat, sheen],
   );
 
-  // Finish colours: start where we are and blend over ~400 ms (see useFrame).
-  const target = useMemo(() => {
+  // One pass over the loaded model: the parts the finish recolours, and the camera control.
+  const parts = useMemo(() => {
+    const tinted: Tinted[] = [];
+    const seen = new Set<THREE.Material>();
+    let frameRef = 1;
+    let backRef = 1;
+    scene.traverse((o) => {
+      const mesh = o as THREE.Mesh;
+      if (!mesh.isMesh) return;
+      const material = mesh.material as THREE.MeshStandardMaterial;
+      if (seen.has(material)) return;
+      seen.add(material);
+      const part = FRAME_MATERIALS.test(material.name) ? "frame" : BACK_MATERIALS.test(material.name) ? "back" : null;
+      if (!part) return;
+      const base = material.color.clone();
+      if (material.name === FRAME_REF) frameRef = luminance(base);
+      if (material.name === BACK_REF) {
+        backRef = luminance(base);
+        // Opaque: the back glass is translucent in the model, which would show the live screen
+        // (behind the canvas) through it when the phone is turned around.
+        material.transparent = false;
+        material.opacity = 1;
+      }
+      tinted.push({ material, base, part, share: 0 });
+    });
+    tinted.forEach((t) => (t.share = luminance(t.base) / (t.part === "frame" ? frameRef : backRef)));
+    const buttons = BUTTON_NODES.map((name) => scene.getObjectByName(name)).filter((o): o is THREE.Object3D => !!o);
+    buttons.forEach((b) => (b.userData.x = b.position.x));
+    return { tinted, buttons };
+  }, [scene]);
+
+  // Finish colours: Burgundy is the model as shipped; the others tint each part, keeping its
+  // brightness relative to the main surface. Starts where it is and blends over ~400 ms (useFrame).
+  const targets = useMemo(() => {
     const f = FINISH_INFO[finish];
-    return { frame: new THREE.Color(f.frame), back: new THREE.Color(f.back) };
-  }, [finish]);
+    const frame = new THREE.Color(f.frame);
+    const back = new THREE.Color(f.back);
+    return parts.tinted.map((t) =>
+      finish === "burgundy" ? t.base : (t.part === "frame" ? frame : back).clone().multiplyScalar(t.share),
+    );
+  }, [finish, parts]);
   const firstColor = useRef(true);
   useEffect(() => {
     if (firstColor.current) {
-      colors.frame.copy(target.frame);
-      colors.back.copy(target.back);
+      parts.tinted.forEach((t, i) => t.material.color.copy(targets[i]));
       firstColor.current = false;
     }
     invalidate();
-  }, [target, colors, invalidate]);
+  }, [targets, parts, invalidate]);
 
   useFrame((state, rawDelta) => {
     const g = group.current;
@@ -399,24 +321,20 @@ function Device({
     g.position.y = away * -(40 / hostSize.phonePx) * PHONE_H;
 
     // Finish colour blend
-    moving = easing.dampC(colors.frame, target.frame, 0.12, dt) || moving;
-    moving = easing.dampC(colors.back, target.back, 0.12, dt) || moving;
-    mats.frame.color.copy(colors.frame);
-    mats.trim.color.copy(colors.frame);
-    mats.back.color.copy(colors.back);
+    parts.tinted.forEach((t, i) => {
+      moving = easing.dampC(t.material.color, targets[i], 0.12, dt) || moving;
+    });
 
     // The glass reflection drifts a touch with the parallax, like light on a real cover glass
     sheen.offset.set(0.5 - tilt.current.y * 1.6, 0.5 + tilt.current.x * 1.6);
 
-    // Side buttons: press in, spring out
-    press.current.forEach((v, i) => {
-      const want = rig.pressed === i ? 1 : 0;
-      const next = v + (want - v) * (1 - Math.exp(-dt * (want ? 40 : 18)));
-      press.current[i] = Math.abs(next - want) < 1e-3 ? want : next;
-      const b = buttons.current[i];
-      if (b) b.position.x = b.userData.x - Math.sign(b.userData.x) * press.current[i] * 0.02;
-      if (press.current[i] !== want) moving = true;
-    });
+    // Camera control: press in, spring out
+    const want = rig.pressed === null ? 0 : 1;
+    const v = press.current;
+    const next = v + (want - v) * (1 - Math.exp(-dt * (want ? 40 : 18)));
+    press.current = Math.abs(next - want) < 1e-3 ? want : next;
+    parts.buttons.forEach((b) => (b.position.x = b.userData.x - press.current * BUTTON_TRAVEL));
+    if (press.current !== want) moving = true;
 
     // The screen is only interactive while it faces the camera.
     const facing = !showingBack(g.rotation.y);
@@ -431,9 +349,9 @@ function Device({
     if (moving) state.invalidate();
   });
 
-  const pressButton = (i: number) => (e: ThreeEvent<PointerEvent>) => {
+  const pressButton = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
-    rig.pressed = i;
+    rig.pressed = 0;
     invalidate();
     const release = () => {
       rig.pressed = null;
@@ -443,79 +361,17 @@ function Device({
     window.addEventListener("pointerup", release);
   };
 
-  const plateauY = PHONE_H / 2 - PLATEAU.margin - PLATEAU.h / 2;
-
   return (
     <group ref={group}>
-      {/* group 0 = caps (back), group 1 = side walls + chamfers (frame) */}
-      <mesh geometry={geo.body} material={[mats.back, mats.frame]} />
-
-      {/* Front cover glass: black, edge to edge inside the chamfer */}
-      <mesh geometry={geo.glass} material={mats.glass} position-z={FRONT_Z + 0.0005} />
-
-      {/* Back: the camera plateau, same metal as the body (as seen from behind, +x is right) */}
-      <group position={[0, plateauY, BACK_Z]} rotation-y={Math.PI}>
-        <mesh geometry={geo.plateau} material={mats.back} />
-        {LENSES.map((x) => (
-          <group key={x} position={[x, 0, 0.075]} rotation-x={Math.PI / 2}>
-            <mesh material={mats.trim} position-y={0.04}>
-              <cylinderGeometry args={[0.4, 0.41, 0.08, 64]} />
-            </mesh>
-            <mesh material={mats.lensBarrel} position-y={0.081}>
-              <cylinderGeometry args={[0.355, 0.355, 0.004, 64]} />
-            </mesh>
-            <mesh material={mats.lensInner} position-y={0.084} rotation-x={-Math.PI / 2}>
-              <torusGeometry args={[0.25, 0.022, 12, 64]} />
-            </mesh>
-            <mesh material={mats.lens} position-y={0.086}>
-              <cylinderGeometry args={[0.235, 0.235, 0.004, 64]} />
-            </mesh>
-            <mesh position={[0.07, 0.09, -0.07]} rotation-x={-Math.PI / 2}>
-              <circleGeometry args={[0.045, 24]} />
-              <meshBasicMaterial color="#ffffff" transparent opacity={0.22} toneMapped={false} />
-            </mesh>
-          </group>
-        ))}
-        {/* Flash and sensor dot, stacked at the end of the row */}
-        <mesh position={[1.36, 0.3, 0.077]}>
-          <circleGeometry args={[0.13, 40]} />
-          <meshPhysicalMaterial color="#f3ead6" emissive="#1e1a10" roughness={0.35} clearcoat={1} />
-        </mesh>
-        <mesh position={[1.36, -0.28, 0.077]}>
-          <circleGeometry args={[0.075, 32]} />
-          <meshPhysicalMaterial color="#0d0d10" roughness={0.1} clearcoat={1} />
+      {/* The model: centred on its frame, the front glass on z = FRONT_Z */}
+      <group scale={MODEL_SCALE} position={[0, -(MODEL.bottom + MODEL.height / 2) * MODEL_SCALE, FRONT_Z - MODEL.front * MODEL_SCALE]}>
+        <primitive object={scene} dispose={null} />
+        {/* The camera control's hit area (the only mesh with a handler, so pointer moves stay cheap) */}
+        <mesh position={BUTTON_HIT.position} onPointerDown={pressButton}>
+          <boxGeometry args={BUTTON_HIT.size} />
+          <meshBasicMaterial visible={false} />
         </mesh>
       </group>
-
-      {/* Back: debossed ⚡ CP mark, centred — a darker offset copy reads as the recess edge */}
-      <group position-z={BACK_Z - 0.002} rotation-y={Math.PI}>
-        <mesh geometry={geo.markPlane} position={[0.012, -0.55, 0]}>
-          <meshBasicMaterial color="#000000" alphaMap={mark} transparent opacity={0.3} depthWrite={false} />
-        </mesh>
-        <mesh geometry={geo.markPlane} position={[0, -0.54, 0.001]}>
-          <meshPhysicalMaterial color="#f4f1ea" alphaMap={mark} transparent metalness={1} roughness={0.15} opacity={0.8} depthWrite={false} />
-        </mesh>
-      </group>
-
-      {/* Side buttons: slim, slightly proud of the frame, same metal; the camera control sits flush */}
-      {BUTTONS.map((b, i) => {
-        const x = b.side * (PHONE_W / 2 + (b.flush ? -0.02 : 0.012));
-        return (
-          <RoundedBox
-            key={i}
-            ref={(m: THREE.Mesh | null) => {
-              buttons.current[i] = m;
-              if (m) m.userData.x = x;
-            }}
-            args={[0.06, PHONE_H * b.h, b.flush ? 0.2 : 0.21]}
-            radius={0.028}
-            smoothness={4}
-            position={[x, PHONE_H * (0.5 - b.at), 0]}
-            material={b.flush ? mats.sapphire : mats.trim}
-            onPointerDown={pressButton(i)}
-          />
-        );
-      })}
 
       {/* The live OS. A rounded occluder punches the screen hole in the canvas. */}
       <Html
@@ -542,7 +398,7 @@ function Device({
       </Html>
 
       {/* Glass sheen over the screen: drawn after the occluder, so it lies on top of the live DOM */}
-      <mesh geometry={geo.screen} material={mats.sheen} position-z={FRONT_Z + 0.006} renderOrder={10} />
+      <mesh geometry={geo.screen} material={sheenMat} position-z={FRONT_Z + 0.006} renderOrder={10} />
     </group>
   );
 }
@@ -776,14 +632,17 @@ export default function Phone3D({ stage, rig, hostSize, offset, onHost, onLanded
           <Lightformer form="rect" intensity={0.25} position={[0, -2, 9]} scale={[14, 8, 1]} />
           <Lightformer form="rect" intensity={0.35} position={[0, -8, 0]} rotation-x={-Math.PI / 2} scale={[14, 14, 1]} />
         </Environment>
-        <Device
-          rig={rig}
-          onHost={onHost}
-          portal={stage}
-          hostSize={hostSize}
-          onLanded={onLanded}
-          stage={stage}
-        />
+        {/* Until the model arrives the CSS phone stays on screen (the live screen moves over on mount) */}
+        <Suspense fallback={null}>
+          <Device
+            rig={rig}
+            onHost={onHost}
+            portal={stage}
+            hostSize={hostSize}
+            onLanded={onLanded}
+            stage={stage}
+          />
+        </Suspense>
         <ContactShadows position={[0, -PHONE_H / 2 - 0.35, 0]} scale={[9, 3]} blur={2.6} far={3} opacity={0.42} resolution={256} />
       </Canvas>
     </Fallback>

@@ -56,3 +56,8 @@ docs/v4/**/*.webm
 !/docs/v5/speed/trace-summary*.json
 # Built by scripts/build-sw.mjs before next build
 /public/sw.js
+
+# Raw iPhone 18 Pro Max model export (licence unconfirmed; the optimized copy ships from public/models)
+/apple-iphone-18-pro-max-burgundy-2026/
+# Original guide prompts: contain private data (see guide repo notes)
+/guide-sources/

@@ -2,7 +2,7 @@ import { create } from "zustand";
 
 import type { AppId } from "@content/schema";
 import { defaultLayout, homeGeometry, readHome, sanitize, writeHome, type HomeGeometry, type HomeLayout } from "@/lib/home";
-import { readStored, writeStored, type Finish } from "@/lib/theme";
+import { FINISHES, readStored, writeStored, type Finish } from "@/lib/theme";
 
 export type Wallpaper = "ribbons" | "aurora" | "dusk";
 export const WALLPAPERS: readonly Wallpaper[] = ["ribbons", "aurora", "dusk"];
@@ -107,7 +107,7 @@ let pillTimer = 0;
 
 export const useOS = create<OSState>()((set, get) => ({
   route: { app: null, sub: null, initial: true },
-  finish: "electric",
+  finish: "burgundy",
   wallpaper: "ribbons",
   reduceMotion: false,
   largeText: false,
@@ -185,7 +185,7 @@ export const useOS = create<OSState>()((set, get) => ({
   setContactSubject: (contactSubject) => set({ contactSubject }),
   hydratePrefs: () => {
     set({
-      finish: readStored("pp-finish", ["electric", "graphite", "chai"] as const) ?? "electric",
+      finish: readStored("pp-finish", FINISHES) ?? "burgundy",
       wallpaper: readStored(PREF_KEYS.wallpaper, WALLPAPERS) ?? "ribbons",
       reduceMotion: readStored(PREF_KEYS.reduceMotion, ["reduce", "auto"] as const) === "reduce",
       largeText: readStored(PREF_KEYS.largeText, ["large", "default"] as const) === "large",

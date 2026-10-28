@@ -14,7 +14,7 @@ await mkdir(outDir, { recursive: true });
 const browser = await chromium.launch({ args: ["--use-angle=metal", "--enable-gpu", "--ignore-gpu-blocklist"] });
 const errors = [];
 
-async function open(ctxOptions, { theme = "light", finish = "electric" } = {}) {
+async function open(ctxOptions, { theme = "light", finish = "burgundy" } = {}) {
   const ctx = await browser.newContext(ctxOptions);
   await ctx.addInitScript(
     ([t, f]) => {
@@ -42,7 +42,7 @@ async function ready3D(page) {
 const desktop = { viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 };
 
 for (const theme of ["light", "dark"]) {
-  for (const finish of ["electric", "graphite", "chai"]) {
+  for (const finish of ["burgundy", "electric", "graphite", "chai"]) {
     const { ctx, page } = await open(desktop, { theme, finish });
     await ready3D(page);
     await page.screenshot({ path: join(outDir, `front-${finish}-${theme}.png`) });

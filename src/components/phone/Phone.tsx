@@ -418,11 +418,12 @@ function CssPhone({
         </div>
       </div>
       {/* Action, volume up/down; side button and the flush camera control */}
-      <span aria-hidden className="phone-btn top-[15.2%] -left-[2px] h-[3.6%]" />
-      <span aria-hidden className="phone-btn top-[21.6%] -left-[2px] h-[5.8%]" />
-      <span aria-hidden className="phone-btn top-[28.6%] -left-[2px] h-[5.8%]" />
-      <span aria-hidden className="phone-btn top-[22.5%] -right-[2px] h-[9%]" />
-      <span aria-hidden className="phone-btn phone-btn-flush top-[56%] -right-px h-[5%]" />
+      {/* Placed where the 3D model has them */}
+      <span aria-hidden className="phone-btn top-[18.9%] -left-[2px] h-[4.2%]" />
+      <span aria-hidden className="phone-btn top-[26.2%] -left-[2px] h-[6.9%]" />
+      <span aria-hidden className="phone-btn top-[34.9%] -left-[2px] h-[6.9%]" />
+      <span aria-hidden className="phone-btn top-[28.4%] -right-[2px] h-[10.8%]" />
+      <span aria-hidden className="phone-btn phone-btn-flush top-[63.4%] -right-px h-[10.2%]" />
     </div>
   );
 }
