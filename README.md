@@ -55,9 +55,9 @@ CLI: `npx vercel link`, `npx vercel env add <NAME> production` per variable, the
 
 | Variable | Used for | Without it |
 |---|---|---|
-| `RESEND_API_KEY` | Contact form email via Resend (server only) | Form shows "email me directly" |
-| `CONTACT_TO_EMAIL` | Where contact messages go | `profile.email` |
-| `CONTACT_FROM_EMAIL` | Sender on a domain verified in Resend, e.g. `Chetan <hello@chetanpujari.com>` | `onboarding@resend.dev` (Resend test sender) |
+| `RESEND_API_KEY` | Contact form email via Resend (server only; see below) | Form can't send; offers "email me directly" |
+| `CONTACT_FROM_EMAIL` | Sender on a domain verified in Resend, e.g. `Chetan Pujari <hello@chetanpujari.com>` | `onboarding@resend.dev`, which only delivers to the Resend account owner |
+| `CONTACT_TO_EMAIL` | Where contact messages go | `email` in `content/profile.ts` |
 | `NEXT_PUBLIC_ENABLE_ASK` | `true` shows the Ask Chetan app | Hidden |
 | `OPENAI_API_KEY` | Ask Chetan answers (server only) | App shows "email me directly" |
 | `OPENAI_MODEL` | Model for Ask Chetan | `gpt-5-mini` |
@@ -68,6 +68,41 @@ CLI: `npx vercel link`, `npx vercel env add <NAME> production` per variable, the
 
 `NEXT_PUBLIC_*` values are baked in at build time, so redeploy after changing them. For local
 development, copy `.env.example` to `.env.local`.
+
+### Contact form email (Resend)
+
+The form posts to `/api/contact`, which sends one email through [Resend](https://resend.com):
+**From** `CONTACT_FROM_EMAIL` (never the visitor's address), **To** the owner's address, with
+**Reply-To** set to the visitor, so pressing Reply answers them. The subject includes theirs and
+their name. Every field is cleaned and HTML-escaped. Limits: 3 sent messages per hour and 5
+attempts per 10 minutes per IP, plus a hidden honeypot field. Posts from other sites are refused.
+
+1. **Create an API key.** Go to resend.com → *API Keys* → *Create API Key*, with permission
+   *Sending access*, then copy it (it starts with `re_`).
+2. **Verify a domain.** Go to resend.com → *Domains* → *Add Domain* (e.g. `chetanpujari.com`, or a
+   subdomain such as `mail.chetanpujari.com`), add the DNS records it shows at your DNS provider,
+   and wait for *Verified*. **This step is required to deliver to anyone.** Until then Resend
+   only accepts the test sender `onboarding@resend.dev`, and that delivers **only to the email
+   address the Resend account was created with**. Any other recipient gets a 403 ("You can only
+   send testing emails to your own email address").
+3. **Set the variables** in Vercel → *Project → Settings → Environment Variables*, for
+   *Production* (and *Preview* if you want previews to send):
+   - `RESEND_API_KEY` = the key from step 1
+   - `CONTACT_FROM_EMAIL` = an address on the verified domain, e.g. `Chetan Pujari <hello@chetanpujari.com>`.
+     The mailbox doesn't need to exist, since replies go to the visitor.
+   - `CONTACT_TO_EMAIL` (optional) = where messages land, if not `email` in `content/profile.ts`
+4. **Redeploy**: env changes apply to new deployments only. Then send yourself a message from
+   the live Contact app. You should see "Message sent" and receive the email.
+
+CLI equivalent: `npx vercel env add RESEND_API_KEY production`, and the same for
+`CONTACT_FROM_EMAIL`, then `npx vercel --prod`.
+
+**If it doesn't send**, the server log says which setting to fix (Vercel → *Logs*, search for
+`[contact]`). For example: `RESEND_API_KEY is not set`, `Resend refused the email (401 …). Check
+RESEND_API_KEY`, or `(403 …) The test sender onboarding@resend.dev only delivers to the Resend
+account owner`. Visitors see "Email isn't set up on this site yet" with a pre-filled
+"email me directly" link whenever the settings are missing or refused. A temporary failure
+(network, Resend 5xx) shows "Couldn't send just now" with **Try again**, and their text is kept.
 
 ## Credits
 

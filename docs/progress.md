@@ -327,6 +327,29 @@ Measured again with `scripts/gap-measure.mjs` (light and dark); the numbers are 
 - **Production:** main (v8) runs on :3100 from its own worktree, `../nfc-portfolio-prod`, so branch builds and tests no longer touch it (they use `PORT=3200`). To redeploy: `cd ../nfc-portfolio-prod && git checkout --detach main && npm run build`, then restart `next start -p 3100`.
 - **Tests:** `tests/expertise-stack.spec.ts` (new) runs on desktop (3D phone), tablet and phone. In light and dark: swipe up through 1/8 → 8/8 and back down; rubber-band at both ends; wheel (one card per burst) and arrow keys; tap and Enter open Expertise at the shown area; a vertical drag stays in the stack (page unchanged, no Search, no turn, no scroll). Once each: a fast flick moves at most two cards, a sideways swipe still pages, long-press still enters edit mode, reduced motion crossfades, autoplay advances after ~6 s and stops at the first touch, a real CDP touch swipe on the phone, and Enter after an arrow key on the home screen. Baselines: the home ones were regenerated on purpose, and `home2` (page 2 with the stack) was added in light and dark at all three sizes, with the clock, heatmap, video and post masked. Lint, typecheck, content check and build pass. Full run: **342 passed**, 286 skipped by viewport, 5 failed: the same throttled "window moving ≤ 50 ms" checks. Alone on one worker they measure 58–64 ms here and 58–65 ms on main, so they are unchanged.
 
+## Contact email fix (branch `fix/contact-email`)
+
+**Why sends failed.** The Vercel project `nfcportfolio` has **no environment variables at all** (checked with `vercel env ls`, names only). So the live route had no `RESEND_API_KEY` and answered every valid message with `503 {"reason":"unavailable"}`, and the form said "The form isn't available right now". Reproduced locally:
+
+| Case | Before | Now |
+|---|---|---|
+| No key, valid message | 503 `unavailable` | 503 `unavailable`; log: `[contact] RESEND_API_KEY is not set …`; form: "Email isn't set up on this site yet" + a pre-filled "email me directly" link |
+| Dummy key | Resend `401 {"message":"API key is invalid"}`; route answered **502 `failed`**, form showed the same "isn't available" banner, log only `Error: Resend 401` | 503 `unavailable`; log: `Resend refused the email (401 validation_error: API key is invalid). Check RESEND_API_KEY …` |
+| Test sender to someone else | (untested) | Resend 403 → 503 `unavailable`; log explains onboarding@resend.dev only delivers to the account owner and to verify a domain |
+| Invalid fields | 400 `invalid` + field errors | same |
+| Bad JSON | 400 | same; bodies over 20 KB → 413 |
+| Honeypot filled | 200, nothing sent | same (the field now has `name="company"` so form-filling bots find it) |
+| 4th message in an hour | 429 (counted every attempt, even failed ones and while unconfigured) | 429 + `Retry-After` and `retryAfter`; 3 **sent** per hour + 5 attempts per 10 min per IP |
+| Resend down / timeout | 502 `failed` | 502 `failed`; the form offers **Try again** |
+| Post from another site | accepted | 403 `forbidden` (Origin must match Host) |
+
+CORS wasn't involved: the form posts same-origin.
+
+- **Sending** (`src/app/api/contact/route.ts`): From `CONTACT_FROM_EMAIL` (format-checked; never the visitor), defaulting to `Pocket Portfolio <onboarding@resend.dev>` with a one-time warning. To `CONTACT_TO_EMAIL`, or `profile.email` by default. `reply_to` is the visitor. The subject is `[chetanpujari.com] <their subject> (from <their name>)`. Text and HTML bodies carry name, email, subject and message. Control characters are stripped, line breaks are removed from name and subject, and the HTML is escaped. `RESEND_API_URL` (default `https://api.resend.com`) exists only so tests can point at a fake.
+- **Form** (`src/components/apps/contact.tsx`): Send shows a spinner (`aria-busy`) with a "Sending…" note. Success shows "**Message sent.** I usually respond within 24 hours." and the status pill shows "Message sent". Failures keep every field and show what happened, in an alert: not set up (with a mailto link carrying their subject and message), too many requests ("Try again in 9 minutes"), couldn't send, couldn't reach the server, or offline. All except not-set-up have **Try again**. A ref blocks double submits (two clicks in one task, or Send then Enter). The old toast is gone; the note replaces it.
+- **Tests:** `tests/contact.spec.ts`. The UI tests (all three sizes) mock `/api/contact`: valid send with spinner, note and pill; client and server validation; missing key fallback keeps the text; a network failure keeps the text and Try again sends; 429; 502; double submit sends once. The API tests (desktop) start the built app three times with different env, against a fake Resend in the test process. They cover From/To/Reply-To/subject/escaping, the test-sender fallback and its log line, no key (Resend untouched, log names the setting), Resend 403/401/500 mapping, validation, honeypot, cross-origin, and both rate limits. Resend is never called. `smoke.spec`'s contact check now expects the alert and the kept text. Full run: **381 passed**, 310 skipped, 5 failed: the usual throttled speed checks, 57–64 ms here against 57–63 ms on main, alone on one worker.
+- **Docs:** README has a "Contact form email (Resend)" section with the steps, and `.env.example` explains each variable, including that the test sender only reaches the Resend account owner.
+
 ## Needs Chetan
 
 - [ ] **Real-device check of v5:** iPhone Safari, Android Chrome, Brave, Samsung Internet, and the LinkedIn and Instagram in-app browsers.
@@ -336,7 +359,7 @@ Measured again with `scripts/gap-measure.mjs` (light and dark); the numbers are 
 
 - [ ] **Reviews:** all 5 are `verified: false` in `content/reviews.ts`. Confirm each is a real quote you may publish, then set `verified: true`.
 - [ ] **Prompt Chaining post URL:** not found in the Substack feed/sitemap; the fallback post links to the publication home. Put the real URL in `content/blog.ts` if it exists.
-- [ ] **Contact email delivery:** add `RESEND_API_KEY` (and a verified sender in `CONTACT_FROM_EMAIL`) to Vercel env vars. Until then the form shows "email me directly".
+- [ ] **Contact email delivery (the live form can't send until this is done):** in Resend, create an API key and verify a domain (DNS records). In Vercel → nfcportfolio → Settings → Environment Variables (Production), set `RESEND_API_KEY` and `CONTACT_FROM_EMAIL` (e.g. `Chetan Pujari <hello@chetanpujari.com>`), then redeploy and send yourself a test. Steps in README → "Contact form email (Resend)".
 - [ ] **Ask Chetan (optional):** set `OPENAI_API_KEY` (server only) and `NEXT_PUBLIC_ENABLE_ASK=true` in Vercel, then redeploy. `OPENAI_MODEL` defaults to `gpt-5-mini`. Try a few questions before announcing it.
 - [x] **YouTube widget:** now @ImaginaryProgrammer (v9), which has public videos, so the widget shows the latest one.
 - [ ] **Expertise stack on a real phone:** check the swipe feel (spring, rubber-band), that a vertical swipe on it never scrolls or pulls down Search in iOS Safari, and that a sideways swipe still pages. Say if you'd rather autoplay wrap from 8 back to 1, or not run at all.

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, type FormEvent, type ReactNode } from "react";
+import { useRef, useState, type FormEvent, type ReactNode } from "react";
 import { AnimatePresence } from "motion/react";
 import * as m from "motion/react-m";
-import { ArrowUp, Check, Copy, Mail } from "lucide-react";
+import { ArrowUp, Check, Copy, LoaderCircle, Mail, RotateCw } from "lucide-react";
 
 import { profile } from "@content/profile";
 import { BrandTile } from "@/components/os/BrandIcon";
@@ -25,7 +25,22 @@ import { useOS } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 type Errors = Partial<Record<keyof ContactInput, string>>;
-type Status = "idle" | "sending" | "sent" | "fallback";
+type Status = "idle" | "sending" | "sent";
+/** Why the last send didn't go through. Only `unavailable` (email not set up) offers email instead. */
+type Problem =
+  | { kind: "unavailable" }
+  | { kind: "rate-limited"; retryAfter: number }
+  | { kind: "failed" }
+  | { kind: "network"; offline: boolean };
+
+const EMPTY = { name: "", email: "", subject: "", message: "", company: "" };
+
+/** "in 12 minutes" / "in a minute" / "in a few seconds" */
+function waitFor(seconds: number) {
+  if (seconds < 50) return "in a few seconds";
+  const minutes = Math.round(seconds / 60);
+  return minutes <= 1 ? "in a minute" : `in ${minutes} minutes`;
+}
 
 function Field({
   label,
@@ -62,6 +77,36 @@ function Field({
   );
 }
 
+/** A one-line note above the form: sending, sent, or what went wrong (with its fix). */
+function Note({ tone, action, children }: { tone: "quiet" | "good" | "warn"; action?: ReactNode; children: ReactNode }) {
+  return (
+    <div
+      className={cn(
+        "mb-4 flex items-start gap-2 rounded-[14px] px-4 py-3 text-[14px] leading-snug",
+        tone === "quiet" && "bg-app-group text-app-secondary",
+        tone === "good" && "bg-available/14 text-app-ink",
+        tone === "warn" && "bg-finish/18 text-app-ink",
+      )}
+    >
+      <div className="flex min-w-0 flex-1 items-start gap-2">{children}</div>
+      {action}
+    </div>
+  );
+}
+
+function RetryButton({ onRetry }: { onRetry: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onRetry}
+      className="-my-1 flex shrink-0 items-center gap-1 rounded-full bg-app-surface px-3 py-1 text-[13px] font-semibold shadow-[0_1px_2px_rgb(0_0_0/0.08)] transition-transform duration-150 ease-out active:scale-[0.96]"
+    >
+      <RotateCw className="size-3.5" strokeWidth={2.4} aria-hidden />
+      Try again
+    </button>
+  );
+}
+
 const FIELD_ORDER = ["email", "name", "subject", "message"] as const;
 
 const inputClass =
@@ -69,30 +114,23 @@ const inputClass =
 
 export default function ContactApp() {
   const initialSubject = useOS((s) => s.contactSubject);
-  const [values, setValues] = useState({
-    name: "",
-    email: "",
-    subject: initialSubject,
-    message: "",
-    company: "",
-  });
+  const [values, setValues] = useState({ ...EMPTY, subject: initialSubject });
   const [errors, setErrors] = useState<Errors>({});
   const [status, setStatus] = useState<Status>("idle");
-  const [toast, setToast] = useState<string | null>(null);
+  const [problem, setProblem] = useState<Problem | null>(null);
   const [copied, setCopied] = useState(false);
   const [flying, setFlying] = useState(0);
+  /** One send at a time, even if Send is pressed twice before React re-renders */
+  const inFlight = useRef(false);
 
   const set =
     (key: keyof typeof values) => (e: { target: { value: string } }) => {
       setValues((v) => ({ ...v, [key]: e.target.value }));
       if (errors[key as keyof Errors])
         setErrors((er) => ({ ...er, [key]: undefined }));
+      // Writing again: the "Message sent" note has done its job
+      if (status === "sent") setStatus("idle");
     };
-
-  const showToast = (text: string) => {
-    setToast(text);
-    window.setTimeout(() => setToast(null), 3200);
-  };
 
   const copyEmail = async () => {
     try {
@@ -104,9 +142,8 @@ export default function ContactApp() {
     }
   };
 
-  const submit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (status === "sending") return;
+  const send = async () => {
+    if (inFlight.current) return;
     const parsed = ContactSchema.safeParse(values);
     if (!parsed.success) {
       const fe = fieldErrorsOf(parsed.error);
@@ -116,39 +153,52 @@ export default function ContactApp() {
       if (first) document.getElementById(`contact-${first}`)?.focus();
       return;
     }
+    inFlight.current = true;
     setStatus("sending");
+    setProblem(null);
+    let data: ContactResult | null = null;
     try {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(parsed.data),
+        signal: AbortSignal.timeout(20_000),
       });
-      const data = (await res.json()) as ContactResult;
-      if (data.ok) {
-        setFlying((n) => n + 1);
-        setStatus("sent");
-        setValues({
-          name: "",
-          email: "",
-          subject: "",
-          message: "",
-          company: "",
-        });
-        useOS.getState().setContactSubject("");
-        useOS.getState().showPill("done", "Message sent");
-        showToast(`Sent! ${profile.responseTime}`);
-      } else if (data.reason === "invalid") {
-        setErrors(data.fieldErrors);
-        setStatus("idle");
-      } else {
-        // The banner explains it; only the rate limit needs its own note
-        setStatus("fallback");
-        if (data.reason === "rate-limited") showToast("That's a lot of messages — email me directly.");
-      }
+      data = (await res.json().catch(() => null)) as ContactResult | null;
     } catch {
-      setStatus("fallback");
+      // No answer at all: offline, a dropped connection or a timeout. The text stays put.
+      inFlight.current = false;
+      setStatus("idle");
+      setProblem({ kind: "network", offline: !navigator.onLine });
+      return;
     }
+    inFlight.current = false;
+    if (data?.ok) {
+      setFlying((n) => n + 1);
+      setStatus("sent");
+      setValues(EMPTY);
+      setErrors({});
+      useOS.getState().setContactSubject("");
+      useOS.getState().showPill("done", "Message sent");
+      return;
+    }
+    setStatus("idle");
+    if (data?.reason === "invalid") {
+      setErrors(data.fieldErrors);
+      const first = FIELD_ORDER.find((f) => data.fieldErrors[f]);
+      if (first) document.getElementById(`contact-${first}`)?.focus();
+    } else if (data?.reason === "unavailable") setProblem({ kind: "unavailable" });
+    else if (data?.reason === "rate-limited") setProblem({ kind: "rate-limited", retryAfter: data.retryAfter });
+    else setProblem({ kind: "failed" });
   };
+
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    void send();
+  };
+
+  // Their own email app, with what they wrote, when the form can't send it
+  const mailto = `mailto:${profile.email}?subject=${encodeURIComponent(values.subject)}&body=${encodeURIComponent(values.message)}`;
 
   const describedBy = (k: keyof Errors) =>
     errors[k] ? `contact-${k}-error` : undefined;
@@ -163,12 +213,17 @@ export default function ContactApp() {
             <button
               type="submit"
               form="contact-form"
-              aria-label="Send message"
+              aria-label={status === "sending" ? "Sending message" : "Send message"}
               data-contact-send
+              aria-busy={status === "sending"}
               disabled={status === "sending"}
-              className="grid size-[34px] place-items-center rounded-full bg-finish text-finish-ink transition-transform duration-150 ease-out active:scale-[0.9] disabled:opacity-50"
+              className="grid size-[34px] place-items-center rounded-full bg-finish text-finish-ink transition-transform duration-150 ease-out active:scale-[0.9] disabled:opacity-70"
             >
-              <ArrowUp className="size-5" strokeWidth={2.6} aria-hidden />
+              {status === "sending" ? (
+                <LoaderCircle className="size-5 animate-spin" strokeWidth={2.6} aria-hidden />
+              ) : (
+                <ArrowUp className="size-5" strokeWidth={2.6} aria-hidden />
+              )}
             </button>
           }
         />
@@ -178,19 +233,47 @@ export default function ContactApp() {
             Contact
           </h1>
 
-          {status === "fallback" && (
-            <div
-              role="status"
-              className="mb-4 rounded-[14px] bg-finish/18 px-4 py-3 text-[14px] leading-snug"
-            >
-              The form isn&apos;t available right now — email me directly at{" "}
-              <a
-                href={`mailto:${profile.email}`}
-                className="font-semibold underline underline-offset-2"
-              >
-                {profile.email}
-              </a>
-              .
+          <div aria-live="polite" data-contact-status>
+            {status === "sending" && (
+              <Note tone="quiet">
+                <LoaderCircle className="mt-px size-4 shrink-0 animate-spin" aria-hidden />
+                Sending…
+              </Note>
+            )}
+            {status === "sent" && (
+              <Note tone="good">
+                <Check className="mt-px size-4 shrink-0" strokeWidth={2.6} aria-hidden />
+                <span>
+                  <strong className="font-semibold">Message sent.</strong> {profile.responseTime}
+                </span>
+              </Note>
+            )}
+          </div>
+          {problem && (
+            <div role="alert" data-contact-problem={problem.kind}>
+              {problem.kind === "unavailable" ? (
+                <Note tone="warn">
+                  <span>
+                    Email isn&apos;t set up on this site yet, so the form can&apos;t send. Your message is still here:{" "}
+                    <a href={mailto} className="font-semibold underline underline-offset-2">
+                      email me directly
+                    </a>{" "}
+                    at {profile.email}.
+                  </span>
+                </Note>
+              ) : (
+                <Note tone="warn" action={<RetryButton onRetry={() => void send()} />}>
+                  <span>
+                    {problem.kind === "rate-limited"
+                      ? `That's a few messages in a row. Try again ${waitFor(problem.retryAfter)}, or email me at ${profile.email}.`
+                      : problem.kind === "network"
+                        ? problem.offline
+                          ? "You're offline. Your message is still here; send it once you're connected."
+                          : "Couldn't reach the server. Your message is still here."
+                        : "Couldn't send just now. Your message is still here."}
+                  </span>
+                </Note>
+              )}
             </div>
           )}
 
@@ -272,6 +355,7 @@ export default function ContactApp() {
               <label>
                 Company
                 <input
+                  name="company"
                   tabIndex={-1}
                   autoComplete="off"
                   value={values.company}
@@ -351,23 +435,6 @@ export default function ContactApp() {
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {toast && (
-          <m.div
-            role="status"
-            initial={{ opacity: 0, transform: "translate(-50%, -12px)" }}
-            animate={{
-              opacity: 1,
-              transform: "translate(-50%, 0px)",
-              transition: { duration: 0.22, ease: easeOut },
-            }}
-            exit={{ opacity: 0, transition: { duration: 0.15 } }}
-            className="glass absolute top-[max(env(safe-area-inset-top),12px)] left-1/2 z-30 w-[86%] rounded-[16px] px-4 py-3 text-center text-[14px] font-medium shadow-lg tab:top-[6.5cqh]"
-          >
-            {toast}
-          </m.div>
-        )}
-      </AnimatePresence>
     </>
   );
 }

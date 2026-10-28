@@ -107,7 +107,9 @@ test("contact form validates, then falls back to email when sending is unavailab
   await page.fill("#contact-subject", "Hello there");
   await page.fill("#contact-message", "This is a test message from Playwright.");
   await send.click();
-  await expect(page.getByRole("status").filter({ hasText: "email me directly" })).toBeVisible();
+  await expect(page.getByRole("alert").filter({ hasText: "email me directly" })).toBeVisible();
+  // Their text is still there to send another way
+  await expect(page.locator("#contact-message")).toHaveValue("This is a test message from Playwright.");
 });
 
 test("Spotlight finds a course and opens it", async ({ page }) => {
