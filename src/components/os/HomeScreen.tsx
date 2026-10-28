@@ -1,12 +1,13 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { memo, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent, type ReactNode, type RefObject } from "react";
-import { useMotionValue, useSpring, useTransform, type MotionValue } from "motion/react";
+import { memo, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type PointerEvent, type ReactNode, type RefObject } from "react";
+import { useMotionValue, useTransform, type MotionValue } from "motion/react";
 import * as m from "motion/react-m";
 import { useDrag } from "@use-gesture/react";
 
 import { startedIn } from "@/lib/gesture";
+import { lazyComponent } from "@/lib/lazy";
 import { folderId, isFolder, isWidget, TILES, widgetId, type HomeGeometry, type Placed } from "@/lib/home";
 import {
   animateTo,
@@ -38,7 +39,19 @@ const LazyWidget = dynamic(() => import("./HomeWidgets").then((mod) => mod.HomeW
   loading: () => <span aria-hidden className="block size-full widget-r bg-white/10" />,
 });
 
+// Badges, Done and + only exist in edit mode: they load with the editor (fetched as a long-press starts)
+const EditOverlay = lazyComponent(() => import("./HomeEditor").then((mod) => mod.EditOverlay));
+
+// Arrow-key navigation, fetched as soon as anything on the home screen takes focus
+let keys: typeof import("./home-keys") | null = null;
+const loadKeys = () => void import("./home-keys").then((mod) => (keys = mod));
+
 const LONG_PRESS_MS = 500;
+/** The grid or dock entry an event happened on */
+const entryAt = (target: EventTarget) => {
+  const el = (target as Element).closest<HTMLElement>("[data-home-key], [data-dock-key]");
+  return el ? (el.dataset.homeKey ?? el.dataset.dockKey)! : null;
+};
 /** Pull this far (px) to fully open Search. */
 const SEARCH_PULL = 140;
 
@@ -104,41 +117,6 @@ export function slotBox(p: Pick<Placed, "col" | "row" | "w" | "h">, g: HomeGeome
   };
 }
 
-/** Moves focus to the nearest home item in the arrow's direction; past the edge, turns the page. */
-function moveFocus(event: KeyboardEvent<HTMLDivElement>, pages: number, goToPage: (page: number, focus: "first" | "last") => void) {
-  const dir = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[event.key];
-  if (!dir || event.ctrlKey || event.metaKey || useOS.getState().wiggle) return;
-  const items = [...event.currentTarget.querySelectorAll<HTMLElement>("[data-nav]")].filter((el) => !el.closest("[inert]"));
-  const current = document.activeElement as HTMLElement | null;
-  if (!current || !items.includes(current)) return;
-  event.preventDefault();
-  const from = current.getBoundingClientRect();
-  const cx = from.left + from.width / 2;
-  const cy = from.top + from.height / 2;
-  // Only items fully past the current item's edge in that direction
-  const ahead = (r: DOMRect) =>
-    dir[0] > 0 ? r.left >= from.right - 4 : dir[0] < 0 ? r.right <= from.left + 4 : dir[1] > 0 ? r.top >= from.bottom - 4 : r.bottom <= from.top + 4;
-  let best: HTMLElement | null = null;
-  let bestScore = Infinity;
-  for (const item of items) {
-    if (item === current) continue;
-    const r = item.getBoundingClientRect();
-    if (!ahead(r)) continue;
-    const dx = r.left + r.width / 2 - cx;
-    const dy = r.top + r.height / 2 - cy;
-    const score = dx * dir[0] + dy * dir[1] + (Math.abs(dx * dir[1]) + Math.abs(dy * dir[0])) * 2.5;
-    if (score < bestScore) {
-      bestScore = score;
-      best = item;
-    }
-  }
-  if (best) best.focus();
-  else if (dir[0] && current.closest("[data-home-page]")) {
-    const page = useOS.getState().homePage + dir[0];
-    if (page >= 0 && page < pages) goToPage(page, dir[0] > 0 ? "first" : "last");
-  }
-}
-
 /** The pages themselves. Memoised: opening an app re-renders the layer, never the icons. */
 const Pages = memo(function Pages({ placed, pages, page, geo }: { placed: Placed[]; pages: number; page: number; geo: HomeGeometry }) {
   return (
@@ -187,14 +165,14 @@ export function HomeScreen({ open }: { open: boolean }) {
   const setWiggle = useOS((s) => s.setWiggle);
   const page = useOS((s) => s.homePage);
   const locked = useOS((s) => s.locked);
-  const dock = useOS((s) => s.home.dock);
+  const dock = useOS((s) => s.homePreview?.dock ?? s.home.dock);
   const layerRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const { geo, placed, pages, measured } = useHomeLayout(layerRef);
   const pagesRef = useRef(pages);
   const width = useRef(390);
   const suppressClick = useRef(false);
-  const press = useRef<{ timer: number; x: number; y: number; fired: boolean } | null>(null);
+  const press = useRef<{ timer: number; x: number; y: number; fired: boolean; touch: boolean } | null>(null);
 
   // Recedes behind an open app: scale 0.9 and dim, on the launch spring. No blur: it is the
   // most expensive thing a phone can draw while the window above it is moving.
@@ -314,14 +292,20 @@ export function HomeScreen({ open }: { open: boolean }) {
     return () => el.removeEventListener("wheel", onWheel);
   }, [open]);
 
-  /* ───── Long-press → jiggle mode ───── */
+  /* ───── Long-press → edit mode (a drag carries straight on from it) ───── */
   const onPointerDown = (e: PointerEvent) => {
-    if (e.button !== 0 || wiggle) return;
+    // A new press: whatever the last one left to swallow (a touch long-press may never send its
+    // click) no longer applies
     suppressClick.current = false;
-    const state = { timer: 0, x: e.clientX, y: e.clientY, fired: false };
+    if (press.current) press.current.fired = false;
+    if (e.button !== 0 || wiggle) return;
+    void EditOverlay.preload();
+    const key = entryAt(e.target);
+    const state = { timer: 0, x: e.clientX, y: e.clientY, fired: false, touch: e.pointerType !== "mouse" };
     state.timer = window.setTimeout(() => {
       state.fired = true;
       haptic();
+      useOS.setState({ editPress: key ? { key, x: state.x, y: state.y } : null });
       setWiggle(true);
     }, LONG_PRESS_MS);
     press.current = state;
@@ -363,42 +347,42 @@ export function HomeScreen({ open }: { open: boolean }) {
           suppressClick.current = false;
           return;
         }
-        if (wiggle && !(e.target as Element).closest("[data-wiggle-done]")) {
+        // Edit mode: icons don't open (folders do), a tap on empty space finishes
+        const target = e.target as Element;
+        if (wiggle && !target.closest("[data-edit-ui], [data-folder-open]")) {
           e.preventDefault();
           e.stopPropagation();
-          setWiggle(false);
+          if (!entryAt(target)) setWiggle(false);
         }
       }}
       onContextMenu={(e) => {
         e.preventDefault();
-        haptic();
-        setWiggle(true);
+        // A touch long-press is already edit mode; a right-click or the menu key on an entry opens its menu
+        if (press.current?.touch || wiggle) return;
+        const key = entryAt(e.target);
+        void EditOverlay.preload();
+        if (key) useOS.getState().setHomeSheet({ kind: "menu", key });
+        else {
+          haptic();
+          setWiggle(true);
+        }
       }}
       // A native link/image drag would steal the pointer from page swipes and rearranging.
       onDragStart={(e) => e.preventDefault()}
-      onKeyDown={(e) => moveFocus(e, pages, goToPage)}
+      onFocus={loadKeys}
+      onKeyDown={(e) => keys?.onHomeKey(e, pages, goToPage)}
     >
-      <div ref={viewportRef} data-home-grid data-measured={measured || undefined} className="relative min-h-0 flex-1 overflow-hidden">
+      {/* Clipped sideways only: edit mode's badges and pills sit just above the first row */}
+      <div ref={viewportRef} data-home-grid data-measured={measured || undefined} className="relative min-h-0 flex-1 overflow-x-clip">
         <nav aria-label="Apps" className="contents">
           <Pages placed={placed} pages={pages} page={page} geo={geo} />
         </nav>
+        {wiggle && <EditOverlay placed={placed} geo={geo} />}
       </div>
 
       <PageDots page={page} pages={pages} height={geo.search} onPage={(p) => goToPage(p)} />
 
       <Dock entries={dock} geo={geo} />
-
-      {wiggle && (
-        <button
-          type="button"
-          data-wiggle-done
-          onClick={() => setWiggle(false)}
-          className="glass-dark absolute right-[5cqw] z-[78] rounded-full px-3 py-1 text-[13px] font-semibold text-white"
-          style={{ top: Math.max(4, geo.top - 30) }}
-        >
-          Done
-        </button>
-      )}
 
       <m.div aria-hidden style={{ opacity: dim }} className="pointer-events-none absolute inset-0 bg-black" />
     </m.div>
@@ -488,13 +472,18 @@ function DockItem({
   boxes: RefObject<Map<string, { center: number; width: number }>>;
   children: ReactNode;
 }) {
-  const target = useTransform(mouseX, (x) => {
-    const box = boxes.current.get(entry);
-    if (!box || !Number.isFinite(x)) return 1;
-    const d = Math.abs(x - box.center) / box.width;
-    return 1 + 0.15 * Math.max(0, 1 - d / 1.6);
-  });
-  const scale = useSpring(target, { stiffness: 500, damping: 40 });
+  // Springs toward the magnification for the pointer's position (each move hands its velocity on)
+  const scale = useMotionValue(1);
+  useEffect(
+    () =>
+      mouseX.on("change", (x) => {
+        const box = boxes.current.get(entry);
+        const d = box && Number.isFinite(x) ? Math.abs(x - box.center) / box.width : Infinity;
+        const target = 1 + 0.15 * Math.max(0, 1 - d / 1.6);
+        if (target !== scale.get() || scale.isAnimating()) animateTo(scale, target, { type: "spring", stiffness: 500, damping: 40 });
+      }),
+    [mouseX, boxes, entry, scale],
+  );
   return (
     <m.div data-dock-key={entry} style={{ scale, transformOrigin: "50% 100%" }}>
       <div data-fly>{children}</div>

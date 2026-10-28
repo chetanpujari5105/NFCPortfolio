@@ -156,10 +156,19 @@ export function startWallpaper(
     gl.uniform1i(u.mode, MODES[wallpaper]);
     readColors();
 
+    // The canvas size comes from a ResizeObserver: reading clientWidth in every frame would force
+    // a layout of the whole page whenever something else changed the DOM in that frame
+    let cssW = canvas.clientWidth;
+    let cssH = canvas.clientHeight;
+    const sizer = new ResizeObserver(([entry]) => {
+      cssW = entry.contentRect.width;
+      cssH = entry.contentRect.height;
+    });
+    sizer.observe(canvas);
     const resize = () => {
       const scale = Math.min(window.devicePixelRatio || 1, 2) * 0.5;
-      const w = Math.max(1, Math.round(canvas.clientWidth * scale));
-      const h = Math.max(1, Math.round(canvas.clientHeight * scale));
+      const w = Math.max(1, Math.round(cssW * scale));
+      const h = Math.max(1, Math.round(cssH * scale));
       if (canvas.width !== w || canvas.height !== h) {
         canvas.width = w;
         canvas.height = h;
@@ -171,6 +180,12 @@ export function startWallpaper(
     let raf = 0;
     let last = 0;
     let sampledAt = -Infinity;
+    // The read-back below is a GPU sync (a long task on a slow phone): it waits until the visitor
+    // has paused, so it never lands in the middle of a tap, drag or scroll
+    let inputAt = -Infinity;
+    const onInput = () => (inputAt = performance.now());
+    const INPUTS = ["pointerdown", "pointermove", "keydown", "wheel"] as const;
+    for (const type of INPUTS) window.addEventListener(type, onInput, { passive: true, capture: true });
     const start = performance.now() - 40_000;
     const still = prefersReducedMotion();
     const draw = (now: number) => {
@@ -180,7 +195,7 @@ export function startWallpaper(
       canvas.dataset.ready = "";
       // The browser bar follows the wallpaper's top edge: read it back in the same task as the
       // draw (no preserved buffer needed), at most every 4 s since it is a small GPU sync
-      if (now - sampledAt > 4000) {
+      if (now - sampledAt > 4000 && performance.now() - inputAt > 1500) {
         sampledAt = now;
         const w = canvas.width;
         const px = new Uint8Array(w * 4);
@@ -231,6 +246,8 @@ export function startWallpaper(
 
     return () => {
       cancelAnimationFrame(raf);
+      for (const type of INPUTS) window.removeEventListener(type, onInput, { capture: true });
+      sizer.disconnect();
       observer.disconnect();
       document.removeEventListener("visibilitychange", play);
       window.removeEventListener("resize", play);

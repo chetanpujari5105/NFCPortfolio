@@ -52,3 +52,69 @@ export function firstFreeIndex(grid: string[], cols: number, rows: number) {
       }
   return grid.length;
 }
+
+/* ───────────── Edits: each returns a new layout (the store sanitises and saves it) ───────────── */
+
+export type ListName = "grid" | "dock";
+
+export const listOf = (layout: Pick<HomeLayout, "grid" | "dock">, key: string): ListName | null =>
+  layout.grid.includes(key) ? "grid" : layout.dock.includes(key) ? "dock" : null;
+
+/** `key` taken out of wherever it is and put into `list` at `index` (counted without it). */
+export function place<T extends Pick<HomeLayout, "grid" | "dock">>(layout: T, key: string, list: ListName, index: number): T {
+  const grid = layout.grid.filter((k) => k !== key);
+  const dock = layout.dock.filter((k) => k !== key);
+  const into = list === "grid" ? grid : dock;
+  into.splice(Math.max(0, Math.min(index, into.length)), 0, key);
+  return { ...layout, grid, dock };
+}
+
+/** Without `key` anywhere: the grid, the dock, every folder. A folder key takes the folder with it. */
+export function removeEntry(layout: HomeLayout, key: string): HomeLayout {
+  const folders = Object.fromEntries(
+    Object.entries(layout.folders)
+      .filter(([id]) => `f:${id}` !== key)
+      .map(([id, f]) => [id, { ...f, items: f.items.filter((t) => t !== key) }]),
+  );
+  return { ...layout, grid: layout.grid.filter((k) => k !== key), dock: layout.dock.filter((k) => k !== key), folders };
+}
+
+/** A tile from the App Library, into the first free cell. */
+export function addToHome(layout: HomeLayout, tile: string, cols: number, rows: number): HomeLayout {
+  const grid = [...layout.grid];
+  grid.splice(firstFreeIndex(grid, cols, rows), 0, tile);
+  return { ...layout, grid };
+}
+
+/**
+ * `tile` dropped on `target`: into the folder if the target is one, otherwise a new folder in the
+ * target's place, named for what the two share. Returns the folder's id and whether it is new.
+ */
+export function mergeInto(layout: HomeLayout, tile: string, target: string) {
+  const base = removeEntry(layout, tile);
+  if (target.startsWith("f:")) {
+    const id = target.slice(2);
+    const folder = base.folders[id];
+    return { layout: { ...base, folders: { ...base.folders, [id]: { ...folder, items: [...folder.items, tile] } } }, id, created: false };
+  }
+  let id = `f${Date.now().toString(36)}`;
+  while (id in base.folders) id += "x";
+  const swap = (list: string[]) => list.map((k) => (k === target ? `f:${id}` : k));
+  return {
+    layout: {
+      ...base,
+      grid: swap(base.grid),
+      dock: swap(base.dock),
+      folders: { ...base.folders, [id]: { name: folderName(target, tile), items: [target, tile] } },
+    },
+    id,
+    created: true,
+  };
+}
+
+export function arrayMove<T>(list: T[], from: number, to: number) {
+  const next = [...list];
+  const [item] = next.splice(from, 1);
+  next.splice(to, 0, item);
+  return next;
+}

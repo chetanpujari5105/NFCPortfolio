@@ -60,6 +60,8 @@ const BrightnessDim = memo(BrightnessDimLayer);
 const LockScreen = memo(LockScreenLayer);
 const StatusBar = memo(StatusBarLayer);
 const Wallpaper = memo(WallpaperLayer);
+// Home-screen editing: menus, sheets, the App Library and drag-and-drop (one chunk with the edit overlay)
+const HomeSheets = lazyComponent(() => import("@/components/os/HomeEditor").then((m) => m.HomeSheets));
 const loadRig = () => import("./Phone3D").then((m) => m.newRig());
 
 /** How long the CSS phone waits for the 3D phone to make the entrance. */
@@ -96,25 +98,15 @@ function useCan3D() {
   return media && !reduceMotion;
 }
 
-/**
- * The chunks this first visit fetched before the service worker took over go into its cache too
- * (straight from the HTTP cache), so the very next visit runs offline-fast.
- */
-async function warmCache() {
-  await navigator.serviceWorker.ready;
-  const urls = performance
-    .getEntriesByType("resource")
-    .map((entry) => entry.name)
-    .filter((url) => url.startsWith(`${location.origin}/_next/static/`));
-  const cache = await caches.open("static");
-  await Promise.all(urls.map((url) => cache.match(url).then((hit) => (hit ? undefined : cache.add(url))).catch(() => {})));
-}
-
 const wake = () => document.documentElement.setAttribute("data-awake", "");
 
 export function Phone() {
   useHashRouter();
   const route = useOS((s) => s.route);
+  // Once editing has started the sheets layer stays mounted (it holds the screen-reader announcements)
+  const editing = useOS((s) => s.wiggle || !!s.homeSheet);
+  const [editorUsed, setEditorUsed] = useState(false);
+  if (editing && !editorUsed) setEditorUsed(true);
   const reduceMotion = useOS((s) => s.reduceMotion);
   const screenRef = useRef<HTMLDivElement>(null);
   const bezelRef = useRef<HTMLDivElement>(null);
@@ -136,7 +128,7 @@ export function Phone() {
     // The service worker (sw/sw.ts): production builds only, once the first load has settled
     const cancelWorker =
       process.env.NODE_ENV === "production" && "serviceWorker" in navigator
-        ? whenIdle(() => void navigator.serviceWorker.register("/sw.js").then(warmCache, () => {}), 4000)
+        ? whenIdle(() => void import("@/lib/sw-register").then((mod) => mod.registerWorker()), 4000)
         : () => {};
     const cancel = whenIdle(preloadApps, 1500);
     const now = () => {
@@ -294,14 +286,16 @@ export function Phone() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
-      const { spotlightOpen, setSpotlightOpen, wiggle, setWiggle, route, switcherOpen, setSwitcherOpen, panelOpen } =
+      const { spotlightOpen, setSpotlightOpen, wiggle, setWiggle, route, switcherOpen, setSwitcherOpen, panelOpen, homeSheet, setHomeSheet } =
         useOS.getState();
-      if (panelOpen) {
+      if (homeSheet) setHomeSheet(null);
+      else if (panelOpen) {
         settlePanel(false);
         document.querySelector<HTMLElement>("[data-panel-handle]")?.focus({ preventScroll: true });
       } else if (switcherOpen) setSwitcherOpen(false);
       else if (spotlightOpen) setSpotlightOpen(false);
-      else if (wiggle) setWiggle(false);
+      // A folder open in edit mode closes first; then edit mode ends
+      else if (wiggle && route.app !== "socials") setWiggle(false);
       else if (route.app) goBack();
       else return;
       e.preventDefault();
@@ -386,6 +380,7 @@ export function Phone() {
           )}
           <LockScreen />
           <FolderView id={folderOf(route)} screenRef={screenRef} />
+          {editorUsed && <HomeSheets />}
           <Spotlight />
           <AppSwitcher screenRef={screenRef} />
           <StatusBar onApp={!!win && !win.closing} />

@@ -21,7 +21,7 @@ import {
 import { useTheme } from "@/components/ui/theme-toggle";
 import { onRadioGroupKeyDown } from "@/lib/a11y";
 import { settlePanel } from "@/lib/panel";
-import { openApp } from "@/lib/router";
+import { goHome, openApp } from "@/lib/router";
 import { useOS, WALLPAPERS, type Wallpaper } from "@/lib/store";
 import { FINISHES, setThemeWithReveal, type Theme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
@@ -252,6 +252,32 @@ export default function SettingsApp() {
               </button>
             ))}
           </div>
+        </ListGroup>
+
+        <ListGroup
+          header="Home Screen"
+          footer="Or long-press the home screen: drag icons to move them, drop one on another to make a folder, and tap – to remove one."
+        >
+          <ListRow
+            leading={<RowIcon glyph="sparkles" colors={["#bf5af2", "#7d2ae8"]} />}
+            title="Edit Home Screen"
+            chevron
+            onClick={() => {
+              goHome();
+              useOS.getState().setWiggle(true);
+            }}
+          />
+          <ListRow
+            leading={<RowIcon glyph="star" colors={["#64d2ff", "#0a84ff"]} />}
+            title="App Library"
+            subtitle="Every app and link, and the ones you removed"
+            chevron
+            onClick={() => useOS.getState().setHomeSheet({ kind: "library" })}
+          />
+          <ListRow
+            title={<span className="text-[#ff3b30]">Reset Home Screen</span>}
+            onClick={() => useOS.getState().setHomeSheet({ kind: "reset" })}
+          />
         </ListGroup>
 
         <ListGroup header="Accessibility" footer="Reduce motion swaps zooms and slides for gentle fades.">

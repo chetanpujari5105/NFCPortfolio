@@ -19,6 +19,13 @@ export type Route = {
 export type PillIcon = "check" | "moon" | "sun" | "link";
 export type PillEvent = { kind: "done" | "info" | "progress"; text: string; id: number; icon?: PillIcon };
 
+/** Home-screen editing overlays (all drawn by the lazily loaded editor). */
+export type HomeSheet =
+  | { kind: "menu"; key: string }
+  | { kind: "remove"; key: string; folder?: string }
+  | { kind: "library" }
+  | { kind: "reset" };
+
 type OSState = {
   route: Route;
   finish: Finish;
@@ -39,6 +46,13 @@ type OSState = {
   home: HomeLayout;
   /** Measured grid for the current screen (columns, rows, icon size) */
   homeGeo: HomeGeometry;
+  /** While an icon is dragged: the grid and dock as they would be if it were dropped now */
+  homePreview: { grid: string[]; dock: string[] } | null;
+  homeSheet: HomeSheet | null;
+  /** The entry a long-press started on, so the drag can carry on into edit mode */
+  editPress: { key: string; x: number; y: number } | null;
+  /** A folder just made: it opens with its name field focused */
+  renameFolder: string | null;
   pill: PillEvent | null;
   /** Pre-filled subject for the Contact app ("Let's talk" from a service) */
   contactSubject: string;
@@ -57,6 +71,7 @@ type OSState = {
   forgetRecent: (app: AppId) => void;
   setHome: (layout: HomeLayout) => void;
   setHomeGeo: (geo: HomeGeometry) => void;
+  setHomeSheet: (sheet: HomeSheet | null) => void;
   showPill: (kind: PillEvent["kind"], text: string, icon?: PillIcon) => number;
   hidePill: (id?: number) => void;
   setContactSubject: (subject: string) => void;
@@ -107,6 +122,10 @@ export const useOS = create<OSState>()((set, get) => ({
   recents: [],
   home: defaultLayout(),
   homeGeo: homeGeometry(390, 844, { top: 0, right: 0, bottom: 0, left: 0 }, false),
+  homePreview: null,
+  homeSheet: null,
+  editPress: null,
+  renameFolder: null,
   pill: null,
   contactSubject: "",
   setRoute: (route) =>
@@ -134,7 +153,7 @@ export const useOS = create<OSState>()((set, get) => ({
     set({ largeText: on });
   },
   setSpotlightOpen: (spotlightOpen) => set({ spotlightOpen }),
-  setWiggle: (wiggle) => set({ wiggle }),
+  setWiggle: (wiggle) => set(wiggle ? { wiggle } : { wiggle, homePreview: null, editPress: null }),
   unlock: () => {
     writeSession(UNLOCK_KEY, "1");
     document.documentElement.setAttribute("data-unlocked", "");
@@ -151,6 +170,7 @@ export const useOS = create<OSState>()((set, get) => ({
     set({ home });
   },
   setHomeGeo: (homeGeo) => set({ homeGeo }),
+  setHomeSheet: (homeSheet) => set({ homeSheet }),
   showPill: (kind, text, icon) => {
     const id = ++pillSeq;
     window.clearTimeout(pillTimer);

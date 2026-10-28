@@ -199,6 +199,10 @@ REA stays off (owner's earlier choice); the reference was studied with Playwrigh
   - Full numbers and the before/after videos are in `docs/v5/speed.md`.
   - `npm test`: 228 passed. `tests/speed.spec.ts` still fails its strict "moving ≤ 50 ms" check at 4× CPU (57–62 ms). It passes unthrottled (41–50 ms); what's left is a ~25–30 ms headless-Chromium stall before the first frame (see speed.md).
 
+- **Problem 3: home-screen editing.** Tests first (`tests/home-edit.spec.ts`, 15 tests with mouse and CDP touch, incl. the 320×568 and 392×690 fit checks). The editor is one lazy chunk (`components/os/HomeEditor.tsx`), fetched on the first press, so initial JS stays at **199.1 KB**.
+  - A 500 ms long-press (haptic tick) or the context menu (right-click, Shift+F10, the menu key: Open, Share, Edit Home Screen, Remove App) starts edit mode. Icons wiggle with "–" badges, Done is top right, + (App Library) is top left. Drag moves apps, widgets, folders and dock icons, holding at an edge for 600 ms turns the page, and the dock takes four. Dropping and holding 400 ms on an app makes a named folder (Social, Learn, About Me, Work, else "Folder") that opens ready to rename. Folders page past 9 apps, and dragging the second-last app out dissolves one. Removing an app goes through an action sheet; Settings stays pinned. The App Library and a confirmed reset are also in Settings → Home Screen. Keyboard: arrows move, F makes a folder, Delete removes. Everything is announced to screen readers, and reduced motion swaps the wiggle for a fade.
+  - Fixed on the way: a deep link that mounted before Motion's features loaded showed the launch splash in about 1 load in 4 (`tests/visual.spec.ts` flake), and the Control Center pull handle covered Done on phones. `npm test`: 243 passed; the 5 throttled "moving ≤ 50 ms" checks still fail as in P2. Long tasks in the editing tour: none (speed.md).
+
 ## Needs Chetan
 
 - [ ] **Real-device check of v5:** iPhone Safari, Android Chrome, Brave, Samsung Internet, and the LinkedIn and Instagram in-app browsers.
@@ -211,7 +215,7 @@ REA stays off (owner's earlier choice); the reference was studied with Playwrigh
 - [ ] **Contact email delivery:** add `RESEND_API_KEY` (and a verified sender in `CONTACT_FROM_EMAIL`) to Vercel env vars. Until then the form shows "email me directly".
 - [ ] **Ask Chetan (optional):** set `OPENAI_API_KEY` (server only) and `NEXT_PUBLIC_ENABLE_ASK=true` in Vercel, then redeploy. `OPENAI_MODEL` defaults to `gpt-5-mini`. Try a few questions before announcing it.
 - [ ] **YouTube widget:** the channel's public feed has no videos right now, so the page-2 widget links the channel. It switches to the latest video (thumbnail + title) by itself once one is public.
-- [ ] **Icon rearranging:** jiggle-mode reordering covers the page-1 app icons; widgets, the dock and page 2 stay fixed. Say if you want those movable too.
+- [ ] **Home-screen editing on a real phone:** on touch a long-press goes straight into edit mode (as on iOS when you keep holding); the Open/Share/Remove menu is right-click, Shift+F10 or the menu key. Say if you'd rather have the menu on touch too. Check the haptic tick on Android (iOS Safari has no vibration API).
 - [ ] **Domain:** point `chetanpujari.com` at the Vercel project (or set `NEXT_PUBLIC_SITE_URL`) so the canonical URL, sitemap and OG links match the live site.
 - [ ] **GitHub username:** the heatmap uses `chetanpujari5105`, found in the remotes of your other local repos. If that's wrong, change `github` (and the GitHub social) in `content/profile.ts`.
 - [ ] **GitHub token (optional):** set a fine-grained `GITHUB_TOKEN` with no scopes (public data only) in Vercel to read the calendar over GraphQL. Without it the widget parses the public contributions page, which works today but could break if GitHub changes that markup.

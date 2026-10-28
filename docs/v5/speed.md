@@ -35,6 +35,11 @@ The screen recordings of that script are [`speed/before.webm`](speed/before.webm
 - Desktop: none.
 - iPhone 13: none.
 - iPhone 13 with 4× CPU: none in most runs. Turning on dark mode in Control Center sometimes takes one 50–66 ms task (see "Still open").
+- Since problem 3 the script also tours home-screen editing: a long-press into edit mode, a drag, a drop-and-hold that makes a folder, the App Library, Done. None of those steps has a long task on any profile.
+  - Making a folder first cost one 60–70 ms task at 4× CPU. Two causes:
+    - the wallpaper's draw loop read `clientWidth` every frame, which forced the drop's layout into its own frame. The canvas size now comes from a ResizeObserver.
+    - the new folder opened in the same frame as the drop. It now opens two frames later.
+  - The wallpaper also samples its top colour (`readPixels`, for the browser bar) only once input has been quiet for 1.5 s, so the sample never lands in a gesture.
 
 ## What the trace showed (before)
 

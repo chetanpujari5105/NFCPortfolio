@@ -31,7 +31,8 @@ function readInsets(host: HTMLElement): Insets {
  */
 export function useHomeLayout(screenRef: RefObject<HTMLElement | null>) {
   const geo = useOS((s) => s.homeGeo);
-  const grid = useOS((s) => s.home.grid);
+  // Mid-drag, the grid as it would be if the icon were dropped now
+  const grid = useOS((s) => s.homePreview?.grid ?? s.home.grid);
   // The server can't know the screen: the grid stays hidden until the first measure (before paint)
   const [measured, setMeasured] = useState(false);
 

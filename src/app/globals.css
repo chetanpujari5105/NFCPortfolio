@@ -848,6 +848,108 @@ html:not([data-unlocked]) [data-home-layer] [data-fly] {
   animation: none;
 }
 
+/* Edit mode: the other icons glide to make room for the one being dragged */
+[data-wiggle] .home-slot,
+.edit-badges .edit-badge {
+  transition:
+    transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    translate 300ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 160ms ease-out;
+}
+
+/* The "–" on each removable icon (a 22 px dot with a 40 px touch target) */
+.edit-badge {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  background: rgb(88 88 92 / 0.94);
+  box-shadow:
+    0 1px 3px rgb(0 0 0 / 0.35),
+    inset 0 0 0 0.5px rgb(255 255 255 / 0.2);
+  animation:
+    badge-in 180ms cubic-bezier(0.2, 0.8, 0.2, 1) both,
+    wiggle 260ms ease-in-out infinite;
+  animation-delay: 0ms, var(--wiggle-delay, 0ms);
+}
+.edit-badge::before {
+  content: "";
+  position: absolute;
+  inset: -9px;
+}
+.edit-badge > span {
+  width: 10px;
+  height: 2px;
+  border-radius: 1px;
+  background: #fff;
+}
+@keyframes badge-in {
+  from {
+    scale: 0.3;
+    opacity: 0;
+  }
+}
+.edit-pill {
+  animation: lazy-arrive 180ms ease-out both;
+}
+
+/* Lifted while dragged (one small element, so a drop shadow is affordable) */
+.edit-ghost {
+  scale: 1.1;
+  opacity: 0.94;
+  filter: drop-shadow(0 10px 18px rgb(0 0 0 / 0.32));
+}
+
+/* Held over an app long enough to make a folder: the app shrinks onto a frosted folder plate */
+.icon-press > span:first-child {
+  border-radius: 24%;
+  transition:
+    background-color 180ms ease-out,
+    box-shadow 180ms ease-out;
+}
+[data-merge] .icon-press > span:first-child {
+  background: rgb(255 255 255 / 0.38);
+  box-shadow: 0 0 0 8px rgb(255 255 255 / 0.38);
+}
+[data-merge] .icon-tile {
+  scale: 0.8;
+  transition: scale 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Edit mode's Done pill sits in the top-right corner, where Control Center's pull handle is */
+[data-screen]:has([data-home-layer][data-wiggle]) [data-panel-handle] {
+  pointer-events: none;
+}
+
+/* A folder open in edit mode: its apps are dragged, not scrolled */
+[data-folder][data-wiggle] {
+  touch-action: none;
+}
+
+/* Reduced motion: no wiggle, no gliding; edit mode breathes instead */
+@keyframes edit-breathe {
+  50% {
+    opacity: 0.72;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-wiggle] .wiggle-item,
+  [data-wiggle] .edit-badge {
+    animation: edit-breathe 1.8s ease-in-out infinite;
+  }
+  [data-wiggle] .home-slot,
+  .edit-badges .edit-badge {
+    transition: opacity 160ms ease-out;
+  }
+}
+html[data-reduce-motion] [data-wiggle] .wiggle-item,
+html[data-reduce-motion] [data-wiggle] .edit-badge {
+  animation: edit-breathe 1.8s ease-in-out infinite !important;
+}
+
 @keyframes dot-wave {
   0%,
   100% {

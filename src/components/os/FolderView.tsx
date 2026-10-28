@@ -13,9 +13,51 @@ import { AppIcon } from "./AppIcon";
 
 const PER_PAGE = 9;
 
+/** In edit mode the folder's name is a field; an emptied name falls back to "Folder" when it loses focus. */
+function FolderName({ id, name, focus }: { id: string; name: string; focus: boolean }) {
+  const [draft, setDraft] = useState(name);
+  const ref = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (!focus) return;
+    ref.current?.focus({ preventScroll: true });
+    ref.current?.select();
+    useOS.setState({ renameFolder: null });
+  }, [focus]);
+  const save = (value: string) => {
+    const { home, setHome } = useOS.getState();
+    const folder = home.folders[id];
+    if (folder && value && value !== folder.name) setHome({ ...home, folders: { ...home.folders, [id]: { ...folder, name: value } } });
+  };
+  return (
+    <input
+      ref={ref}
+      data-edit-ui
+      aria-label="Folder name"
+      value={draft}
+      maxLength={40}
+      enterKeyHint="done"
+      onChange={(e) => {
+        setDraft(e.target.value);
+        save(e.target.value.trim());
+      }}
+      onBlur={() => {
+        const value = draft.trim() || "Folder";
+        setDraft(value);
+        save(value);
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") e.currentTarget.blur();
+      }}
+      className="mb-3 w-full truncate rounded-[12px] bg-white/15 px-3 py-1 text-[24px] font-bold tracking-tight text-white outline-none placeholder:text-white/50 focus:bg-white/25"
+    />
+  );
+}
+
 /** A folder: zooms out of its icon over a blurred home screen; a 3×3 grid, paged past nine. */
 export function FolderView({ id, screenRef }: { id: string | null; screenRef: RefObject<HTMLDivElement | null> }) {
   const folder = useOS((s) => (id ? s.home.folders[id] : undefined));
+  const wiggle = useOS((s) => s.wiggle);
+  const rename = useOS((s) => !!id && s.renameFolder === id);
   const [origin, setOrigin] = useState("50% 50%");
   const [page, setPage] = useState(0);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -31,12 +73,15 @@ export function FolderView({ id, screenRef }: { id: string | null; screenRef: Re
   }, [open, id, screenRef]);
 
   useEffect(() => {
-    if (open) panelRef.current?.querySelector<HTMLElement>("[data-nav]")?.focus({ preventScroll: true });
+    // (A new folder's name field has already taken focus)
+    if (open && !panelRef.current?.contains(document.activeElement))
+      panelRef.current?.querySelector<HTMLElement>("[data-nav]")?.focus({ preventScroll: true });
   }, [open]);
 
   const items = folder?.items ?? [];
   const pages = Math.max(1, Math.ceil(items.length / PER_PAGE));
   const shown = items.slice(page * PER_PAGE, page * PER_PAGE + PER_PAGE);
+  const setHomeSheet = useOS((s) => s.setHomeSheet);
 
   return (
     <AnimatePresence>
@@ -47,6 +92,7 @@ export function FolderView({ id, screenRef }: { id: string | null; screenRef: Re
           aria-modal="true"
           aria-label={folder.name}
           data-folder={id}
+          data-wiggle={wiggle || undefined}
           className="absolute inset-0 z-45 grid place-items-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1, transition: { duration: 0.22, ease: easeOut } }}
@@ -61,19 +107,42 @@ export function FolderView({ id, screenRef }: { id: string | null; screenRef: Re
           />
           <m.div
             ref={panelRef}
+            data-folder-panel
+            // Edit mode: apps are arranged, not opened
+            onClickCapture={(e) => {
+              if (wiggle && !(e.target as Element).closest("[data-edit-ui]")) {
+                e.preventDefault();
+                e.stopPropagation();
+              }
+            }}
             style={{ transformOrigin: origin } as CSSProperties}
             initial={reduce ? false : { transform: "scale(0.3)", opacity: 0 }}
             animate={{ transform: "scale(1)", opacity: 1, transition: { type: "spring", stiffness: 420, damping: 34 } }}
             exit={reduce ? { opacity: 0 } : { transform: "scale(0.3)", opacity: 0, transition: { duration: 0.2, ease: easeOut } }}
             className="relative w-[min(78%,340px)]"
           >
-            <h2 className="mb-3 truncate px-1 text-[26px] font-bold tracking-tight text-white drop-shadow">{folder.name}</h2>
+            {wiggle ? (
+              <FolderName key={id} id={id} name={folder.name} focus={rename} />
+            ) : (
+              <h2 className="mb-3 truncate px-1 text-[26px] font-bold tracking-tight text-white drop-shadow">{folder.name}</h2>
+            )}
             <div className="glass-dark grid grid-cols-3 content-start gap-x-3 gap-y-4 rounded-[34px] p-5 [--icon:min(62px,15.6cqw)]">
               {shown.map((tile) => {
                 const item = TILES[tile];
                 return item ? (
-                  <div key={tile} data-folder-item={tile} className="flex justify-center">
+                  <div key={tile} data-folder-item={tile} className="relative flex justify-center">
                     <AppIcon item={item} />
+                    {wiggle && (
+                      <button
+                        type="button"
+                        data-edit-ui
+                        aria-label={`Remove ${item.label}`}
+                        onClick={() => setHomeSheet({ kind: "remove", key: tile, folder: id })}
+                        className="edit-badge top-[-7px] left-[calc(50%-var(--icon)/2-7px)]"
+                      >
+                        <span aria-hidden />
+                      </button>
+                    )}
                   </div>
                 ) : null;
               })}

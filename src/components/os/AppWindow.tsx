@@ -104,6 +104,9 @@ export function AppWindow({ app, title, closing, initial, quick, screenRef, onCl
     };
   };
 
+  // A deep link is full size from its first render: it can mount before Motion's features have
+  // loaded, and a value set after that render wouldn't reach the style until it changed again.
+  if (initial && launchProgress.get() !== 1) launchProgress.set(1);
   const transform = useTransform([launchProgress, dismissProgress], ([p, d]: number[]) => frame(p, d).transform);
   const clipPath = useTransform([launchProgress, dismissProgress], ([p, d]: number[]) => frame(p, d).clipPath);
   // Icon art crossfades into the app during the first 40% of the launch (no blur: a filter on a
