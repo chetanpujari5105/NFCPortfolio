@@ -67,3 +67,6 @@ docs/v4/**/*.webm
 # quality reference's screenshots (never committed). The side-by-side JPEGs are committed.
 /docs/v7/compare/raw/
 /docs/v7/compare/*.png
+
+# Overnight check screenshots (local only)
+docs/morning/
