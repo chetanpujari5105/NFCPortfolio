@@ -133,3 +133,6 @@ Source: `scripts/speed-trace.mjs` (cold load → Journey → close → Courses �
 - **Dark-mode switch on 4× CPU.** The circular reveal is a view transition. Capturing the page for it re-lays out the whole document: a 35 ms layout plus the capture itself, which comes to one 50–66 ms task in some runs.
   - Switching without the transition made it worse: style, layout and paint then land in one task every time.
   - Layout containment on the home layer didn't change it.
+- **4× CPU against production** (nfcportfolio-two.vercel.app, 2026-10-28). Desktop and the iPhone 13 profile had no long tasks. At 4× CPU, 2 runs each had 4–7 tasks of 51–92 ms, on launches (Courses, Settings, Projects), dark mode and two editing steps. Against the local production build the same script mostly finds none.
+  - Not yet attributed. The likely difference is network timing: on the live site images and data arrive during the tour, not before it.
+  - On production at 4× CPU: close 287–335 ms, app switch 341–346 ms, swipe 58 fps (worst frame 50 ms).
