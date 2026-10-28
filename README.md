@@ -61,6 +61,7 @@ CLI: `npx vercel link`, `npx vercel env add <NAME> production` per variable, the
 | `OPENAI_API_KEY` | Ask Chetan answers (server only) | App shows "email me directly" |
 | `OPENAI_MODEL` | Model for Ask Chetan | `gpt-5-mini` |
 | `GITHUB_TOKEN` | GitHub heatmap via GraphQL; a fine-grained token with no permissions is enough (server only) | Parses the public contributions page |
+| `NEXT_PUBLIC_ICON_PACK` | `original` draws every app with the original gradient-and-glyph icons | `ios18`: the iOS 18 App Icons pack (see Credits) |
 | `NEXT_PUBLIC_SHOW_MODEL_LOGO` | `true` shows the 3D model's own back logo (only once its licence allows it) | The ⚡ CP mark |
 | `NEXT_PUBLIC_SITE_URL` | Canonical URL for SEO, sitemap and OG images | `VERCEL_PROJECT_PRODUCTION_URL` (set by Vercel), then `https://chetanpujari.com` |
 
@@ -69,8 +70,12 @@ development, copy `.env.example` to `.env.local`.
 
 ## Credits
 
-App icons (glyphs, faces, squircle mask), wallpaper shader, the CSS phone frame and copy are
-original. The desktop 3D phone is a third-party iPhone 18 Pro Max model (`public/models`, built by
+iOS 18 App Icons by David Akhmedbayev, CC BY 4.0, via Figma Community. iPhone and the app designs
+they depict are trademarks of Apple Inc. They are the tile faces for nine apps
+(`public/icons/ios18`, built by `scripts/ios18-icons.mjs`; licence and changes in
+[`public/icons/ios18/LICENSE.txt`](public/icons/ios18/LICENSE.txt)). `NEXT_PUBLIC_ICON_PACK=original`
+switches back to the original set. The original glyphs and faces (also Expertise's icon in either
+mode), squircle mask, wallpaper shader, the CSS phone frame and copy are original. The desktop 3D phone is a third-party iPhone 18 Pro Max model (`public/models`, built by
 `scripts/optimize-phone-model.mjs`); its back shows the ⚡ CP mark in place of the maker's logo
 unless `NEXT_PUBLIC_SHOW_MODEL_LOGO=true`. iPhone is a trademark of Apple Inc. Brand logos:
 [Simple Icons](https://simpleicons.org/) (CC0) and Font Awesome Free (CC BY 4.0, LinkedIn). The world map is rasterised from

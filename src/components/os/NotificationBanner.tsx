@@ -12,7 +12,7 @@ import { openApp } from "@/lib/router";
 import { prefersReducedMotion, readSession, useOS, writeSession } from "@/lib/store";
 import { TILES } from "@/lib/home";
 
-import { faceProps, Glyph } from "./icons";
+import { FaceGlyph, faceProps } from "./icons";
 import { useServerData } from "./server-data";
 
 /** Session flag: the banner shows at most once per browser session. */
@@ -137,7 +137,7 @@ export function NotificationBanner({ screenRef }: { screenRef: RefObject<HTMLDiv
         {...faceProps(TILES.blog)}
         className="tile-face squircle grid size-[38px] shrink-0 place-items-center"
       >
-        <Glyph name={TILES.blog.icon} className="size-[23px]" />
+        <FaceGlyph item={TILES.blog} className="size-[23px]" />
       </span>
       <span className="min-w-0 flex-1">
         <span className="flex items-baseline justify-between gap-2 text-[12px] font-semibold text-white/75">

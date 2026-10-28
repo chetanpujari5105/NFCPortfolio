@@ -1,18 +1,33 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { ImageResponse } from "next/og";
+import sharp from "sharp";
 
 import { appsLayout } from "@content/apps";
 import { profile } from "@content/profile";
 import type { HomeItem } from "@content/schema";
+import { packIcon } from "@/lib/icon-pack";
 
 export const alt = `${profile.name} — ${profile.role}`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
+const tiles: HomeItem[] = [...appsLayout.block, ...appsLayout.row, ...appsLayout.dock];
+
+// The icon pack's faces, read once at build time. Satori takes them as data URLs, and its renderer
+// draws PNG but not WebP, so each is re-encoded (at 2× the 40 px tile).
+const art: Record<string, string> = {};
+for (const t of tiles) {
+  const src = packIcon(t.id);
+  if (!src) continue;
+  const png = await sharp(await readFile(join(process.cwd(), "public", src))).resize(80, 80).png().toBuffer();
+  art[t.id] = `data:image/png;base64,${png.toString("base64")}`;
+}
+
 const fmt = (n: number) => (n >= 1000 ? `${Math.round(n / 1000)}K+` : `${n}+`);
 
 /** Original share card: the name beside a little phone of app tiles. */
 export default function OpengraphImage() {
-  const tiles: HomeItem[] = [...appsLayout.block, ...appsLayout.row, ...appsLayout.dock];
   const stats = [
     [fmt(profile.stats.students), "students"],
     [`${profile.stats.platforms}+`, "platforms"],
@@ -80,18 +95,22 @@ export default function OpengraphImage() {
               background: "linear-gradient(170deg, #3a2a05, #0b0905 60%)",
             }}
           >
-            {tiles.map((t) => (
-              <div
-                key={t.id}
-                style={{
-                  display: "flex",
-                  width: 40,
-                  height: 40,
-                  borderRadius: 10,
-                  background: `linear-gradient(180deg, ${t.colors[0]}, ${t.colors[1]})`,
-                }}
-              />
-            ))}
+            {tiles.map((t) =>
+              art[t.id] ? (
+                <img key={t.id} src={art[t.id]} width={40} height={40} alt="" style={{ borderRadius: 10 }} />
+              ) : (
+                <div
+                  key={t.id}
+                  style={{
+                    display: "flex",
+                    width: 40,
+                    height: 40,
+                    borderRadius: 10,
+                    background: `linear-gradient(180deg, ${t.colors[0]}, ${t.colors[1]})`,
+                  }}
+                />
+              ),
+            )}
           </div>
         </div>
       </div>

@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 
 import { BrandGlyph } from "./BrandIcon";
 import { HOME_MARKS } from "./social-icons";
-import { faceProps, Glyph } from "./icons";
+import { FaceGlyph, faceProps } from "./icons";
 
 type Props = {
   item: Pick<HomeItem, "id" | "label" | "icon" | "colors" | "app" | "href" | "brand">;
@@ -76,7 +76,7 @@ export function IconFace({ item, tile, tileKey }: Pick<Props, "item" | "tile"> &
         (brand ? (
           <BrandGlyph mark={mark!} style={{ width: `${brand.size * 100}%`, height: `${brand.size * 100}%` }} />
         ) : (
-          <Glyph name={item.icon} />
+          <FaceGlyph item={item} />
         ))}
       <span aria-hidden className="icon-dim" />
     </span>

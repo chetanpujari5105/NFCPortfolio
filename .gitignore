@@ -63,3 +63,7 @@ docs/v4/**/*.webm
 /guide-sources/
 # v6 icon captures: the full-size PNGs regenerate with `node scripts/v6-shots.mjs <dir>`; the contact sheets are committed
 /docs/v6/*/*.png
+# v7 icon-pack captures: raw frames regenerate with scripts/v7-shots.mjs; gap-measure crops include the
+# quality reference's screenshots (never committed). The side-by-side JPEGs are committed.
+/docs/v7/compare/raw/
+/docs/v7/compare/*.png

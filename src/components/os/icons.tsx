@@ -1,5 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 
+import { packIcon } from "@/lib/icon-pack";
+
 /*
  * Original glyph set for the home screen. Every glyph is one flat silhouette on a 24×24 grid:
  * solid shapes, no hairlines, no second tone, so they share one weight at 60 px and at 180 px.
@@ -198,8 +200,20 @@ export function Glyph({ name, className }: { name: string; className?: string })
 
 /**
  * Props for anything drawn as an app's icon face outside the home tile (launch overlay, app
- * switcher, folder previews, notifications): the `.tile-face` class paints the same gradient.
+ * switcher, folder previews, notifications): the `.tile-face` class paints `--face`, the same
+ * gradient, or the icon pack's image when it has one for this app (src/lib/icon-pack.ts). The
+ * image is contained, so the launch overlay (a tall window that starts as its middle square)
+ * shows it whole.
  */
-export function faceProps(item: { colors: readonly [string, string] | string[] }) {
-  return { style: { "--c1": item.colors[0], "--c2": item.colors[1] } as CSSProperties };
+export function faceProps(item: { id: string; colors: readonly [string, string] | string[] }) {
+  const art = packIcon(item.id);
+  const style = art
+    ? { "--face": `url(${art}) center / contain no-repeat` }
+    : { "--c1": item.colors[0], "--c2": item.colors[1] };
+  return { style: style as CSSProperties, "data-pack": art ? "" : undefined };
+}
+
+/** The glyph over a face, or nothing when the face is the icon pack's image (it carries its own). */
+export function FaceGlyph({ item, className }: { item: { id: string; icon: string }; className?: string }) {
+  return packIcon(item.id) ? null : <Glyph name={item.icon} className={className} />;
 }

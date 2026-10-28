@@ -23,7 +23,7 @@ import { animateTo, dismissProgress, haptic, launchProgress, rubberBand, springs
 import { goHome } from "@/lib/router";
 import { prefersReducedMotion, useOS } from "@/lib/store";
 
-import { faceProps, Glyph } from "./icons";
+import { FaceGlyph, faceProps } from "./icons";
 import { WindowCtx, type WindowMotion } from "./window-motion";
 
 const ITEMS = [...appsLayout.block, ...appsLayout.row, ...appsLayout.dock, askApp];
@@ -348,7 +348,7 @@ export function AppWindow({ app, title, closing, initial, quick, screenRef, onCl
             style={{ ...faceProps(item).style, opacity: overlayOpacity }}
             className="tile-face pointer-events-none absolute inset-0 grid place-items-center"
           >
-            <Glyph name={item.icon} className="w-[54cqmin]" />
+            <FaceGlyph item={item} className="w-[54cqmin]" />
           </m.div>
         )}
 

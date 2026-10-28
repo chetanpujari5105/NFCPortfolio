@@ -10,7 +10,7 @@ import { animateTo, haptic, rubberBand, springs, unlockProgress, withVelocity } 
 import { prefersReducedMotion, useOS } from "@/lib/store";
 import { TILES } from "@/lib/home";
 
-import { faceProps, Glyph } from "./icons";
+import { FaceGlyph, faceProps } from "./icons";
 import { useServerData } from "./server-data";
 
 function useNow() {
@@ -161,7 +161,7 @@ export function LockScreen() {
             {...faceProps(TILES.blog)}
             className="tile-face squircle grid size-[38px] shrink-0 place-items-center"
           >
-            <Glyph name={TILES.blog.icon} className="size-[23px]" />
+            <FaceGlyph item={TILES.blog} className="size-[23px]" />
           </span>
           <span className="min-w-0 flex-1 text-left">
             <span className="flex items-baseline justify-between gap-2 text-[12px] font-semibold text-white/75">

@@ -27,7 +27,7 @@ import { prefersReducedMotion, useOS } from "@/lib/store";
 
 import { AppIcon } from "./AppIcon";
 import { BrandGlyph } from "./BrandIcon";
-import { faceProps, Glyph } from "./icons";
+import { FaceGlyph, faceProps, Glyph } from "./icons";
 import { ImpactWidget } from "./ImpactWidget";
 import { HOME_MARKS } from "./social-icons";
 import { useHomeLayout } from "./use-home-layout";
@@ -73,7 +73,7 @@ function FolderTile({ items }: { items: string[] }) {
             {...faceProps(item)}
             className="tile-face squircle grid aspect-square place-items-center"
           >
-            <Glyph name={item.icon} className="size-[60%]" />
+            <FaceGlyph item={item} className="size-[60%]" />
           </span>
         );
       })}
