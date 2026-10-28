@@ -414,6 +414,15 @@ export function HomeScreen({ open }: { open: boolean }) {
 
       <Dock entries={dock} geo={geo} />
 
+      {/* The drawn phone's home indicator (a real phone draws its own): decoration only, under the dock */}
+      <div
+        aria-hidden
+        data-home-bar
+        className="pointer-events-none absolute inset-x-0 bottom-[1%] hidden justify-center tab:flex"
+      >
+        <span className="h-[5px] w-[35%] max-w-[140px] rounded-full bg-white/85 shadow-[0_0_3px_rgb(0_0_0/0.18)]" />
+      </div>
+
       <m.div aria-hidden style={{ opacity: dim }} className="pointer-events-none absolute inset-0 bg-black" />
     </m.div>
   );
@@ -422,7 +431,7 @@ export function HomeScreen({ open }: { open: boolean }) {
 function PageDots({ page, pages, height, onPage }: { page: number; pages: number; height: number; onPage: (page: number) => void }) {
   const setSpotlightOpen = useOS((s) => s.setSpotlightOpen);
   return (
-    <div data-fly="fade" className="flex items-start justify-center" style={{ height, paddingTop: height - 36 }} data-no-swipe>
+    <div data-fly="fade" className="flex items-start justify-center" style={{ height, paddingTop: 10 }} data-no-swipe>
       <div data-search-pill className="glass-chrome flex h-[26px] items-center gap-0.5 rounded-full pr-2 pl-0.5 text-white">
         <button
           type="button"

@@ -12,7 +12,9 @@ Those PNGs contain the reference's screenshots, so they are **gitignored** (`/do
 stay on this machine. Regenerate them with the command above.
 
 Viewports: 1440×900 (our 3D phone; the reference's flat phone) and 390×844 (both full-screen).
-"Before" is commit `bebc040` (v6 icons). "After" is this change.
+"Before" is commit `bebc040` (v6 icons). "After" is commit `a826137` (the reference-measured pass).
+The **final polish** section at the end has the numbers after the last pass (dock, rows, labels,
+home indicator, wide widget, status bar); where it disagrees with the tables above, it wins.
 
 ## Icons
 
@@ -69,10 +71,51 @@ Viewports: 1440×900 (our 3D phone; the reference's flat phone) and 390×844 (bo
 | Folder tile | none | frosted squircle + dark variant | frosted squircle `/.24` + `blur(22px)`, no dark variant |
 | Wallpaper in dark | unchanged | dimmed ×0.82 | unchanged |
 
+## Final polish (re-measured with `scripts/gap-measure.mjs`, light and dark)
+
+Values at 390×844 come straight from the reference. On the 3D phone (1440×900, a 347×751 screen)
+and the CSS phone they scale with the screen height, the same way: margins and gaps as a share of
+the screen height, dock padding as a share of the icon.
+
+| | Reference @390 | Ours @390 | Reference @1440 | Ours @1440 | Rule |
+|---|---|---|---|---|---|
+| Dock size | 360×87 | 360.4×87 | 289.6×78.7 | 320.6×77.4 | padding `.224·icon` (13.5 px at 60) |
+| Dock bottom margin | 28 px | 28 px | 24.7 px | 25 px | `3.3%` of screen height (a real phone: at least the safe-area inset) |
+| Search pill → dock | 17 px | 17 px | 13.4 px | 15 px | `2%` of screen height; 10 px above the pill |
+| Dock icon pitch | 92 px | 92 px | 72 px | 82 px | icons spread edge to edge |
+| Home indicator | 134×5 bar | (the phone's own) | bar | 35% × 5 px, white/85, 1% from the bottom | drawn phones only, `pointer-events: none`, under the dock |
+| Wide widget (Impact) | 350×149, padding 13 | 346×149, padding 13 | 281×132.1 | 308×132.7 | height `2.48·icon`, centred in its 2-row slot |
+| Wide widget type | title 25 px / 700 / −1 px, secondary 11 px / 400 | numbers 25 px / 700 / −0.04 em, labels 11 px / 400 | | 23–25 px / 11 px | never below the reference |
+| Status bar time | 15 px / 600 / −0.4 px | (hidden: the phone's own) | 15 px / 600 / −0.4 px | 15 px / 600 / −0.4 px | `clamp(12px, 4.4cqw, 15px)`; font `system-ui` (no Apple font named) |
+| Page 1 rows | | 6 full rows of 4 | | 6 full rows of 4 | LinkedIn, X, Udemy, GitHub; Socials keeps Instagram, AI Instagram, Substack |
+| Row pitch | 100 px | 103 px | 87–88 px | 93 px | unchanged |
+
+### Label contrast (`node scripts/label-contrast.mjs`)
+
+White label over the live wallpaper alone (home layer hidden), 95th-percentile luminance in each
+label box over 4 frames 1.5 s apart, at 390×844, 834×1112 (CSS phone) and 1440×900 (3D phone),
+every finish, light and dark: **48 runs, every label ≥ 5.6:1** (worst: YouTube on Electric @1440).
+Before this pass: as low as **1.0:1** (Electric), Burgundy Platforms 1.8, Projects 2.9.
+
+| Finish | Platforms | Reviews | Projects | Settings | Worst label |
+|---|---|---|---|---|---|
+| Burgundy | 6.0 | 7.6 | 6.2–6.5 | 7.3–7.6 | 5.7 (YouTube @1440) |
+| Electric | 5.8 | 5.9 | 5.8–5.9 | 5.7–5.9 | 5.6 (YouTube @1440) |
+| Graphite | 5.8 | 6.1 | 5.9–6.0 | 5.8–6.1 | 5.6 |
+| Chai | 5.9 | 6.1–6.2 | 5.9–6.0 | 5.9–6.2 | 5.6 |
+
+How: the wallpaper shader compresses highlights behind every label row (the rows are read from
+layout when the home geometry, layout or lock state changes, never per frame) toward a luminance
+cap of ~0.16 with a soft knee, and everywhere else toward a gentler cap of ~0.58, so gloss still reads
+as gloss. It fades out on the lock screen. The CSS fallback (no WebGL) darkens its brightest glow.
+The dock has no labels; its glass sits over the same compressed wallpaper.
+
 ## What is still different (on purpose)
 
 - The reference's icons are full-colour illustrations; ours are original flat white glyphs on gradients
   (the brief: one bold flat white glyph, no Apple artwork).
-- Our Search pill also carries the page dots, because the home screen has two pages.
+- Our Search pill also carries the page dots, because the home screen has two pages (115×26 vs 74×27).
+- Row pitch is 103 px against 100: our labels sit in a 13.8 px line, and six rows plus the dock fill the screen.
+- The wide widget's corner is `.44·icon` (26.4 px at 390, 23.5 px at 1440) against the reference's fixed 29 px.
 - The squircle stays a superellipse mask rather than the reference's plain `border-radius`: the
   continuous corner is the native iOS shape.

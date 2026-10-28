@@ -21,6 +21,8 @@ export const appsLayout = {
   links: [
     { id: "linkedin", label: "LinkedIn", icon: "briefcase", colors: ["#0A66C2", "#0A66C2"], href: "https://www.linkedin.com/in/chetan-pujari-ai", brand: "linkedin" },
     { id: "x", label: "X", icon: "at", colors: ["#000000", "#000000"], href: "https://x.com/Chetanpujari51", brand: "x" },
+    { id: "udemy", label: "Udemy", icon: "cap", colors: ["#A435F0", "#A435F0"], href: "https://www.udemy.com/user/chetan-pujari-3/", brand: "udemy" },
+    { id: "github", label: "GitHub", icon: "at", colors: ["#181717", "#181717"], href: "https://github.com/chetanpujari5105", brand: "github" },
   ],
   dock: [
     { id: "courses", label: "Courses", icon: "cap", colors: ["#52a2ff", "#205fea"], app: "courses" },

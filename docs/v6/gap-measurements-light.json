@@ -81,9 +81,9 @@
    },
    "widgetWide": {
     "x": 579.1959228515625,
-    "y": 161.52163696289062,
+    "y": 161.5216522216797,
     "w": 280.999267578125,
-    "h": 132.12112426757812,
+    "h": 132.12110900878906,
     "style": {
      "borderRadius": "29px",
      "backgroundColor": "rgba(0, 0, 0, 0)",
@@ -211,9 +211,9 @@
    },
    "dock": {
     "x": 574.9529418945312,
-    "y": 700.135986328125,
+    "y": 700.1360473632812,
     "w": 289.5667724609375,
-    "h": 78.72393798828125,
+    "h": 78.723876953125,
     "style": {
      "borderRadius": "30px",
      "backgroundColor": "rgba(255, 255, 255, 0.19)",
@@ -315,9 +315,9 @@
    },
    "statusTime": {
     "x": 587.6854248046875,
-    "y": 118.60008239746094,
-    "w": 31.5064697265625,
-    "h": 18.596420288085938,
+    "y": 118.58931732177734,
+    "w": 32.4771728515625,
+    "h": 18.60718536376953,
     "style": {
      "borderRadius": "0px",
      "backgroundColor": "rgba(0, 0, 0, 0)",
@@ -511,7 +511,7 @@
    },
    "label": {
     "x": 703.4803466796875,
-    "y": 282.1398010253906,
+    "y": 275.374755859375,
     "w": 33.0283203125,
     "h": 13.498809814453125,
     "style": {
@@ -537,9 +537,9 @@
    },
    "widgetWide": {
     "x": 565.945556640625,
-    "y": 130.0906982421875,
+    "y": 136.84010314941406,
     "w": 308.097900390625,
-    "h": 146.17462158203125,
+    "h": 132.66017150878906,
     "style": {
      "borderRadius": "23.54px",
      "backgroundColor": "rgba(0, 0, 0, 0)",
@@ -549,7 +549,7 @@
      "borderTopWidth": "0px",
      "borderTopColor": "lab(90.952 0 -0.0000119209)",
      "paddingTop": "0px",
-     "paddingLeft": "13.88px",
+     "paddingLeft": "13px",
      "fontFamily": "Geist, \"Geist Fallback\"",
      "fontSize": "16px",
      "fontWeight": "400",
@@ -641,7 +641,7 @@
    },
    "widgetLabel": {
     "x": 703.4803466796875,
-    "y": 282.1398010253906,
+    "y": 275.374755859375,
     "w": 33.0283203125,
     "h": 13.498809814453125,
     "style": {
@@ -667,18 +667,18 @@
    },
    "dock": {
     "x": 559.68603515625,
-    "y": 740.0838012695312,
+    "y": 723.0228271484375,
     "w": 320.6279296875,
-    "h": 74.884033203125,
+    "h": 77.4462890625,
     "style": {
-     "borderRadius": "26.75px",
+     "borderRadius": "28.034px",
      "backgroundColor": "rgba(255, 255, 255, 0.19)",
      "backgroundImage": "none",
      "backdropFilter": "blur(22px) saturate(1.7)",
      "boxShadow": "rgba(255, 255, 255, 0.1) 0px 0px 0px 1px inset, rgba(255, 255, 255, 0.21) 0px 1px 1px 0px inset, rgba(0, 0, 0, 0.07) 0px 3px 12px 0px",
      "borderTopWidth": "0px",
      "borderTopColor": "lab(90.952 0 -0.0000119209)",
-     "paddingTop": "10.7px",
+     "paddingTop": "11.984px",
      "paddingLeft": "10.757px",
      "fontFamily": "Geist, \"Geist Fallback\"",
      "fontSize": "16px",
@@ -693,9 +693,9 @@
    },
    "dockTile": {
     "x": 570.43505859375,
-    "y": 750.7703857421875,
+    "y": 734.990478515625,
     "w": 53.49530029296875,
-    "h": 53.4952392578125,
+    "h": 53.49530029296875,
     "style": {
      "borderRadius": "0px",
      "backgroundColor": "rgba(0, 0, 0, 0)",
@@ -719,9 +719,9 @@
    },
    "search": {
     "x": 662.5050659179688,
-    "y": 704.0869750976562,
+    "y": 682.0264282226562,
     "w": 114.9898681640625,
-    "h": 25.99774169921875,
+    "h": 25.9976806640625,
     "style": {
      "borderRadius": "3.35544e+07px",
      "backgroundColor": "rgba(255, 255, 255, 0.16)",
@@ -758,7 +758,7 @@
      "borderTopColor": "lab(90.952 0 -0.0000119209)",
      "paddingTop": "0px",
      "paddingLeft": "10.41px",
-     "fontFamily": "system-ui, -apple-system, sans-serif",
+     "fontFamily": "system-ui, \"Segoe UI\", Roboto, sans-serif",
      "fontSize": "14.227px",
      "fontWeight": "600",
      "color": "rgb(255, 255, 255)",
@@ -770,10 +770,10 @@
     }
    },
    "statusTime": {
-    "x": 597.1826782226562,
-    "y": 85.64148712158203,
-    "w": 40.5589599609375,
-    "h": 21.341873168945312,
+    "x": 596.8389892578125,
+    "y": 85.06341552734375,
+    "w": 41.246337890625,
+    "h": 22.498016357421875,
     "style": {
      "borderRadius": "0px",
      "backgroundColor": "rgba(0, 0, 0, 0)",
@@ -784,13 +784,13 @@
      "borderTopColor": "lab(90.952 0 -0.0000119209)",
      "paddingTop": "0px",
      "paddingLeft": "0px",
-     "fontFamily": "system-ui, -apple-system, sans-serif",
-     "fontSize": "14.227px",
+     "fontFamily": "system-ui, \"Segoe UI\", Roboto, sans-serif",
+     "fontSize": "15px",
      "fontWeight": "600",
      "color": "rgb(255, 255, 255)",
      "textShadow": "none",
-     "letterSpacing": "-0.14227px",
-     "lineHeight": "21.3405px",
+     "letterSpacing": "-0.4px",
+     "lineHeight": "22.5px",
      "filter": "none",
      "mask": "none"
     }
@@ -1425,7 +1425,7 @@
    },
    "label": {
     "x": 178.16812133789062,
-    "y": 203.453125,
+    "y": 196.546875,
     "w": 33.65625,
     "h": 13.78125,
     "style": {
@@ -1451,9 +1451,9 @@
    },
    "widgetWide": {
     "x": 21.84000015258789,
-    "y": 34,
+    "y": 40.890625,
     "w": 346.3125,
-    "h": 162.84375,
+    "h": 149.046875,
     "style": {
      "borderRadius": "26.444px",
      "backgroundColor": "rgba(0, 0, 0, 0)",
@@ -1463,7 +1463,7 @@
      "borderTopWidth": "0px",
      "borderTopColor": "lab(90.952 0 -0.0000119209)",
      "paddingTop": "0px",
-     "paddingLeft": "15px",
+     "paddingLeft": "13px",
      "fontFamily": "Geist, \"Geist Fallback\"",
      "fontSize": "16px",
      "fontWeight": "400",
@@ -1555,7 +1555,7 @@
    },
    "widgetLabel": {
     "x": 178.16812133789062,
-    "y": 203.453125,
+    "y": 196.546875,
     "w": 33.65625,
     "h": 13.78125,
     "style": {
@@ -1581,18 +1581,18 @@
    },
    "dock": {
     "x": 14.8125,
-    "y": 747.875,
+    "y": 728.984375,
     "w": 360.375,
-    "h": 84.125,
+    "h": 87.015625,
     "style": {
-     "borderRadius": "30.05px",
+     "borderRadius": "31.4924px",
      "backgroundColor": "rgba(255, 255, 255, 0.19)",
      "backgroundImage": "none",
      "backdropFilter": "blur(22px) saturate(1.7)",
      "boxShadow": "rgba(255, 255, 255, 0.1) 0px 0px 0px 1px inset, rgba(255, 255, 255, 0.21) 0px 1px 1px 0px inset, rgba(0, 0, 0, 0.07) 0px 3px 12px 0px",
      "borderTopWidth": "0px",
      "borderTopColor": "lab(90.952 0 -0.0000119209)",
-     "paddingTop": "12.02px",
+     "paddingTop": "13.4624px",
      "paddingLeft": "12.09px",
      "fontFamily": "Geist, \"Geist Fallback\"",
      "fontSize": "16px",
@@ -1607,7 +1607,7 @@
    },
    "dockTile": {
     "x": 26.890625,
-    "y": 759.890625,
+    "y": 742.4375,
     "w": 60.09375,
     "h": 60.09375,
     "style": {
@@ -1633,7 +1633,7 @@
    },
    "search": {
     "x": 137.5,
-    "y": 711.875,
+    "y": 685.984375,
     "w": 115,
     "h": 26,
     "style": {
@@ -1672,7 +1672,7 @@
      "borderTopColor": "lab(90.952 0 -0.0000119209)",
      "paddingTop": "0px",
      "paddingLeft": "11.7px",
-     "fontFamily": "system-ui, -apple-system, sans-serif",
+     "fontFamily": "system-ui, \"Segoe UI\", Roboto, sans-serif",
      "fontSize": "15.99px",
      "fontWeight": "600",
      "color": "rgb(255, 255, 255)",
@@ -1698,13 +1698,13 @@
      "borderTopColor": "lab(90.952 0 -0.0000119209)",
      "paddingTop": "0px",
      "paddingLeft": "0px",
-     "fontFamily": "system-ui, -apple-system, sans-serif",
-     "fontSize": "15.99px",
+     "fontFamily": "system-ui, \"Segoe UI\", Roboto, sans-serif",
+     "fontSize": "15px",
      "fontWeight": "600",
      "color": "rgb(255, 255, 255)",
      "textShadow": "none",
-     "letterSpacing": "-0.1599px",
-     "lineHeight": "23.985px",
+     "letterSpacing": "-0.4px",
+     "lineHeight": "22.5px",
      "filter": "none",
      "mask": "none"
     }

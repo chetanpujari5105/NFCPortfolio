@@ -1020,9 +1020,10 @@ html[data-reduce-motion] *::after {
   transition-duration: 0.01ms !important;
 }
 
+/* Its brightest glow stays dark enough for white labels (4.5:1 on Electric's amber too) */
 .wallpaper-fallback {
   background:
-    radial-gradient(60% 45% at 20% 25%, var(--wall, var(--accent)), transparent 70%),
+    radial-gradient(60% 45% at 20% 25%, color-mix(in oklab, var(--wall, var(--accent)), #000 45%), transparent 70%),
     radial-gradient(55% 40% at 80% 70%, var(--wall-deep, var(--accent-deep)), transparent 70%),
     linear-gradient(180deg, color-mix(in oklab, var(--accent-deep), #000 80%), #000);
   filter: saturate(1.1);
