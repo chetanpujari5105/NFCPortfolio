@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 
-import { expertise } from "@content/expertise";
 import { profile } from "@content/profile";
 import type { WidgetId } from "@/lib/home";
 import { setLaunchOrigin } from "@/lib/launch";
@@ -10,6 +9,7 @@ import { openApp } from "@/lib/router";
 
 import { BrandGlyph } from "./BrandIcon";
 import { youtube } from "./brand-marks";
+import { ExpertiseStack } from "./ExpertiseStack";
 import { useServerData } from "./server-data";
 
 /*
@@ -104,60 +104,6 @@ export function VideoWidget() {
       )}
       <span className="icon-label">YouTube</span>
     </a>
-  );
-}
-
-/** 2×2: a stack of expertise cards (two peeking behind the first). Opens Expertise. */
-export function ExpertiseStack() {
-  const [front, ...rest] = expertise;
-  const behind = rest.slice(0, 2);
-  return (
-    <button
-      type="button"
-      data-nav
-      data-app-icon="expertise"
-      aria-label={`Expertise: ${expertise.map((e) => e.title).join(", ")}. Open Expertise`}
-      onClick={(e) => {
-        setLaunchOrigin("expertise", e.currentTarget.querySelector<HTMLElement>("[data-widget-tile]") ?? e.currentTarget);
-        openApp("expertise");
-      }}
-      className={OUTER}
-    >
-      <span data-widget-tile className="widget-press [container-type:size] relative min-h-0 w-full flex-1 overflow-hidden text-left">
-        {/* Back cards: slivers above the front one, narrower and dimmer with depth */}
-        {behind
-          .slice()
-          .reverse()
-          .map((area, i) => {
-            const depth = behind.length - i;
-            return (
-              <span
-                key={area.id}
-                aria-hidden
-                className="absolute bottom-[10%] widget-r widget-light"
-                style={{ top: `${(2 - depth) * 6}%`, left: `${depth * 7}%`, right: `${depth * 7}%`, opacity: 1 - depth * 0.28 }}
-              />
-            );
-          })}
-        <span className="absolute inset-x-0 top-[12%] bottom-0 flex flex-col justify-between widget-r widget-light p-[9cqmin]">
-          <span className="flex items-start justify-between">
-            <span aria-hidden className="text-[clamp(18px,17cqmin,30px)] leading-none">
-              {front.emoji}
-            </span>
-            <span className="rounded-full bg-app-background px-[4cqmin] py-[1.5cqmin] text-[clamp(9px,6.4cqmin,11px)] font-semibold text-app-muted tabular-nums">
-              1/{expertise.length}
-            </span>
-          </span>
-          <span className="flex min-w-0 flex-col">
-            <span className="line-clamp-2 text-[clamp(12px,9.2cqmin,15px)] leading-tight font-bold tracking-tight">{front.title}</span>
-            <span className="mt-[2cqmin] truncate text-[clamp(9.5px,6.8cqmin,12px)] font-medium text-app-muted">
-              +{expertise.length - 1} more areas
-            </span>
-          </span>
-        </span>
-      </span>
-      <span className="icon-label">Expertise</span>
-    </button>
   );
 }
 

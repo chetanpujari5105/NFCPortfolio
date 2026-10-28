@@ -689,6 +689,36 @@ html[data-reduce-motion] .gh-today::after {
 .press-spring {
   transition: transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
+/* Once a press turns into a drag (10 px) it is no longer a press */
+.icon-press[data-stack-drag]:active .widget-press {
+  transform: none;
+}
+
+/* Expertise stack counter: the new number rolls in the way the stack moved */
+.stack-count {
+  display: inline-block;
+  transition:
+    transform 200ms var(--ease-out-strong),
+    opacity 200ms var(--ease-out-strong);
+}
+@starting-style {
+  .stack-count[data-dir="1"] {
+    transform: translateY(70%);
+    opacity: 0;
+  }
+  .stack-count[data-dir="-1"] {
+    transform: translateY(-70%);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stack-count {
+    transition-property: opacity;
+  }
+}
+html[data-reduce-motion] .stack-count {
+  transition-property: opacity;
+}
 
 /* The home grid is laid out for the measured screen; until that first measure it stays hidden */
 [data-home-grid]:not([data-measured]) {

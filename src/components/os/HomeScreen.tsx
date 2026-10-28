@@ -265,7 +265,9 @@ export function HomeScreen({ open }: { open: boolean }) {
     (s) => {
       const { first, last, tap, axis, movement, velocity, direction, event, cancel, memo } = s;
       if (tap) return;
-      if (first && (wiggle || startedIn(event, "[data-dock], [data-no-swipe]"))) {
+      // A vertical drag that starts on a widget with its own vertical gesture (the Expertise
+      // stack) is that widget's; sideways it still pages
+      if (first && (wiggle || startedIn(event, "[data-dock], [data-no-swipe]") || (axis === "y" && startedIn(event, "[data-no-pull]")))) {
         cancel();
         return;
       }
@@ -286,7 +288,9 @@ export function HomeScreen({ open }: { open: boolean }) {
         if (last) settleSearch(velocity[1] * direction[1] * 1000);
       }
     },
-    { target: layerRef, axis: "lock", filterTaps: true, threshold: 10, pointer: { capture: true }, enabled: !open && !locked },
+    // Arrow keys are home-keys' (use-gesture's own keyboard drag would pull Search a step and
+    // swallow the next Enter as a drag's click)
+    { target: layerRef, axis: "lock", filterTaps: true, threshold: 10, pointer: { capture: true, keys: false }, enabled: !open && !locked },
   );
 
   // Trackpad: horizontal scroll pages; scrolling "up" pulls Search down.
