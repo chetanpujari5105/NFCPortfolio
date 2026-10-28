@@ -61,6 +61,14 @@ export function openApp(app: AppId, sub: string | null = null) {
   setRoute({ app, sub, initial: false });
 }
 
+/** Folders open over the home screen as the `#socials` route (`#socials/<id>` for the visitor's own). */
+export function openFolder(id: string) {
+  openApp("socials", id === "socials" ? null : id);
+}
+
+/** The folder a `socials` route shows. */
+export const folderOf = (route: Pick<Route, "app" | "sub">) => (route.app === "socials" ? (route.sub ?? "socials") : null);
+
 /**
  * Back chevron / Esc / swipe: pop the detail view, else close the app. Uses the
  * browser's own history when we pushed the entry, so Back and our UI never disagree.
@@ -128,7 +136,7 @@ export function useHashRouter() {
       route.app && route.app !== "socials"
         ? `${appsLayout.titles[route.app]} · ${profile.name}`
         : route.app === "socials"
-          ? `Socials · ${profile.name}`
+          ? `${useOS.getState().home.folders[route.sub ?? "socials"]?.name ?? "Folder"} · ${profile.name}`
           : HOME_TITLE;
-  }, [route.app]);
+  }, [route.app, route.sub]);
 }

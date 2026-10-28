@@ -15,7 +15,7 @@ export const SOCIAL_MARK: Record<Social["id"], BrandMark> = {
   github,
 };
 
-/** Home-screen items with a `brand` slug */
-export const HOME_MARKS: Record<string, BrandMark> = { linkedin, x, youtube, github };
+/** Home-screen items with a `brand` slug (every social can sit on the home screen or in a folder) */
+export const HOME_MARKS: Record<string, BrandMark> = SOCIAL_MARK;
 
 export const FOLDER_SOCIALS: Social["id"][] = ["linkedin", "x", "instagram", "ai-instagram", "substack", "udemy", "github"];

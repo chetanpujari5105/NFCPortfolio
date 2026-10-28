@@ -121,9 +121,9 @@ test("Spotlight finds a course and opens it", async ({ page }) => {
 
 test("Socials folder opens and lists profiles", async ({ page }) => {
   await home(page);
-  await page.getByRole("button", { name: "Open Socials", exact: true }).click();
+  await page.getByRole("button", { name: "Open Socials folder", exact: true }).click();
   await expect(page).toHaveURL(/#socials$/);
-  await expect(page.getByRole("dialog", { name: "Socials" }).getByRole("link", { name: /LinkedIn/ })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "Socials" }).getByRole("link", { name: /Instagram/ }).first()).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(page).not.toHaveURL(/#socials$/);
 });
