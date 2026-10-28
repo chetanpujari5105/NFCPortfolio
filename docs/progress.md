@@ -184,7 +184,7 @@ REA stays off (owner's earlier choice); the reference was studied with Playwrigh
 - **Problem 2: speed.** The trace on `main` showed every early tap waiting ~350 ms for `next/dynamic` chunks behind Suspense, then 30–45 ms of forced layouts in the click handler. Now:
   - A loader that never suspends (`lib/lazy.tsx`). Every app chunk is on the device at idle (1.5 s) or on the first touch.
   - The window shell renders in the tap's frame. The tap avoids forced layouts. Nothing is blurred, backdrop-filtered or layer-promoted while the window moves.
-  - A Serwist service worker (`sw/sw.ts`, built after `next build`):
+  - A Serwist service worker (`sw/sw.ts`, built before `next build`):
     - Caches the shell, chunks, fonts and icons; images and `/api/feed` are stale-while-revalidate.
     - Pages are network-first, so a deploy always wins online. Offline works after one visit.
   - Results at 4× CPU, one worker. Launch:

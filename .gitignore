@@ -54,5 +54,5 @@ docs/v4/**/*.webm
 # raw Chrome traces (tens of MB)
 /docs/v5/speed/*.json
 !/docs/v5/speed/trace-summary*.json
-# Built by scripts/build-sw.mjs after next build
+# Built by scripts/build-sw.mjs before next build
 /public/sw.js

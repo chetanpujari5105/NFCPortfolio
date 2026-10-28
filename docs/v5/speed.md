@@ -107,12 +107,12 @@ Source: `scripts/speed-trace.mjs` (cold load → Journey → close → Courses �
 - Editing-only home helpers moved to `src/lib/home-edit.ts`.
 - With that, the window could leave the first bundle and initial JS stays under 200 KB.
 
-**Service worker** (`sw/sw.ts`, built by `scripts/build-sw.mjs` after `next build` into `public/sw.js`):
+**Service worker** (`sw/sw.ts`, built by `scripts/build-sw.mjs` into `public/sw.js` before `next build`, because Vercel's build adapter collects `public/` during the build):
 - It uses Serwist's core library. `@serwist/next` doesn't build with Turbopack, and `@serwist/turbopack` is experimental.
 - **Pages:** network-first, with a 3 s timeout, then the cached copy. A deploy's new HTML and chunks always win when online.
 - **`/_next/static`:** cache-first. The files are hashed and immutable.
 - **Images and `/api/feed`:** stale-while-revalidate. GitHub and YouTube data arrive inside the page itself.
-- **Precached:** fonts, icons and the start page, revisioned by build ID.
+- **Precached:** icons and the start page, revisioned by the deploy's commit. Fonts are cache-first under `/_next/static` like the chunks.
 - **First visit:** the chunks fetched before the worker took control are copied into its cache from the HTTP cache.
 - **Updates:** `skipWaiting` + `clientsClaim` + `cleanupOutdatedCaches`.
 - **Dev:** registered in production builds only, so it never touches `next dev`.
