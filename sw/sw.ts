@@ -46,8 +46,8 @@ const serwist = new Serwist({
       }),
     },
     {
-      // The Substack feed refresh; GitHub and YouTube data arrive inside the page itself
-      matcher: ({ url, sameOrigin }) => sameOrigin && url.pathname === "/api/feed",
+      // The Substack feed refresh and the GitHub heatmap's data; YouTube's arrives inside the page
+      matcher: ({ url, sameOrigin }) => sameOrigin && (url.pathname === "/api/feed" || url.pathname === "/api/contributions"),
       handler: new StaleWhileRevalidate({
         cacheName: "feed",
         plugins: [new ExpirationPlugin({ maxEntries: 4, maxAgeSeconds: 7 * DAY })],

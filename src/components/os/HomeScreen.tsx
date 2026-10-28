@@ -27,6 +27,7 @@ import { prefersReducedMotion, useOS } from "@/lib/store";
 
 import { AppIcon } from "./AppIcon";
 import { BrandGlyph } from "./BrandIcon";
+import { GitHubWidget } from "./GitHubWidget";
 import { FaceGlyph, faceProps, Glyph } from "./icons";
 import { ImpactWidget } from "./ImpactWidget";
 import { HOME_MARKS } from "./social-icons";
@@ -88,6 +89,7 @@ export function HomeEntry({ entry, showLabel = true }: { entry: string; showLabe
     const id = widgetId(entry);
     if (id === "impact") return <ImpactWidget />;
     if (id === "work") return <WorkWidget />;
+    if (id === "github") return <GitHubWidget />;
     return <LazyWidget id={id} />;
   }
   if (folder) {

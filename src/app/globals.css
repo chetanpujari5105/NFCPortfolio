@@ -570,7 +570,12 @@ html[data-reduce-motion] .screen-off {
   transition-duration: 80ms;
 }
 
-/* GitHub heatmap (page 2): five greens on the white widget */
+/*
+ * GitHub heatmap (page 2): five greens on the white widget. Squares are always visible: before the
+ * data they are a quiet grey grid of the same squares (no `data-level`), then recolour in place.
+ * The column fade runs once, when JS marks the tile `data-shown` (GitHubWidget), and is dropped
+ * after (`data-faded`); if that never happens the squares are simply there.
+ */
 .gh-heat {
   --gh-0: #ebedf0;
   --gh-1: #9be9a8;
@@ -615,14 +620,14 @@ html[data-reduce-motion] .screen-off {
   position: relative;
   border-radius: 3px;
   background: var(--gh-0);
-  opacity: 0;
+  transition: background-color 320ms ease-out;
 }
 .gh-cell[data-level="1"] { background: var(--gh-1); }
 .gh-cell[data-level="2"] { background: var(--gh-2); }
 .gh-cell[data-level="3"] { background: var(--gh-3); }
 .gh-cell[data-level="4"] { background: var(--gh-4); }
-[data-shown] > .gh-grid > .gh-cell {
-  animation: gh-in 360ms cubic-bezier(0.23, 1, 0.32, 1) both;
+[data-shown]:not([data-faded]) > .gh-grid > .gh-cell {
+  animation: gh-in 360ms cubic-bezier(0.23, 1, 0.32, 1) backwards;
   animation-delay: calc((var(--weeks) - 1 - var(--age)) * 24ms);
 }
 @keyframes gh-in {
@@ -657,19 +662,18 @@ html[data-reduce-motion] .screen-off {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .gh-cell,
-  [data-shown] > .gh-grid > .gh-cell {
-    opacity: 1;
-    animation: none;
+  .gh-cell {
+    animation: none !important;
+    transition: none;
   }
   .gh-today::after {
     animation: none;
     opacity: 0.8;
   }
 }
-html[data-reduce-motion] :is(.gh-cell, [data-shown] > .gh-grid > .gh-cell) {
-  opacity: 1;
-  animation: none;
+html[data-reduce-motion] .gh-cell {
+  animation: none !important;
+  transition: none;
 }
 html[data-reduce-motion] .gh-today::after {
   animation: none;

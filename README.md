@@ -60,7 +60,7 @@ CLI: `npx vercel link`, `npx vercel env add <NAME> production` per variable, the
 | `NEXT_PUBLIC_ENABLE_ASK` | `true` shows the Ask Chetan app | Hidden |
 | `OPENAI_API_KEY` | Ask Chetan answers (server only) | App shows "email me directly" |
 | `OPENAI_MODEL` | Model for Ask Chetan | `gpt-5-mini` |
-| `GITHUB_TOKEN` | GitHub heatmap via GraphQL; a fine-grained token with no permissions is enough (server only) | Parses the public contributions page |
+| `GITHUB_TOKEN` | GitHub heatmap via GraphQL; a fine-grained token with no permissions is enough (server only) | Parses the public contributions page; if GitHub can't be reached, the committed snapshot (`public/content/github-contributions.json`, refresh with `npx tsx scripts/github-snapshot.mts`) |
 | `NEXT_PUBLIC_ICON_PACK` | `original` draws every app with the original gradient-and-glyph icons | `ios18`: the iOS 18 App Icons pack (see Credits) |
 | `NEXT_PUBLIC_SHOW_MODEL_LOGO` | `true` shows the 3D model's own back logo (only once its licence allows it) | The ⚡ CP mark |
 | `NEXT_PUBLIC_SITE_URL` | Canonical URL for SEO, sitemap and OG images | `VERCEL_PROJECT_PRODUCTION_URL` (set by Vercel), then `https://chetanpujari.com` |
