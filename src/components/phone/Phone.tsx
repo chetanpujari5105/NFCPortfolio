@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  memo,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -15,9 +16,9 @@ import { Rotate3d } from "lucide-react";
 
 import { appsLayout } from "@content/apps";
 import type { AppId } from "@content/schema";
-import { BrightnessDim } from "@/components/os/BrightnessDim";
+import { BrightnessDim as BrightnessDimLayer } from "@/components/os/BrightnessDim";
 import { HomeScreen } from "@/components/os/HomeScreen";
-import { LockScreen } from "@/components/os/LockScreen";
+import { LockScreen as LockScreenLayer } from "@/components/os/LockScreen";
 import { StatusPill } from "@/components/os/StatusPill";
 import { lazyComponent, whenIdle } from "@/lib/lazy";
 import { settlePanel } from "@/lib/panel";
@@ -28,8 +29,8 @@ import { setAppBackground } from "@/lib/theme-color";
 import { STAGE_3D_QUERY, STAGE_INTENT } from "@/lib/theme";
 
 import type { Phone3DProps, Rig } from "./Phone3D";
-import { StatusBar } from "./StatusBar";
-import { Wallpaper } from "./Wallpaper";
+import { StatusBar as StatusBarLayer } from "./StatusBar";
+import { Wallpaper as WallpaperLayer } from "./Wallpaper";
 
 /** `next`: switching apps — this one closes quickly, then `next` launches from its icon. */
 type WindowState = { app: AppId; closing: boolean; initial: boolean; next?: AppId };
@@ -46,13 +47,19 @@ const AppWindow = lazyComponent(() => import("@/components/os/AppWindow").then((
 const loadRegistry = () => import("@/components/apps/registry");
 const preloadApps = () => void loadRegistry().then((m) => m.preloadApps());
 const preloadApp = (app: string) => void loadRegistry().then((m) => m.preloadApp(app as AppId));
-const AppSwitcher = dynamic(() => import("@/components/os/AppSwitcher").then((m) => m.AppSwitcher), { ssr: false });
-const Spotlight = dynamic(() => import("@/components/os/Spotlight").then((m) => m.Spotlight), { ssr: false });
-const FolderView = dynamic(() => import("@/components/os/FolderView").then((m) => m.FolderView), { ssr: false });
-const ControlPanel = dynamic(() => import("@/components/os/ControlPanel").then((m) => m.ControlPanel), { ssr: false });
-const NotificationBanner = dynamic(() => import("@/components/os/NotificationBanner").then((m) => m.NotificationBanner), {
+const AppSwitcher = memo(dynamic(() => import("@/components/os/AppSwitcher").then((m) => m.AppSwitcher), { ssr: false }));
+const Spotlight = memo(dynamic(() => import("@/components/os/Spotlight").then((m) => m.Spotlight), { ssr: false }));
+const FolderView = memo(dynamic(() => import("@/components/os/FolderView").then((m) => m.FolderView), { ssr: false }));
+const ControlPanel = memo(dynamic(() => import("@/components/os/ControlPanel").then((m) => m.ControlPanel), { ssr: false }));
+const NotificationBanner = memo(dynamic(() => import("@/components/os/NotificationBanner").then((m) => m.NotificationBanner), {
   ssr: false,
-});
+}));
+// Phone re-renders on every route change; the layers whose props don't change skip it, so a
+// launch only renders the home screen and the window
+const BrightnessDim = memo(BrightnessDimLayer);
+const LockScreen = memo(LockScreenLayer);
+const StatusBar = memo(StatusBarLayer);
+const Wallpaper = memo(WallpaperLayer);
 const loadRig = () => import("./Phone3D").then((m) => m.newRig());
 
 /** How long the CSS phone waits for the 3D phone to make the entrance. */
@@ -89,6 +96,20 @@ function useCan3D() {
   return media && !reduceMotion;
 }
 
+/**
+ * The chunks this first visit fetched before the service worker took over go into its cache too
+ * (straight from the HTTP cache), so the very next visit runs offline-fast.
+ */
+async function warmCache() {
+  await navigator.serviceWorker.ready;
+  const urls = performance
+    .getEntriesByType("resource")
+    .map((entry) => entry.name)
+    .filter((url) => url.startsWith(`${location.origin}/_next/static/`));
+  const cache = await caches.open("static");
+  await Promise.all(urls.map((url) => cache.match(url).then((hit) => (hit ? undefined : cache.add(url))).catch(() => {})));
+}
+
 const wake = () => document.documentElement.setAttribute("data-awake", "");
 
 export function Phone() {
@@ -112,6 +133,11 @@ export function Phone() {
     // Every app's code is on the device before the first tap: fetched once the page is quiet
     // (within 1.5 s), or the moment a finger lands, whichever comes first.
     void AppWindow.preload();
+    // The service worker (sw/sw.ts): production builds only, once the first load has settled
+    const cancelWorker =
+      process.env.NODE_ENV === "production" && "serviceWorker" in navigator
+        ? whenIdle(() => void navigator.serviceWorker.register("/sw.js").then(warmCache, () => {}), 4000)
+        : () => {};
     const cancel = whenIdle(preloadApps, 1500);
     const now = () => {
       cancel();
@@ -122,6 +148,7 @@ export function Phone() {
     window.addEventListener("touchstart", now, opts);
     return () => {
       cancel();
+      cancelWorker();
       window.removeEventListener("pointerdown", now, opts);
       window.removeEventListener("touchstart", now, opts);
     };
@@ -244,13 +271,23 @@ export function Phone() {
   // The browser bar blends into the open app, else the wallpaper (lib/theme-color.ts).
   const appUp = !!win && !win.closing;
   useEffect(() => {
-    const color = () =>
-      setAppBackground(appUp ? getComputedStyle(document.documentElement).getPropertyValue("--app-background").trim() : null);
+    // Read in the next frame, after its own style pass: reading styles right after a launch or a
+    // theme switch would force that restyle into the same task
+    let raf = 0;
+    const color = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() =>
+        setAppBackground(appUp ? getComputedStyle(document.documentElement).getPropertyValue("--app-background").trim() : null),
+      );
+    };
     color();
     // Theme changes swap the app background
     const observer = new MutationObserver(color);
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-    return () => observer.disconnect();
+    return () => {
+      cancelAnimationFrame(raf);
+      observer.disconnect();
+    };
   }, [appUp]);
 
   // Esc closes the top-most layer.

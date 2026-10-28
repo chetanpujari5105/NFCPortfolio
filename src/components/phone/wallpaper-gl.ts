@@ -214,11 +214,14 @@ export function startWallpaper(
     };
     play();
 
-    const observer = new MutationObserver(() => {
-      readColors();
-      sampledAt = -Infinity;
-      if (still) draw(start + 52_000);
-    });
+    // Next frame, after the theme switch's own style pass (no forced restyle in the switch's task)
+    const observer = new MutationObserver(() =>
+      requestAnimationFrame(() => {
+        readColors();
+        sampledAt = -Infinity;
+        if (still) draw(start + 52_000);
+      }),
+    );
     observer.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ["data-finish", "class"],

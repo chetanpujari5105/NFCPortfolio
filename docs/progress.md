@@ -181,19 +181,30 @@ REA stays off (owner's earlier choice); the reference was studied with Playwrigh
   Fix: the home screen is now data (`lib/home.ts`): an ordered grid that flows across as many pages as it needs, a dock and folders (`pp-home-v2`, migrated from the v4 icon order). `useHomeLayout()` measures the screen and its safe areas on every resize and works out columns (3 under 340 px, 4 on phones, 6–7 in landscape), icon size (`min(width-based, height-based)`, 48–68 px) and rows (up to 6; spare height opens the rows up); widgets take whole cells (Impact, GitHub, Blog 4×2; Work, YouTube, Expertise 2×2) and anything that doesn't fit starts the next page, with page dots following. The phone is sized by the visual viewport (`--vvh`/`--vvt` from the init script, falling back to `dvh` → `svh` → `vh`), `interactive-widget=resizes-content`, all four safe areas, `text-size-adjust: 100%`, the page itself never scrolls, and screens under 520 px tall (a phone on its side) are "phone mode" too. Widgets size their contents in container units of their own tile; the empty YouTube box is now a channel card (logo, @chetanpujari, "Watch on YouTube") and Expertise a real stacked-cards widget. Apps clear the home indicator, read as a 680 px column in landscape and keep a focused field above the keyboard; Contact's Send moved into the frosted bar; Control Center has a landscape layout; the browser bar takes the wallpaper's top colour (sampled by the shader) or the open app's background.
   Result: 85/85 fit tests (home pages, lock screen, Search/Control Center/switcher, every app's end, Contact with the keyboard up) on all 17 sizes; contact sheets `docs/v5/fit/contact-sheet-{light,dark}.jpg` (per-size PNGs regenerate with `node scripts/fit-shots.mjs`, gitignored).
 
-- **Problem 2: speed (in progress, not yet verified by the full suite).** Done so far:
-  - **No-Suspense app loading.** A loader that never suspends (`lib/lazy.tsx`) replaces `next/dynamic`. App chunks are fetched at idle (1.5 s) or on the first touch.
-  - **Window shell first.** The window and app registry load right after hydration, and an app's content renders one frame after the window starts moving.
-  - **Fewer forced layouts at the tap.** The launch origin is measured at the tap. The dock magnifier caches its icon positions. The status pill animates with CSS instead of a Motion `layout` animation. The home screen turns inert only once the launch lands.
-  - **Lighter launch rendering.** No blur during the launch, no backdrop-filters while the window moves, and layer promotion only while moving. Springs settle in about 320 ms on open and 270 ms on close.
-  - **Images and fonts.** Thumbnails load at their exact display size, with blurred placeholders (`scripts/make-placeholders.mjs`). Only the UI font is preloaded.
-  - **Smaller first load.** The wallpaper shader is its own chunk, and initial JS is 199.5 KB (main: 199.4 KB).
-  - **Measured (4× CPU, one worker):** tap → window mounted 350 ms → 65 ms, moving 380 ms → 78 ms (target 50), readable 400 ms → 120–180 ms, settled about 410 ms.
-  - **Still to do:** re-measure after the inert change; Serwist service worker; `docs/v5/speed.md` with videos; Lighthouse and longtasks; full test suite. Then Problem 3, home-screen editing.
+- **Problem 2: speed.** The trace on `main` showed every early tap waiting ~350 ms for `next/dynamic` chunks behind Suspense, then 30–45 ms of forced layouts in the click handler. Now:
+  - A loader that never suspends (`lib/lazy.tsx`). Every app chunk is on the device at idle (1.5 s) or on the first touch.
+  - The window shell renders in the tap's frame. The tap avoids forced layouts. Nothing is blurred, backdrop-filtered or layer-promoted while the window moves.
+  - A Serwist service worker (`sw/sw.ts`, built after `next build`):
+    - Caches the shell, chunks, fonts and icons; images and `/api/feed` are stale-while-revalidate.
+    - Pages are network-first, so a deploy always wins online. Offline works after one visit.
+  - Results at 4× CPU, one worker. Launch:
+
+    | | Before | After |
+    |---|---|---|
+    | Window mounted | 350 ms | 46–51 ms |
+    | Readable | 370–470 ms | 100–180 ms |
+    | Settled | 805–877 ms | 386–425 ms |
+
+    App switch went from 2.6 s to 351 ms. Initial JS is 199.8 KB. Lighthouse mobile went from 91 to 93; desktop is 100. Repeat visits load in about 70 ms.
+  - Full numbers and the before/after videos are in `docs/v5/speed.md`.
+  - `npm test`: 228 passed. `tests/speed.spec.ts` still fails its strict "moving ≤ 50 ms" check at 4× CPU (57–62 ms). It passes unthrottled (41–50 ms); what's left is a ~25–30 ms headless-Chromium stall before the first frame (see speed.md).
 
 ## Needs Chetan
 
-- Real-device check of v5 on iPhone Safari, Android Chrome, Brave, Samsung Internet, and the LinkedIn and Instagram in-app browsers: home fits with the toolbars shown, landscape, Contact with the keyboard up, launch feel.
+- [ ] **Real-device check of v5:** iPhone Safari, Android Chrome, Brave, Samsung Internet, and the LinkedIn and Instagram in-app browsers.
+  - Home fits with the toolbars shown, in landscape, and in Contact with the keyboard up.
+  - Launch feel: does the window start growing on the tap itself?
+  - A repeat visit loads instantly, including in airplane mode after one visit.
 
 - [ ] **Reviews:** all 5 are `verified: false` in `content/reviews.ts`. Confirm each is a real quote you may publish, then set `verified: true`.
 - [ ] **Prompt Chaining post URL:** not found in the Substack feed/sitemap; the fallback post links to the publication home. Put the real URL in `content/blog.ts` if it exists.

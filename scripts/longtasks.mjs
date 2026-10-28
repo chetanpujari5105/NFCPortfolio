@@ -1,4 +1,5 @@
-// Long tasks (>50 ms) during interactions, after the page and its lazy 3D stage have settled.
+// Long tasks (>50 ms) during interactions, after the page and its lazy 3D stage have settled:
+// desktop, an iPhone 13, and the same phone with its CPU slowed 4×.
 // Exits non-zero if any long task lands while interacting.
 // Usage: node scripts/longtasks.mjs [baseUrl]   (run against a production server)
 import { chromium, devices } from "@playwright/test";
@@ -6,7 +7,7 @@ import { chromium, devices } from "@playwright/test";
 const base = process.argv[2] ?? "http://localhost:3100";
 const browser = await chromium.launch({ args: ["--use-angle=metal", "--enable-gpu", "--ignore-gpu-blocklist"] });
 
-async function run(label, contextOptions, interact) {
+async function run(label, contextOptions, interact, cpu = 1) {
   const ctx = await browser.newContext(contextOptions);
   await ctx.addInitScript(() => {
     sessionStorage.setItem("pp-unlocked", "1");
@@ -16,6 +17,8 @@ async function run(label, contextOptions, interact) {
     ).observe({ type: "longtask", buffered: true });
   });
   const page = await ctx.newPage();
+  // A mid-range phone: the CPU slowed 4× (DevTools' "4× slowdown")
+  if (cpu > 1) await (await ctx.newCDPSession(page)).send("Emulation.setCPUThrottlingRate", { rate: cpu });
   await page.goto(base + "/", { waitUntil: "networkidle" });
   await page.mouse.move(200, 200); // the 3D stage loads on the first sign of a visitor
   await page.waitForFunction(() => innerWidth < 900 || document.documentElement.hasAttribute("data-3d"), null, { timeout: 25_000 });
@@ -94,5 +97,6 @@ async function tour(page, { touch }) {
 
 const desktop = await run("desktop 1440×900", { viewport: { width: 1440, height: 900 } }, (p) => tour(p, { touch: false }));
 const phone = await run("phone (iPhone 13)", { ...devices["iPhone 13"], defaultBrowserType: undefined }, (p) => tour(p, { touch: true }));
+const slow = await run("phone, 4× CPU", { ...devices["iPhone 13"], defaultBrowserType: undefined }, (p) => tour(p, { touch: true }), 4);
 await browser.close();
-process.exit(desktop.length + phone.length ? 1 : 0);
+process.exit(desktop.length + phone.length + slow.length ? 1 : 0);

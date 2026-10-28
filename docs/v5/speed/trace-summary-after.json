@@ -1,0 +1,279 @@
+[
+  {
+    "click": "16ms in the click handler",
+    "tasksOver5ms": [
+      {
+        "at": 21,
+        "ms": 43
+      },
+      {
+        "at": 67,
+        "ms": 10
+      },
+      {
+        "at": 79,
+        "ms": 6
+      },
+      {
+        "at": 85,
+        "ms": 6
+      },
+      {
+        "at": 92,
+        "ms": 10
+      },
+      {
+        "at": 102,
+        "ms": 40
+      },
+      {
+        "at": 144,
+        "ms": 6
+      },
+      {
+        "at": 163,
+        "ms": 6
+      },
+      {
+        "at": 246,
+        "ms": 5
+      },
+      {
+        "at": 346,
+        "ms": 5
+      },
+      {
+        "at": 395,
+        "ms": 11
+      },
+      {
+        "at": 413,
+        "ms": 28
+      }
+    ],
+    "scripting": 57,
+    "style": 57,
+    "layout": 21,
+    "paint": 60,
+    "gc": 0,
+    "fetched": [
+      "svg%3E",
+      "image?url=%2Fcontent%2Fprofile-pic-2.webp&w=192&q=70",
+      "image?url=%2Fcontent%2Fprofile-pic-2.webp&w=192&q=70",
+      "webp;base64,UklGRlQAAABXRUJQVlA4IEgAAAAwAgCdASoKAAwAA4BaJZQC7AEfB920rBF+AAD+81L8lixHT8w9il2mpyng2mGh7ff7m6spaCGU7muDBDGo4IcKdDgqSM4AAAA="
+    ],
+    "topSelfTime": [
+      "205.2ms Se sw.js:0",
+      "8.2ms y 15sm69eudabdv.js:47",
+      "0.5ms nI 2nii411saqstq.js:0",
+      "0.4ms onUpdate 3hlryhl6ba4h7.js:0",
+      "0.2ms process 0vycahe8bp818.js:0",
+      "0.1ms onUpdate 0vycahe8bp818.js:0",
+      "0.0ms y 0vycahe8bp818.js:0"
+    ]
+  },
+  {
+    "click": "9ms in the click handler",
+    "tasksOver5ms": [
+      {
+        "at": 13,
+        "ms": 13
+      },
+      {
+        "at": 35,
+        "ms": 5
+      },
+      {
+        "at": 46,
+        "ms": 6
+      },
+      {
+        "at": 52,
+        "ms": 6
+      },
+      {
+        "at": 62,
+        "ms": 5
+      },
+      {
+        "at": 68,
+        "ms": 10
+      },
+      {
+        "at": 77,
+        "ms": 40
+      },
+      {
+        "at": 119,
+        "ms": 8
+      },
+      {
+        "at": 129,
+        "ms": 6
+      },
+      {
+        "at": 141,
+        "ms": 8
+      },
+      {
+        "at": 158,
+        "ms": 5
+      },
+      {
+        "at": 257,
+        "ms": 6
+      },
+      {
+        "at": 291,
+        "ms": 6
+      },
+      {
+        "at": 323,
+        "ms": 5
+      },
+      {
+        "at": 340,
+        "ms": 12
+      },
+      {
+        "at": 358,
+        "ms": 19
+      }
+    ],
+    "scripting": 70,
+    "style": 55,
+    "layout": 18,
+    "paint": 57,
+    "gc": 4,
+    "fetched": [
+      "webp;base64,UklGRlQAAABXRUJQVlA4IEgAAAAwAgCdASoKAAwAA4BaJZQC7AEfB920rBF+AAD+81L8lixHT8w9il2mpyng2mGh7ff7m6spaCGU7muDBDGo4IcKdDgqSM4AAAA=",
+      "svg%3E",
+      "svg%3E",
+      "svg%3E",
+      "svg%3E",
+      "svg%3E",
+      "svg%3E",
+      "svg%3E",
+      "zobYym8vEFNckFjPgEftJDmquv+Sw4AA",
+      "CiNuCv4cwho6DoAAAA==",
+      "m0T13N10YmobPNwgAAAA=",
+      "webp;base64,UklGRlwAAABXRUJQVlA4IFAAAAAQAgCdASoMAAcAA4BaJQBOgMWRyQDz6pwAAP7pXHYO3d7MEcfSQGeE9tAM55FBGRtqOmmwDTKcLnmsoR15edyjkrI+UMVYC1glbs2Hs4AAAA==",
+      "wx6f8IP3MPzabMhBFEX2PpaeCH8AAAA",
+      "SEbM6xJDk9MlQeKFjgBB43H65kUpeKMWEAAA",
+      "image?url=%2Fcontent%2Fcourses%2Fgoogle-veo.webp&w=828&q=70",
+      "image?url=%2Fcontent%2Fcourses%2Fgoogle-veo.webp&w=160&q=70",
+      "image?url=%2Fcontent%2Fprofile-pic-2.webp&w=72&q=70",
+      "image?url=%2Fcontent%2Fcourses%2Fgoogle-veo.webp&w=828&q=70",
+      "image?url=%2Fcontent%2Fcourses%2Fgoogle-veo.webp&w=160&q=70",
+      "image?url=%2Fcontent%2Fprofile-pic-2.webp&w=72&q=70"
+    ],
+    "topSelfTime": [
+      "200.8ms Se sw.js:0",
+      "3.7ms e 3jawez91u7gtw.js:0",
+      "0.7ms y 0vycahe8bp818.js:0",
+      "0.7ms set 0vycahe8bp818.js:0",
+      "0.5ms o 050jje6zm762z.js:0",
+      "0.4ms (anon) 050jje6zm762z.js:0",
+      "0.4ms (anon) 0vycahe8bp818.js:0",
+      "0.4ms ei 3hlryhl6ba4h7.js:0",
+      "0.3ms iv 2gkxyj9-hrc-_.js:0",
+      "0.3ms (garbage collector) :undefined",
+      "0.1ms r.createElement 01ce6pg25fldo.js:30",
+      "0.1ms fq 2nii411saqstq.js:0"
+    ]
+  },
+  {
+    "click": "9ms in the click handler",
+    "tasksOver5ms": [
+      {
+        "at": 13,
+        "ms": 12
+      },
+      {
+        "at": 32,
+        "ms": 5
+      },
+      {
+        "at": 38,
+        "ms": 5
+      },
+      {
+        "at": 47,
+        "ms": 6
+      },
+      {
+        "at": 53,
+        "ms": 6
+      },
+      {
+        "at": 64,
+        "ms": 12
+      },
+      {
+        "at": 76,
+        "ms": 27
+      },
+      {
+        "at": 103,
+        "ms": 8
+      },
+      {
+        "at": 124,
+        "ms": 6
+      },
+      {
+        "at": 158,
+        "ms": 6
+      },
+      {
+        "at": 224,
+        "ms": 5
+      },
+      {
+        "at": 258,
+        "ms": 8
+      },
+      {
+        "at": 290,
+        "ms": 6
+      },
+      {
+        "at": 324,
+        "ms": 5
+      },
+      {
+        "at": 340,
+        "ms": 11
+      },
+      {
+        "at": 358,
+        "ms": 27
+      }
+    ],
+    "scripting": 64,
+    "style": 46,
+    "layout": 15,
+    "paint": 46,
+    "gc": 0,
+    "fetched": [
+      "image?url=https%3A%2F%2Fsubstackcdn.com%2Fimage%2Ffetch%2F%24s_!2uXg!%2Cf_auto%2Cq_auto%3Agood%2Cfl_progressive%3Asteep%2Fhttps%253A%252F%252Fsubstack-post-media.s3.amazonaws.com%252Fpublic%252Fimages%252F216dc45c-fbc3-4123-b63c-4ea6e6f23ae5_1024x1536.png&w=828&q=70",
+      "image?url=https%3A%2F%2Fsubstackcdn.com%2Fimage%2Ffetch%2F%24s_!Da19!%2Cf_auto%2Cq_auto%3Agood%2Cfl_progressive%3Asteep%2Fhttps%253A%252F%252Fsubstack-post-media.s3.amazonaws.com%252Fpublic%252Fimages%252Fccbadf99-524c-4abf-a9d5-52f1c147df5e_1672x941.png&w=128&q=70",
+      "image?url=https%3A%2F%2Fsubstackcdn.com%2Fimage%2Ffetch%2F%24s_!2uXg!%2Cf_auto%2Cq_auto%3Agood%2Cfl_progressive%3Asteep%2Fhttps%253A%252F%252Fsubstack-post-media.s3.amazonaws.com%252Fpublic%252Fimages%252F216dc45c-fbc3-4123-b63c-4ea6e6f23ae5_1024x1536.png&w=828&q=70",
+      "image?url=https%3A%2F%2Fsubstackcdn.com%2Fimage%2Ffetch%2F%24s_!Da19!%2Cf_auto%2Cq_auto%3Agood%2Cfl_progressive%3Asteep%2Fhttps%253A%252F%252Fsubstack-post-media.s3.amazonaws.com%252Fpublic%252Fimages%252Fccbadf99-524c-4abf-a9d5-52f1c147df5e_1672x941.png&w=128&q=70"
+    ],
+    "topSelfTime": [
+      "166.4ms Se sw.js:0",
+      "1.9ms (anon) 2nii411saqstq.js:0",
+      "1.4ms updateAndNotify 0vycahe8bp818.js:0",
+      "1.2ms (anon) 050jje6zm762z.js:0",
+      "1.2ms onClosed 3hlryhl6ba4h7.js:0",
+      "1.2ms ax 2nii411saqstq.js:0",
+      "1.1ms (anon) 3hlryhl6ba4h7.js:0",
+      "1.1ms isEnabled 050jje6zm762z.js:0",
+      "0.9ms U 3hlryhl6ba4h7.js:0",
+      "0.8ms cancel 0vycahe8bp818.js:0",
+      "0.8ms tick 0vycahe8bp818.js:0",
+      "0.8ms ll 2nii411saqstq.js:0"
+    ]
+  }
+]

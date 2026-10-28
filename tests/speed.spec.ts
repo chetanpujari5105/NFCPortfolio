@@ -18,7 +18,8 @@ export const SPEED_APPS = [
 /** DevTools "Fast 4G" preset and a mid-range phone CPU. */
 export async function throttle(page: Page) {
   const cdp = await page.context().newCDPSession(page);
-  await cdp.send("Emulation.setCPUThrottlingRate", { rate: 4 });
+  // SPEED_CPU=1 measures the same launches unthrottled
+  await cdp.send("Emulation.setCPUThrottlingRate", { rate: Number(process.env.SPEED_CPU ?? 4) });
   await cdp.send("Network.enable");
   await cdp.send("Network.emulateNetworkConditions", {
     offline: false,

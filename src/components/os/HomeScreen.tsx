@@ -150,7 +150,9 @@ const Pages = memo(function Pages({ placed, pages, page, geo }: { placed: Placed
           aria-label={`Home page ${index + 1} of ${pages}`}
           data-home-page={index}
           inert={page !== index}
-          className="relative h-full w-full shrink-0"
+          // Pages off to the side skip style and layout until they slide in (a theme switch or a
+          // launch then restyles one page, not the GitHub heatmap's 238 squares as well)
+          className="relative h-full w-full shrink-0 [content-visibility:auto]"
         >
           {placed.map((p, i) => {
             if (p.page !== index) return null;
@@ -436,7 +438,8 @@ function PageDots({ page, pages, height, onPage }: { page: number; pages: number
 }
 
 /** Frosted dock; on desktop the icons magnify toward the pointer (springs, max 1.15×). */
-function Dock({ entries, geo }: { entries: string[]; geo: HomeGeometry }) {
+// Memoised like the pages: launching an app re-renders the home layer, not the dock
+const Dock = memo(function Dock({ entries, geo }: { entries: string[]; geo: HomeGeometry }) {
   const mouseX = useMotionValue(Infinity);
   // Icon centres, measured once as the mouse enters: reading layout on every move would force a
   // full layout mid-launch when the click lands on a dock icon
@@ -472,7 +475,7 @@ function Dock({ entries, geo }: { entries: string[]; geo: HomeGeometry }) {
       ))}
     </nav>
   );
-}
+});
 
 function DockItem({
   entry,
