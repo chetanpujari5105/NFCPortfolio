@@ -5,8 +5,8 @@ Source: Figma Community (duplicated copy used for export):
 License: Creative Commons Attribution 4.0 International (CC BY 4.0)
          https://creativecommons.org/licenses/by/4.0/
 
-Files in this folder (books, maps, app-store, photos, files, settings, notes, wallet, mail .webp)
-are the light-theme icons from that file, exported as SVG on 2026-10-28 and changed by
+Files in this folder (books, maps, tips, app-store, photos, files, settings, notes, wallet,
+mail .webp) are ten light-theme icons from that file, exported as SVG on 2026-10-28 and changed by
 scripts/ios18-icons.mjs: each icon's own rounded clip removed (the site's squircle mask is the
 edge), rendered at 180 x 180 and saved as WebP. No other changes.
 

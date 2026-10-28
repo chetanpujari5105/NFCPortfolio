@@ -67,7 +67,7 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
-  // The icon pack's faces are CSS backgrounds, found late; ask for them with the page (~23 KB)
+  // The icon pack's faces are CSS backgrounds, found late; ask for them with the page (~25 KB)
   for (const href of PACK_ICONS) preload(href, { as: "image", type: "image/webp" });
   return (
     <html

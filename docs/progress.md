@@ -279,6 +279,13 @@ Measured again with `scripts/gap-measure.mjs` (light and dark); the numbers are 
 - **Visual baselines (updated on purpose).** The 6 home baselines, `home-{light,dark}-{desktop,tablet,phone}`, were forced with `--update-snapshots=all`: desktop and tablet were within the 2% threshold and would otherwise have kept the old icons. Courses and settings still match.
 - **Tests.** `tests/icon-pack.spec.ts` (new) runs against whichever pack the server was built with (set the same `NEXT_PUBLIC_ICON_PACK` for `playwright test`). It checks tile faces vs glyphs, brand tiles, that each image is 180 px, the Credits wording and the OG route. On the `original` build, the new spec plus smoke and visual tests all pass (48 passed, 3 skipped). On the `ios18` build: lint, typecheck, content check and build pass. Tests: **261 passed** (249 + 12 new), 280 skipped by viewport, 5 failed: the same throttled "window moving ≤ 50 ms" checks. Alone on one worker they measure 57–65 ms, the same as the last pass. Production is serving the ios18 build on :3100.
 
+### v7 follow-up: Tips for Expertise
+
+- **Icon.** Tips (the lightbulb) was exported from the same Figma file in the same way: your logged-in session in Chrome, a temporary frame removed afterwards, no login step. It is pure vector. `scripts/ios18-icons.mjs` turned it into `public/icons/ios18/tips.webp` (1.5 KB; the pack is 24.5 KB total), and `src/lib/icon-pack.ts` maps `expertise: "tips"`. All ten own apps now use the pack; only the brand tiles keep their own marks.
+- **Wording.** The Settings credits no longer say Expertise's icon is original. The README says ten apps, and `LICENSE.txt` lists tips among ten files.
+- **Visual baselines (updated on purpose).** The 6 home baselines, `home-{light,dark}-{desktop,tablet,phone}` (`--update-snapshots=all`). Courses and settings still match.
+- **Tests.** Lint, typecheck, content check and build pass. Tests: **261 passed**, 280 skipped by viewport, 5 failed: the same throttled "window moving ≤ 50 ms" checks, 57–59 ms alone on one worker (unchanged). Production serves this build on :3100.
+
 ## Needs Chetan
 
 - [ ] **Real-device check of v5:** iPhone Safari, Android Chrome, Brave, Samsung Internet, and the LinkedIn and Instagram in-app browsers.
@@ -297,7 +304,7 @@ Measured again with `scripts/gap-measure.mjs` (light and dark); the numbers are 
 - [ ] **GitHub token (optional):** set a fine-grained `GITHUB_TOKEN` with no scopes (public data only) in Vercel to read the calendar over GraphQL. Without it the widget parses the public contributions page, which works today but could break if GitHub changes that markup.
 - [ ] **3D model licence:** the iPhone 18 Pro Max model came with no licence file; its export says "Binkies MDM". Find where it came from and confirm the licence allows use on a public site, then put the terms in `public/models/LICENSE-iphone-18-pro-max.txt`. Until then the back shows the ⚡ CP mark. Set `NEXT_PUBLIC_SHOW_MODEL_LOGO=true` only if the licence (and Apple's trademark rules) allow showing the manufacturer logo.
 - [ ] **iOS 18 icons: trademark call.** The Figma file is CC BY 4.0, but that only covers the author's work. The app designs it depicts are Apple's, and the file's own "Disclosure" asks you to use the icons "according to the guidance of the owner of the icon". Apple's trademark guidelines are strict about using its icons and images. Decide whether to keep the pack on the public site. `NEXT_PUBLIC_ICON_PACK=original` in Vercel (then redeploy) switches every tile back.
-- [ ] **Expertise icon:** the pack has no Shortcuts icon, so Expertise keeps its original purple sparkles beside the pack icons. If you want a pack icon there, pick one (Tips, a lightbulb, fits "expertise"; Freeform or Measure are other options). I'll export it and add one line to `src/lib/icon-pack.ts`.
+- [x] **Expertise icon:** done. It uses Tips from the pack (v7 follow-up).
 - [ ] **Push guide v1.2 and template prompt 10:** committed locally (`docs/guide` 489f065, template 87b9a30), not pushed. Say when to push.
 - [ ] **Icon review (`original` set):** the fallback set is unchanged from v6 (flat white glyph on a 2-stop gradient). See `docs/v6/gap-after/sheets/icons-light.jpg`.
 - [ ] **Your saved home layout:** a browser that already saved a home layout (`pp-home-v2`, e.g. your own Chrome) keeps it, so it won't show Udemy and GitHub on page 1. Use Settings → Reset Home Screen to get the new default.

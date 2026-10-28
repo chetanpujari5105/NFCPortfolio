@@ -1,8 +1,8 @@
 /*
  * Which faces the app tiles wear. `ios18` (the default here): the iOS 18 App Icons by David
  * Akhmedbayev, CC BY 4.0 (public/icons/ios18/LICENSE.txt, made by scripts/ios18-icons.mjs).
- * `original`: the site's own gradient-and-glyph set. Apps the pack has no icon for (Expertise)
- * and the brand tiles keep their own face in either mode.
+ * `original`: the site's own gradient-and-glyph set. The brand tiles keep their own face in either
+ * mode, as does any app without an entry below.
  */
 export const ICON_PACK: "ios18" | "original" = process.env.NEXT_PUBLIC_ICON_PACK === "original" ? "original" : "ios18";
 
@@ -10,6 +10,7 @@ export const ICON_PACK: "ios18" | "original" = process.env.NEXT_PUBLIC_ICON_PACK
 const IOS18: Record<string, string> = {
   courses: "books",
   journey: "maps",
+  expertise: "tips",
   platforms: "app-store",
   reviews: "photos",
   projects: "files",

@@ -48,7 +48,7 @@ const WALLPAPER_INFO: Record<Wallpaper, { label: string; preview: string }> = {
 
 const ICON_CREDIT =
   ICON_PACK === "ios18"
-    ? "App icons: iOS 18 App Icons by David Akhmedbayev, CC BY 4.0, via Figma Community (Expertise's icon and the wallpaper are original). iPhone and the app designs they depict are trademarks of Apple Inc. The 3D phone is a third-party iPhone 18 Pro Max model."
+    ? "App icons: iOS 18 App Icons by David Akhmedbayev, CC BY 4.0, via Figma Community (the wallpaper is original). iPhone and the app designs they depict are trademarks of Apple Inc. The 3D phone is a third-party iPhone 18 Pro Max model."
     : "App icons and wallpaper are original; the 3D phone is a third-party iPhone 18 Pro Max model (iPhone is a trademark of Apple Inc.).";
 const CREDITS = `Designed and built for Chetan Pujari. ${ICON_CREDIT} Brand logos: Simple Icons (CC0) and Font Awesome Free (CC BY 4.0, LinkedIn), used only to link to Chetan's profiles. World map data: Natural Earth (public domain).`;
 

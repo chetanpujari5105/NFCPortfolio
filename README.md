@@ -71,11 +71,10 @@ development, copy `.env.example` to `.env.local`.
 ## Credits
 
 iOS 18 App Icons by David Akhmedbayev, CC BY 4.0, via Figma Community. iPhone and the app designs
-they depict are trademarks of Apple Inc. They are the tile faces for nine apps
+they depict are trademarks of Apple Inc. They are the tile faces for ten apps
 (`public/icons/ios18`, built by `scripts/ios18-icons.mjs`; licence and changes in
 [`public/icons/ios18/LICENSE.txt`](public/icons/ios18/LICENSE.txt)). `NEXT_PUBLIC_ICON_PACK=original`
-switches back to the original set. The original glyphs and faces (also Expertise's icon in either
-mode), squircle mask, wallpaper shader, the CSS phone frame and copy are original. The desktop 3D phone is a third-party iPhone 18 Pro Max model (`public/models`, built by
+switches back to the original set. The original glyphs and faces, squircle mask, wallpaper shader, the CSS phone frame and copy are original. The desktop 3D phone is a third-party iPhone 18 Pro Max model (`public/models`, built by
 `scripts/optimize-phone-model.mjs`); its back shows the ⚡ CP mark in place of the maker's logo
 unless `NEXT_PUBLIC_SHOW_MODEL_LOGO=true`. iPhone is a trademark of Apple Inc. Brand logos:
 [Simple Icons](https://simpleicons.org/) (CC0) and Font Awesome Free (CC BY 4.0, LinkedIn). The world map is rasterised from
