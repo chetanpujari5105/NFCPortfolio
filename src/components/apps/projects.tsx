@@ -62,13 +62,20 @@ function ProjectDetail({ id }: { id: string }) {
             {p.name}
           </h2>
           <p className="text-[14px] text-app-muted">{p.tagline}</p>
-          <Pill
-            href={p.url}
-            className="mt-2"
-            label={`Open ${p.name} (new tab)`}
-          >
-            Open
-          </Pill>
+          {p.status && (
+            <p className="mt-0.5 text-[12.5px] font-semibold text-app-muted">
+              {p.status}
+            </p>
+          )}
+          {p.url && (
+            <Pill
+              href={p.url}
+              className="mt-2"
+              label={`Open ${p.name} (new tab)`}
+            >
+              Open
+            </Pill>
+          )}
         </div>
       </div>
       <div className="relative mt-5 aspect-[16/10] overflow-hidden rounded-[16px] bg-app-group shadow-[0_0_0_0.5px_var(--app-divider)]">
@@ -89,7 +96,11 @@ function ProjectDetail({ id }: { id: string }) {
           ))}
         </div>
       </ListGroup>
-      <p className="px-1 text-[12.5px] text-app-muted">{new URL(p.url).host}</p>
+      {p.url && (
+        <p className="px-1 text-[12.5px] text-app-muted">
+          {new URL(p.url).host}
+        </p>
+      )}
     </AppScreen>
   );
 }

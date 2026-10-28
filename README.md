@@ -41,7 +41,8 @@ npx playwright test --update-snapshots   # after an intentional visual change
 
 Extra scripts (run against a server on :3100): `node scripts/check-os.mjs <outDir>` (click-through),
 `node scripts/a11y.mjs` (axe + keyboard), `node scripts/screenshots.mjs <outDir> [path]`
-(3 sizes × 2 themes).
+(3 sizes × 2 themes). The Anti-Doom and StackUp project covers come from
+`node scripts/project-covers.mjs <dashboard.png> <vision.png> <logo.png>` (no server needed).
 
 ## Deploy to Vercel
 

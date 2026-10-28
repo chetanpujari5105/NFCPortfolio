@@ -141,7 +141,10 @@ export const ProjectSchema = z.object({
   tagline: z.string(),
   description: z.string(),
   category: z.enum(["Apps", "Games", "Web"]),
-  url,
+  /** null: nothing public to open yet (a private repo, no store listing) */
+  url: url.nullable(),
+  /** Where it stands, shown under the tagline (e.g. "Closed alpha on Google Play") */
+  status: z.string().optional(),
   image: localImage,
   stack: z.array(z.string()),
   color: z.string(),

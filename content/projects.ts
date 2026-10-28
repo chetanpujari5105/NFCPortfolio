@@ -1,6 +1,7 @@
 import type { Project } from "./schema";
 
-// Curated from Chetan's Vercel projects. Descriptions follow each site's own description.
+// Curated from Chetan's Vercel projects (descriptions follow each site's own) and his Android apps
+// (written from their code).
 export const projects = [
   {
     id: "sidekick",
@@ -14,6 +15,35 @@ export const projects = [
     stack: ["macOS", "Android", "Local network"],
     color: "#c6f432",
     featured: true,
+  },
+  {
+    id: "anti-doom",
+    name: "Anti-Doom",
+    tagline: "Quit doom-scrolling",
+    description:
+      "An Android app that counts your swipes through Reels, Shorts and TikTok, and past your daily limit makes you stop for a 10-second breath with your own goals on screen. A little brain on the dashboard wilts as the count climbs. Free, no ads, no sign-up, and fully offline: it counts swipes only, with no screenshots and no text logged.",
+    category: "Apps",
+    // ✏️ EDIT: the Play Store link once it's public (the source repo is private, so no GitHub link)
+    url: null,
+    status: "Android · source is private",
+    image: "/content/projects/anti-doom.webp",
+    stack: ["Android", "Kotlin", "Jetpack Compose", "Room"],
+    color: "#2c1a0c",
+    featured: false,
+  },
+  {
+    id: "stackup",
+    name: "StackUp",
+    tagline: "Supplement tracker",
+    description:
+      "A Flutter app for your daily supplement stack. Scan a bottle's barcode or add it by hand, get reminded at the right time and keep a streak going. It also tracks water, offers ready-made stacks, flags supplements that clash, warns before you run out and exports a PDF report. Sign in with Google and it syncs through Firebase.",
+    category: "Apps",
+    url: "https://github.com/chetanpujari5105/stackup-android-app-",
+    status: "Closed alpha on Google Play",
+    image: "/content/projects/stackup.webp",
+    stack: ["Flutter", "Dart", "Firebase", "Hive"],
+    color: "#0f1117",
+    featured: false,
   },
   {
     id: "context-passport",
