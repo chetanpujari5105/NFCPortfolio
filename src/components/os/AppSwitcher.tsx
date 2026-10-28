@@ -13,7 +13,7 @@ import { project, rubberClamp, springs, withVelocity } from "@/lib/motion";
 import { openApp } from "@/lib/router";
 import { prefersReducedMotion, useOS } from "@/lib/store";
 
-import { Glyph } from "./icons";
+import { faceProps, Glyph } from "./icons";
 
 const ITEMS = [...appsLayout.block, ...appsLayout.row, ...appsLayout.dock, askApp];
 const CARD_SCALE = 0.62;
@@ -250,8 +250,8 @@ function Card({
         {item && (
           <span
             aria-hidden
-            className="grid size-[58px] place-items-center rounded-[14px] text-white"
-            style={{ background: `linear-gradient(165deg, ${item.colors[0]}, ${item.colors[1]})` }}
+            {...faceProps(item)}
+            className="tile-face squircle grid size-[58px] place-items-center"
           >
             <Glyph name={item.icon} className="size-[34px]" />
           </span>

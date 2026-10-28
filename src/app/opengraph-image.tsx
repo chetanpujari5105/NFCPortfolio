@@ -2,6 +2,7 @@ import { ImageResponse } from "next/og";
 
 import { appsLayout } from "@content/apps";
 import { profile } from "@content/profile";
+import type { HomeItem } from "@content/schema";
 
 export const alt = `${profile.name} — ${profile.role}`;
 export const size = { width: 1200, height: 630 };
@@ -11,7 +12,7 @@ const fmt = (n: number) => (n >= 1000 ? `${Math.round(n / 1000)}K+` : `${n}+`);
 
 /** Original share card: the name beside a little phone of app tiles. */
 export default function OpengraphImage() {
-  const tiles = [...appsLayout.block, ...appsLayout.row, ...appsLayout.dock];
+  const tiles: HomeItem[] = [...appsLayout.block, ...appsLayout.row, ...appsLayout.dock];
   const stats = [
     [fmt(profile.stats.students), "students"],
     [`${profile.stats.platforms}+`, "platforms"],
@@ -87,7 +88,12 @@ export default function OpengraphImage() {
                   width: 40,
                   height: 40,
                   borderRadius: 10,
-                  background: `linear-gradient(160deg, ${t.colors[0]}, ${t.colors[1]})`,
+                  background:
+                    t.face === "light"
+                      ? "linear-gradient(180deg, #ffffff, #e2e3ea)"
+                      : t.face === "ink"
+                        ? "linear-gradient(180deg, #3d3d45, #0b0b0e)"
+                        : `linear-gradient(160deg, ${t.colors[0]}, ${t.colors[1]})`,
                 }}
               />
             ))}

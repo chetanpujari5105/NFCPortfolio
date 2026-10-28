@@ -318,7 +318,7 @@ export default function SettingsApp() {
           </div>
           <ListRow
             title="Credits"
-            subtitle="Designed and built for Chetan Pujari. App icons, wallpaper and phone are original. Brand logos: Simple Icons (CC0) and Font Awesome Free (CC BY 4.0, LinkedIn), used only to link to Chetan's profiles. World map data: Natural Earth (public domain)."
+            subtitle="Designed and built for Chetan Pujari. App icons and wallpaper are original; the 3D phone is a third-party iPhone 18 Pro Max model (iPhone is a trademark of Apple Inc.). Brand logos: Simple Icons (CC0) and Font Awesome Free (CC BY 4.0, LinkedIn), used only to link to Chetan's profiles. World map data: Natural Earth (public domain)."
           />
         </ListGroup>
       </AppScreen>

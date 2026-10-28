@@ -27,7 +27,7 @@ import { prefersReducedMotion, useOS } from "@/lib/store";
 
 import { AppIcon } from "./AppIcon";
 import { BrandGlyph } from "./BrandIcon";
-import { Glyph } from "./icons";
+import { faceProps, Glyph } from "./icons";
 import { ImpactWidget } from "./ImpactWidget";
 import { HOME_MARKS } from "./social-icons";
 import { useHomeLayout } from "./use-home-layout";
@@ -70,8 +70,8 @@ function FolderTile({ items }: { items: string[] }) {
         ) : (
           <span
             key={id}
-            className="squircle grid aspect-square place-items-center text-white"
-            style={{ background: `linear-gradient(170deg, ${item.colors[0]}, ${item.colors[1]})` }}
+            {...faceProps(item)}
+            className="tile-face squircle grid aspect-square place-items-center"
           >
             <Glyph name={item.icon} className="size-[60%]" />
           </span>
@@ -447,10 +447,16 @@ const Dock = memo(function Dock({ entries, geo }: { entries: string[]; geo: Home
       onPointerLeave={() => mouseX.set(Infinity)}
       className={
         full
-          ? "glass-chrome mx-[4.1cqw] grid grid-cols-4 justify-items-center gap-x-[4.2cqw] rounded-[calc(var(--icon)*0.24+3.4cqw)] px-[4.9cqw]"
-          : "glass-chrome mx-auto flex min-w-[calc(var(--icon)+32px)] justify-center rounded-[calc(var(--icon)*0.24+3.4cqw)] px-[16px]"
+          ? "dock-glass mx-[4.1cqw] grid grid-cols-4 justify-items-center gap-x-[4.2cqw] px-[4.9cqw]"
+          : "dock-glass mx-auto flex min-w-[calc(var(--icon)+32px)] justify-center px-[16px]"
       }
-      style={{ paddingTop: pad, paddingBottom: pad, minHeight: geo.icon + pad * 2, gap: full ? undefined : geo.gapX * 1.4 }}
+      style={{
+        paddingTop: pad,
+        paddingBottom: pad,
+        minHeight: geo.icon + pad * 2,
+        gap: full ? undefined : geo.gapX * 1.4,
+        ["--dock-pad" as string]: `${pad}px`,
+      }}
     >
       {entries.map((entry) => (
         <DockItem key={entry} entry={entry} mouseX={mouseX} boxes={boxes}>

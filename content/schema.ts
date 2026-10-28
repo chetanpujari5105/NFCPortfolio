@@ -154,6 +154,8 @@ export const HomeItemSchema = z.object({
   icon: z.string(),
   /** Two gradient stops for the icon tile */
   colors: z.tuple([z.string(), z.string()]),
+  /** `color` (default): white glyph on the gradient; `light` / `ink`: the gradient moves into the glyph on a white / near-black tile */
+  face: z.enum(["color", "light", "ink"]).optional(),
   app: AppIdSchema.optional(),
   href: url.optional(),
   /** Official brand mark instead of a glyph (a slug from src/components/os/brand-icons.ts) */

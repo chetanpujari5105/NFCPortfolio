@@ -61,6 +61,7 @@ CLI: `npx vercel link`, `npx vercel env add <NAME> production` per variable, the
 | `OPENAI_API_KEY` | Ask Chetan answers (server only) | App shows "email me directly" |
 | `OPENAI_MODEL` | Model for Ask Chetan | `gpt-5-mini` |
 | `GITHUB_TOKEN` | GitHub heatmap via GraphQL; a fine-grained token with no permissions is enough (server only) | Parses the public contributions page |
+| `NEXT_PUBLIC_SHOW_MODEL_LOGO` | `true` shows the 3D model's own back logo (only once its licence allows it) | The ⚡ CP mark |
 | `NEXT_PUBLIC_SITE_URL` | Canonical URL for SEO, sitemap and OG images | `VERCEL_PROJECT_PRODUCTION_URL` (set by Vercel), then `https://chetanpujari.com` |
 
 `NEXT_PUBLIC_*` values are baked in at build time, so redeploy after changing them. For local
@@ -68,6 +69,10 @@ development, copy `.env.example` to `.env.local`.
 
 ## Credits
 
-Icons, wallpaper shader, phone frame and copy are original. The world map is rasterised from
+App icons (glyphs, faces, squircle mask), wallpaper shader, the CSS phone frame and copy are
+original. The desktop 3D phone is a third-party iPhone 18 Pro Max model (`public/models`, built by
+`scripts/optimize-phone-model.mjs`); its back shows the ⚡ CP mark in place of the maker's logo
+unless `NEXT_PUBLIC_SHOW_MODEL_LOGO=true`. iPhone is a trademark of Apple Inc. Brand logos:
+[Simple Icons](https://simpleicons.org/) (CC0) and Font Awesome Free (CC BY 4.0, LinkedIn). The world map is rasterised from
 [Natural Earth](https://www.naturalearthdata.com/) (public domain). Fonts: Geist and Archivo via
 `next/font` (SIL OFL).

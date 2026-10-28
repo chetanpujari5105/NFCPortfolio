@@ -226,7 +226,11 @@ export function Phone() {
     const screen = screenRef.current;
     const target = live3D ? host : bezelRef.current;
     if (!screen || !target || screen.parentElement === target) return;
+    // Moving a subtree blurs whatever was focused inside it (Spotlight's field, an open app):
+    // put focus back, or a keyboard visitor mid-search suddenly types into nothing.
+    const focused = screen.contains(document.activeElement) ? (document.activeElement as HTMLElement) : null;
     target.appendChild(screen);
+    focused?.focus({ preventScroll: true });
     const root = document.documentElement;
     root.toggleAttribute("data-3d", live3D);
     if (live3D) {

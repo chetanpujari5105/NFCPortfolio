@@ -1,8 +1,10 @@
-import { useId, type ReactNode } from "react";
+import { useId, type CSSProperties, type ReactNode } from "react";
 
 /*
- * Original glyph set for the home screen. Every glyph is drawn on a 24×24 grid,
- * filled white, and sits on a gradient tile (see AppIcon). Cut-outs use evenodd.
+ * Original glyph set for the home screen. Every glyph is drawn on a 24×24 grid as solid shapes
+ * (no hairline strokes), so they share one weight at 60 px and at 180 px. A path's `strokeWidth`
+ * only rounds its corners: the stroke is painted with the fill. Secondary parts sit at a lower
+ * opacity, which reads as a second layer. Cut-outs use evenodd.
  */
 
 function gearPath(teeth = 8, outer = 10, inner = 7.6, hole = 3.4) {
@@ -27,23 +29,82 @@ function gearPath(teeth = 8, outer = 10, inner = 7.6, hole = 3.4) {
 const GEAR = gearPath();
 
 export const glyphs: Record<string, ReactNode> = {
+  // Courses: a mortarboard with its tassel
   cap: (
     <>
-      <path d="M12 3.2 1.5 8.6 12 14l8.2-4.2V15h1.8V8.6L12 3.2Z" />
-      <path d="M5.2 12v3.9c0 1.9 3 3.6 6.8 3.6s6.8-1.7 6.8-3.6V12L12 15.5 5.2 12Z" />
+      <path d="M12 3.6 22.2 8.7 12 13.8 1.8 8.7 12 3.6Z" strokeWidth="1.4" />
+      <path d="M6 11.4v4.5c0 1.9 2.7 3.5 6 3.5s6-1.6 6-3.5v-4.5L12 14.5 6 11.4Z" opacity=".78" />
+      <path d="M19.9 9.6h1.5v6.2h-1.5z" opacity=".9" />
+      <circle cx="20.65" cy="17" r="1.55" opacity=".9" />
     </>
   ),
+  // Journey: a sprout on its patch of ground
   sprout: (
     <>
-      <path d="M11 21v-7h2v7h-2Z" />
-      <path d="M11.4 13.6C6.8 13.9 3.2 10.7 3 6.1L3 5h1.1c4.6 0 7.8 3.4 7.3 8.6Z" />
-      <path d="M12.6 11.2C12.2 6.6 15.1 3.2 19.7 3H21v1.2c-.2 4.4-3.6 7.3-8.4 7Z" />
+      <rect x="11" y="10.8" width="2.1" height="9.6" rx="1.05" />
+      <path d="M11.5 13.4C6.7 13.7 3.4 10.6 3.2 5.8c4.9-.3 8.3 2.8 8.3 7.6Z" opacity=".8" />
+      <path d="M12.5 11.6c-.1-5.7 3.3-9 8.6-8.9.1 5.6-3.3 9-8.6 8.9Z" />
+      <rect x="5.5" y="19.3" width="13" height="2.4" rx="1.2" opacity=".66" />
     </>
   ),
+  // Expertise: three sparkles of falling size
   sparkles: (
     <>
-      <path d="M10 2.5c.7 4.3 2.4 6 6.7 6.7-4.3.7-6 2.4-6.7 6.7-.7-4.3-2.4-6-6.7-6.7 4.3-.7 6-2.4 6.7-6.7Z" />
-      <path d="M18 13.5c.4 2.2 1.2 3 3.4 3.4-2.2.4-3 1.2-3.4 3.4-.4-2.2-1.2-3-3.4-3.4 2.2-.4 3-1.2 3.4-3.4Z" />
+      <path d="M9.6 2.6Q10.6 10 18 11.2 10.6 12.4 9.6 19.8 8.6 12.4 1.2 11.2 8.6 10 9.6 2.6Z" />
+      <path d="M18.6 1.6Q19 4.7 22.2 5.2 19 5.7 18.6 8.8 18.2 5.7 15 5.2 18.2 4.7 18.6 1.6Z" opacity=".85" />
+      <path d="M18.4 15.4Q18.7 17.6 20.9 17.9 18.7 18.2 18.4 20.4 18.1 18.2 15.9 17.9 18.1 17.6 18.4 15.4Z" opacity=".7" />
+    </>
+  ),
+  // Platforms: three stacked layers
+  layers: (
+    <>
+      <path d="M12 3.2 21 7.9 12 12.6 3 7.9 12 3.2Z" strokeWidth="1.6" />
+      <path d="M5.1 11.1 3 12.2l9 4.7 9-4.7-2.1-1.1L12 14.7l-6.9-3.6Z" strokeWidth="1" opacity=".78" />
+      <path d="M5.1 15.4 3 16.5l9 4.7 9-4.7-2.1-1.1L12 19l-6.9-3.6Z" strokeWidth="1" opacity=".56" />
+    </>
+  ),
+  // Reviews: a soft five-point star
+  star: <path d="M12 3.4 14.6 8.8l5.9.8-4.3 4.1 1 5.8L12 16.7l-5.2 2.8 1-5.8-4.3-4.1 5.9-.8L12 3.4Z" strokeWidth="2.2" />,
+  // Blog: a fountain-pen nib with its collar
+  nib: (
+    <>
+      <path d="M8.6 2.4h6.8a1 1 0 0 1 1 1v2.4H7.6V3.4a1 1 0 0 1 1-1Z" opacity=".72" />
+      <path
+        fillRule="evenodd"
+        d="M7.6 7.2h8.8l2.9 4.2c0 3.2-3.8 7.2-7.3 10.8-3.5-3.6-7.3-7.6-7.3-10.8l2.9-4.2Zm4.4 3.2a1.8 1.8 0 1 0 0 3.6 1.8 1.8 0 0 0 0-3.6Zm-.6 3.4v6.4h1.2v-6.4h-1.2Z"
+        strokeWidth="1"
+      />
+    </>
+  ),
+  // Services: the CP bolt
+  bolt: <path d="M13.9 2.2 4.8 13.4h6.3l-1.2 8.4 9.3-11.3h-6.4l1.1-8.3Z" strokeWidth="1.5" />,
+  // Contact: a paper plane, its far wing in shadow
+  plane: (
+    <>
+      <path d="M21.4 2.6 2.9 10.4c-.7.3-.7 1.3 0 1.6l6.8 2.4L21.4 2.6Z" strokeWidth="1.2" />
+      <path d="M21.4 2.6 9.7 14.4l2.4 6.8c.3.7 1.3.7 1.6 0l7.7-18.6Z" strokeWidth="1.2" opacity=".74" />
+    </>
+  ),
+  // Settings: two switches, one on, one off
+  toggles: (
+    <>
+      <path
+        fillRule="evenodd"
+        d="M6.6 3.4h10.8a4.1 4.1 0 0 1 0 8.2H6.6a4.1 4.1 0 0 1 0-8.2Zm10.6 1.6a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5Z"
+      />
+      <rect x="2.5" y="12.6" width="19" height="8.2" rx="4.1" opacity=".5" />
+      <circle cx="6.8" cy="16.7" r="3.1" />
+    </>
+  ),
+  // Rocket (Projects): body with a porthole, fins and a flame
+  rocket: (
+    <>
+      <path
+        fillRule="evenodd"
+        d="M12 1.8c3.4 2.3 5.1 6 5.1 10.1v4.6H6.9v-4.6c0-4.1 1.7-7.8 5.1-10.1Zm0 6.5a2.2 2.2 0 1 0 0 4.4 2.2 2.2 0 0 0 0-4.4Z"
+      />
+      <path d="M6.9 12.4 3.8 15.6v3.6l3.1-1.6v-5.2Zm10.2 0 3.1 3.2v3.6l-3.1-1.6v-5.2Z" strokeWidth="1" opacity=".78" />
+      <path d="M9.7 17.9h4.6L12 22.2l-2.3-4.3Z" strokeWidth="1.2" opacity=".7" />
     </>
   ),
   globe: (
@@ -53,26 +114,17 @@ export const glyphs: Record<string, ReactNode> = {
       <path d="M3.4 9h17.2M3.4 15h17.2" />
     </g>
   ),
-  star: (
-    <path d="M12 2.6 14.9 8.5l6.5.9-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5-4.7-4.6 6.5-.9L12 2.6Z" />
-  ),
   newspaper: (
     <path
       fillRule="evenodd"
       d="M4.5 3.5h11.8c.8 0 1.4.6 1.4 1.4V18c0 .8.6 1.5 1.4 1.5s1.4-.7 1.4-1.5V8h1v10c0 2-1.5 3.5-3.4 3.5H5.5C3.6 21.5 2.5 20 2.5 18V5.5c0-1.1.9-2 2-2ZM6 7v4.5h8.2V7H6Zm0 6.5V15h8.2v-1.5H6Zm0 3V18h5.5v-1.5H6Z"
     />
   ),
-  bolt: <path d="M13.8 2 4.2 13.6h6.4L9.4 22l10.4-12.3h-6.6L13.8 2Z" />,
-  plane: (
-    <>
-      <path d="M21.6 2.4 2.9 10.1c-.8.3-.8 1.5.1 1.8l6.1 2.3L21.6 2.4Z" />
-      <path d="M21.6 2.4 9.9 14.9l2.3 6.1c.3.9 1.5.9 1.8.1L21.6 2.4Z" opacity=".72" />
-    </>
-  ),
   chat: (
     <path
       fillRule="evenodd"
       d="M5 3.5h14c1.7 0 3 1.3 3 3v9c0 1.7-1.3 3-3 3h-8.2L6 22v-3.5H5c-1.7 0-3-1.3-3-3v-9c0-1.7 1.3-3 3-3Zm7 2.3c-.4 2.4-1.3 3.3-3.7 3.7 2.4.4 3.3 1.3 3.7 3.7.4-2.4 1.3-3.3 3.7-3.7-2.4-.4-3.3-1.3-3.7-3.7Z"
+      strokeWidth="1"
     />
   ),
   gear: <path fillRule="evenodd" d={GEAR} />,
@@ -81,15 +133,6 @@ export const glyphs: Record<string, ReactNode> = {
       fillRule="evenodd"
       d="M12 2.5a9.5 9.5 0 1 0 0 19 9.5 9.5 0 0 0 0-19ZM9.8 8v8l6.6-4-6.6-4Z"
     />
-  ),
-  rocket: (
-    <>
-      <path
-        fillRule="evenodd"
-        d="M12 1.8c3.3 2.2 5.2 5.9 5.2 10V15l2 2.4v2.8l-3.6-1.6H8.4l-3.6 1.6v-2.8l2-2.4v-3.2c0-4.1 1.9-7.8 5.2-10Zm0 6.4a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"
-      />
-      <path d="M10.3 19.6h3.4L12 22.6l-1.7-3Z" opacity=".75" />
-    </>
   ),
   search: (
     <path
@@ -132,18 +175,44 @@ export const glyphs: Record<string, ReactNode> = {
   ),
 };
 
-/** A glyph lit from above: full colour at the top, a touch deeper at the bottom (gives it weight). */
+/**
+ * A glyph lit from above: `--g1` at the top to `--g2` at the bottom (both the text colour unless
+ * a tile sets them: white on colour tiles, the app's own colours on light and ink tiles).
+ */
 export function Glyph({ name, className }: { name: string; className?: string }) {
   const id = `g${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
+  const paint = `url(#${id})`;
   return (
-    <svg viewBox="0 0 24 24" fill={`url(#${id})`} aria-hidden className={className} data-glyph={name}>
+    <svg
+      viewBox="0 0 24 24"
+      fill={paint}
+      stroke={paint}
+      strokeWidth="0"
+      strokeLinejoin="round"
+      aria-hidden
+      className={className}
+      data-glyph={name}
+    >
       <defs>
         <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="currentColor" />
-          <stop offset="1" stopColor="currentColor" stopOpacity="0.84" />
+          <stop offset="0" style={{ stopColor: "var(--g1, currentColor)" }} />
+          <stop offset="1" style={{ stopColor: "var(--g2, currentColor)", stopOpacity: "var(--g2-alpha, 0.86)" }} />
         </linearGradient>
       </defs>
       {glyphs[name] ?? glyphs.sparkles}
     </svg>
   );
+}
+
+export type Face = "color" | "light" | "ink";
+
+/**
+ * Props for anything drawn as an app's icon face outside the home tile (launch overlay, app
+ * switcher, folder previews, notifications): the `.tile-face` class paints the same gradient.
+ */
+export function faceProps(item: { colors: readonly [string, string] | string[]; face?: Face }) {
+  return {
+    "data-face": item.face ?? "color",
+    style: { "--c1": item.colors[0], "--c2": item.colors[1] } as CSSProperties,
+  };
 }

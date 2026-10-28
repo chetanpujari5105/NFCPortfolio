@@ -20,3 +20,20 @@ export const test = base.extend<{ banner: boolean }>({
     await provide(page);
   },
 });
+
+/**
+ * Waits until the phone has finished arriving: awake, and on the desktop stage the live screen
+ * has moved into the 3D phone. Tests that press things right after load use it, so a press
+ * never lands mid-swap while the phone is still turning in.
+ */
+export async function settled(page: import("@playwright/test").Page) {
+  await page.waitForFunction(
+    () => {
+      const root = document.documentElement;
+      const stage3D = matchMedia("(min-width: 900px) and (min-height: 520px) and (prefers-reduced-motion: no-preference)").matches;
+      return root.hasAttribute("data-awake") && (!stage3D || root.hasAttribute("data-3d"));
+    },
+    null,
+    { timeout: 25_000 },
+  );
+}

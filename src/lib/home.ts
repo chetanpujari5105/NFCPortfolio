@@ -206,7 +206,8 @@ export function homeGeometry(W: number, H: number, insets: Insets, framed: boole
   const bottom = framed ? H * 0.014 : Math.max(insets.bottom, landscape ? 6 : 8);
   // Rows a phone page is designed for; the icon shrinks toward 48 px before a row is given up
   const target = landscape ? 3 : 6;
-  const fromWidth = cellW * 0.84;
+  // A phone sets a 60 pt icon on a 390 pt screen (≈ 64–66 pt at 430): 0.81 of the cell
+  const fromWidth = cellW * 0.81;
   const search = landscape ? SEARCH_ROW_LANDSCAPE : SEARCH_ROW;
   const padRatio = landscape ? 0.15 : 0.2;
   const fixed = H - top - bottom - search - LABEL * target;

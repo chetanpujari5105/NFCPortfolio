@@ -61,3 +61,5 @@ docs/v4/**/*.webm
 /apple-iphone-18-pro-max-burgundy-2026/
 # Original guide prompts: contain private data (see guide repo notes)
 /guide-sources/
+# v6 icon captures: the full-size PNGs regenerate with `node scripts/v6-shots.mjs <dir>`; the contact sheets are committed
+/docs/v6/*/*.png

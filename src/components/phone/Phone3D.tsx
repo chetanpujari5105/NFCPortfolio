@@ -152,6 +152,45 @@ function useGlassSheen() {
   }, []);
 }
 
+/* ───────────────────────────── Back mark ───────────────────────────── */
+
+/**
+ * The model ships with a manufacturer logo on its back. Its licence isn't confirmed, so unless
+ * NEXT_PUBLIC_SHOW_MODEL_LOGO=true the logo mesh is hidden and the ⚡ CP mark takes its place,
+ * in a satin metal that follows the logo's colour (so every finish tints it).
+ */
+const SHOW_MODEL_LOGO = process.env.NEXT_PUBLIC_SHOW_MODEL_LOGO === "true";
+const LOGO_NODE = "Back_Logo";
+/** How much lighter than the logo colour the mark's metal is */
+const MARK_LIFT = 1.6;
+
+/** ⚡ over "CP", white on black: an alpha map (the original bolt from the site's own icon). */
+function useMarkTexture(enabled: boolean) {
+  return useMemo(() => {
+    if (!enabled) return null;
+    const c = document.createElement("canvas");
+    c.width = 512;
+    c.height = 640;
+    const g = c.getContext("2d")!;
+    g.fillStyle = "#000";
+    g.fillRect(0, 0, c.width, c.height);
+    g.fillStyle = "#fff";
+    g.beginPath();
+    // icon.svg's bolt (64-unit grid), scaled ×8.6 and centred over the letters
+    const bolt = [[36.5, 8], [17, 36], [29.5, 36], [26, 56], [47, 26.5], [34.2, 26.5]];
+    bolt.forEach(([x, y], i) => (i ? g.lineTo(x * 8.6 - 19, y * 8.6 - 60) : g.moveTo(x * 8.6 - 19, y * 8.6 - 60)));
+    g.closePath();
+    g.fill();
+    g.textAlign = "center";
+    g.textBaseline = "alphabetic";
+    g.font = `700 118px -apple-system, "SF Pro Display", "Helvetica Neue", Arial, sans-serif`;
+    g.fillText("CP", 256, 620);
+    const tex = new THREE.CanvasTexture(c);
+    tex.anisotropy = 8;
+    return tex;
+  }, [enabled]);
+}
+
 /* ───────────────────────────── The device ───────────────────────────── */
 
 /** The model's coloured parts: the metal frame (and plateau) and the back glass family. */
@@ -190,11 +229,13 @@ function Device({
   const finish = useOS((s) => s.finish);
   const { scene } = useGLTF(MODEL_URL, false);
   const sheen = useGlassSheen();
+  const markTex = useMarkTexture(!SHOW_MODEL_LOGO);
   // Make the entrance only if the CSS phone is still waiting for us (first load on desktop).
   const [arrive] = useState(() => document.documentElement.hasAttribute("data-stage-wait"));
   const arrival = useRef({ p: arrive ? 0 : 1, v: 0, landed: !arrive });
   const tilt = useRef({ x: 0, y: 0 });
   const press = useRef(0);
+  const hit = useRef<THREE.Mesh>(null);
   const invalidate = useThree((s) => s.invalidate);
 
   const geo = useMemo(() => ({ screen: new THREE.ShapeGeometry(roundedRect(SCREEN_W, SCREEN_H, SCREEN_R), 32) }), []);
@@ -239,8 +280,39 @@ function Device({
     tinted.forEach((t) => (t.share = luminance(t.base) / (t.part === "frame" ? frameRef : backRef)));
     const buttons = BUTTON_NODES.map((name) => scene.getObjectByName(name)).filter((o): o is THREE.Object3D => !!o);
     buttons.forEach((b) => (b.userData.x = b.position.x));
-    return { tinted, buttons };
+    // The back logo: where it sits in model space, so the CP mark can take its exact place
+    const logo = scene.getObjectByName(LOGO_NODE) as THREE.Mesh | undefined;
+    let mark: { center: THREE.Vector3; size: THREE.Vector3; material: THREE.Material } | null = null;
+    if (logo) {
+      logo.visible = SHOW_MODEL_LOGO;
+      scene.updateMatrixWorld(true);
+      const box = new THREE.Box3().setFromObject(logo).applyMatrix4(scene.matrixWorld.clone().invert());
+      mark = { center: box.getCenter(new THREE.Vector3()), size: box.getSize(new THREE.Vector3()), material: logo.material as THREE.Material };
+      mark.center.z = box.min.z;
+    }
+    return { tinted, buttons, mark };
   }, [scene]);
+  // The mark: satin metal a step lighter than the logo colour (so it follows the finish), cut out
+  // by the ⚡ CP alpha map. A flat plane in the logo's glossy material would mirror the dark studio.
+  const markMat = useMemo(() => {
+    if (!markTex || !parts.mark) return null;
+    return new THREE.MeshStandardMaterial({
+      alphaMap: markTex,
+      transparent: true,
+      depthWrite: false,
+      metalness: 0.75,
+      roughness: 0.38,
+      polygonOffset: true,
+      polygonOffsetFactor: -2,
+    });
+  }, [markTex, parts]);
+  useEffect(
+    () => () => {
+      markTex?.dispose();
+      markMat?.dispose();
+    },
+    [markTex, markMat],
+  );
 
   // Finish colours: Burgundy is the model as shipped; the others tint each part, keeping its
   // brightness relative to the main surface. Starts where it is and blends over ~400 ms (useFrame).
@@ -324,6 +396,7 @@ function Device({
     parts.tinted.forEach((t, i) => {
       moving = easing.dampC(t.material.color, targets[i], 0.12, dt) || moving;
     });
+    if (markMat && parts.mark) markMat.color.copy((parts.mark.material as THREE.MeshStandardMaterial).color).multiplyScalar(MARK_LIFT);
 
     // The glass reflection drifts a touch with the parallax, like light on a real cover glass
     sheen.offset.set(0.5 - tilt.current.y * 1.6, 0.5 + tilt.current.x * 1.6);
@@ -335,6 +408,8 @@ function Device({
     press.current = Math.abs(next - want) < 1e-3 ? want : next;
     parts.buttons.forEach((b) => (b.position.x = b.userData.x - press.current * BUTTON_TRAVEL));
     if (press.current !== want) moving = true;
+    const control = press.current > 0.5 ? "pressed" : "released";
+    if (stage.current && stage.current.dataset.cameraControl !== control) stage.current.dataset.cameraControl = control;
 
     // The screen is only interactive while it faces the camera.
     const facing = !showingBack(g.rotation.y);
@@ -347,6 +422,12 @@ function Device({
     }
 
     if (moving) state.invalidate();
+    // At rest, where the camera control is on the page (for tests and the scripts in scripts/)
+    else if (s && hit.current && facing) {
+      const p = hit.current.getWorldPosition(new THREE.Vector3()).project(state.camera);
+      const r = state.gl.domElement.getBoundingClientRect();
+      s.dataset.cameraControlAt = `${Math.round(r.left + ((p.x + 1) / 2) * r.width)},${Math.round(r.top + ((1 - p.y) / 2) * r.height)}`;
+    }
   });
 
   const pressButton = (e: ThreeEvent<PointerEvent>) => {
@@ -366,8 +447,14 @@ function Device({
       {/* The model: centred on its frame, the front glass on z = FRONT_Z */}
       <group scale={MODEL_SCALE} position={[0, -(MODEL.bottom + MODEL.height / 2) * MODEL_SCALE, FRONT_Z - MODEL.front * MODEL_SCALE]}>
         <primitive object={scene} dispose={null} />
+        {markMat && parts.mark && (
+          <mesh position={[parts.mark.center.x, parts.mark.center.y, parts.mark.center.z - 0.00002]} rotation-y={Math.PI} material={markMat}>
+            {/* Same height as the logo it replaces; the texture is 4:5 */}
+            <planeGeometry args={[parts.mark.size.y * 1.15 * 0.8, parts.mark.size.y * 1.15]} />
+          </mesh>
+        )}
         {/* The camera control's hit area (the only mesh with a handler, so pointer moves stay cheap) */}
-        <mesh position={BUTTON_HIT.position} onPointerDown={pressButton}>
+        <mesh ref={hit} position={BUTTON_HIT.position} onPointerDown={pressButton}>
           <boxGeometry args={BUTTON_HIT.size} />
           <meshBasicMaterial visible={false} />
         </mesh>

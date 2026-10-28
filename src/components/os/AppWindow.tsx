@@ -23,7 +23,7 @@ import { animateTo, dismissProgress, haptic, launchProgress, rubberBand, springs
 import { goHome } from "@/lib/router";
 import { prefersReducedMotion, useOS } from "@/lib/store";
 
-import { Glyph } from "./icons";
+import { faceProps, Glyph } from "./icons";
 import { WindowCtx, type WindowMotion } from "./window-motion";
 
 const ITEMS = [...appsLayout.block, ...appsLayout.row, ...appsLayout.dock, askApp];
@@ -344,11 +344,9 @@ export function AppWindow({ app, title, closing, initial, quick, screenRef, onCl
         {item && (
           <m.div
             aria-hidden
-            style={{
-              opacity: overlayOpacity,
-              background: `linear-gradient(165deg, ${item.colors[0]}, ${item.colors[1]})`,
-            }}
-            className="pointer-events-none absolute inset-0 grid place-items-center text-white"
+            {...faceProps(item)}
+            style={{ ...faceProps(item).style, opacity: overlayOpacity }}
+            className="tile-face pointer-events-none absolute inset-0 grid place-items-center"
           >
             <Glyph name={item.icon} className="w-[54cqmin]" />
           </m.div>

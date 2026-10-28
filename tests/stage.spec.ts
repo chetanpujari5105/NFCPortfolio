@@ -45,6 +45,20 @@ test("drags that start on the screen never rotate the phone", async ({ page }) =
   expect(await rotY(page)).toBe(0);
 });
 
+test("the camera control presses in while held and springs back, without turning the phone", async ({ page }) => {
+  await ready(page);
+  await expect(stage(page)).toHaveAttribute("data-camera-control-at", /^\d+,\d+$/);
+  const [x, y] = (await stage(page).getAttribute("data-camera-control-at"))!.split(",").map(Number);
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await expect(stage(page)).toHaveAttribute("data-camera-control", "pressed");
+  await page.waitForTimeout(250);
+  await expect(stage(page)).toHaveAttribute("data-camera-control", "pressed");
+  await page.mouse.up();
+  await expect(stage(page)).toHaveAttribute("data-camera-control", "released");
+  expect(await rotY(page)).toBe(0);
+});
+
 test("reduced motion keeps the flat CSS phone", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");

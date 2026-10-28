@@ -8,8 +8,9 @@ import { useDrag } from "@use-gesture/react";
 import { profile } from "@content/profile";
 import { animateTo, haptic, rubberBand, springs, unlockProgress, withVelocity } from "@/lib/motion";
 import { prefersReducedMotion, useOS } from "@/lib/store";
+import { TILES } from "@/lib/home";
 
-import { Glyph } from "./icons";
+import { faceProps, Glyph } from "./icons";
 import { useServerData } from "./server-data";
 
 function useNow() {
@@ -157,10 +158,10 @@ export function LockScreen() {
         <m.div style={{ opacity: clockOpacity }} className="glass-dark mt-[5cqh] flex w-full items-center gap-3 rounded-[22px] p-3 shadow-[inset_0_1px_0_rgb(255_255_255/0.2)]">
           <span
             aria-hidden
-            className="grid size-[38px] shrink-0 place-items-center rounded-[10px] text-white"
-            style={{ background: "linear-gradient(165deg, #ffb36b, #ff6a1f)" }}
+            {...faceProps(TILES.blog)}
+            className="tile-face squircle grid size-[38px] shrink-0 place-items-center"
           >
-            <Glyph name="newspaper" className="size-[20px]" />
+            <Glyph name={TILES.blog.icon} className="size-[23px]" />
           </span>
           <span className="min-w-0 flex-1 text-left">
             <span className="flex items-baseline justify-between gap-2 text-[12px] font-semibold text-white/75">

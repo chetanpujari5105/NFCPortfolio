@@ -146,8 +146,9 @@ export function startWallpaper(
 
     const readColors = () => {
       const css = getComputedStyle(document.documentElement);
-      gl.uniform3f(u.a, ...parseColor(css.getPropertyValue("--accent")));
-      gl.uniform3f(u.d, ...parseColor(css.getPropertyValue("--accent-deep")));
+      // The wallpaper's own tint when the finish sets one (Burgundy: deeper wine than its accent)
+      gl.uniform3f(u.a, ...parseColor(css.getPropertyValue("--wall") || css.getPropertyValue("--accent")));
+      gl.uniform3f(u.d, ...parseColor(css.getPropertyValue("--wall-deep") || css.getPropertyValue("--accent-deep")));
       gl.uniform1f(
         u.dark,
         document.documentElement.classList.contains("dark") ? 1 : 0,

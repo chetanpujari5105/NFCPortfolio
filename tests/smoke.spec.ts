@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "./fixtures";
+import { expect, settled, test, type Page } from "./fixtures";
 
 // The lock screen shows once per session; these tests start on the home screen.
 test.beforeEach(async ({ page }) => {
@@ -22,6 +22,7 @@ function trackErrors(page: Page) {
 async function home(page: Page) {
   await page.goto("/");
   await expect(page.locator("[data-app-icon]").first()).toBeVisible();
+  await settled(page);
 }
 
 // App windows only (Control Center and the switcher are dialogs too)
@@ -70,6 +71,7 @@ test("deep links open the app directly and Esc goes home", async ({ page }) => {
   for (const app of ["courses", "platforms", "contact"]) {
     await page.goto(`/#${app}`);
     await expect(dialog(page)).toBeVisible();
+    await settled(page);
     await page.keyboard.press("Escape");
     await expect(dialog(page)).toHaveCount(0);
   }
@@ -94,6 +96,7 @@ test("contact form validates, then falls back to email when sending is unavailab
     route.fulfill({ status: 503, json: { ok: false, reason: "unavailable", email: "x@example.com" } }),
   );
   await page.goto("/#contact");
+  await settled(page);
   const send = page.getByRole("button", { name: "Send message" });
   await send.click();
   await expect(page.locator("#contact-email")).toBeFocused();
