@@ -75,7 +75,7 @@ export async function getPosts(): Promise<{ posts: FeedPost[]; fromFeed: boolean
 }
 
 /** Channel feed (public, no key). Empty or unreachable → null and the widget links the channel. */
-export const YOUTUBE_FEED = "https://www.youtube.com/feeds/videos.xml?channel_id=UCBfmE2dDnKSHxeIG6ACyhmw";
+export const YOUTUBE_FEED = "https://www.youtube.com/feeds/videos.xml?channel_id=UCZHE1x_Qh-8YfgQm44F9KQg";
 
 export function parseVideoFeed(xml: string): LatestVideo | null {
   const entry = xml.match(/<entry>([\s\S]*?)<\/entry>/)?.[1];

@@ -7,7 +7,7 @@ export const platforms = {
     { name: "TutorialsPoint", url: "https://market.tutorialspoint.com/profile/chetan-pujari", logo: "T" },
     { name: "Starweaver", url: "https://do.starweaver.com/channels/chetan-pujari/about-me", logo: "★" },
     { name: "Packt", url: null, logo: "P", note: "Distributed to Coursera, O'Reilly & more" },
-    { name: "YouTube", url: "https://www.youtube.com/@chetanpujari", logo: "▶" },
+    { name: "YouTube", url: "https://www.youtube.com/@ImaginaryProgrammer", logo: "▶" },
   ],
   distribution: [
     "ACI Learning",

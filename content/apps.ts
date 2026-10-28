@@ -13,7 +13,7 @@ export const appsLayout = {
     { id: "reviews", label: "Reviews", icon: "star", colors: ["#ffcd3f", "#ff9500"], app: "reviews" },
   ],
   row: [
-    { id: "youtube", label: "YouTube", icon: "play", colors: ["#ff6a5c", "#d81f26"], href: "https://www.youtube.com/@chetanpujari", brand: "youtube" },
+    { id: "youtube", label: "YouTube", icon: "play", colors: ["#ff6a5c", "#d81f26"], href: "https://www.youtube.com/@ImaginaryProgrammer", brand: "youtube" },
     { id: "socials", label: "Socials", icon: "folder", colors: ["#ffffff", "#ffffff"], app: "socials" },
     { id: "projects", label: "Projects", icon: "rocket", colors: ["#ff7b66", "#ea3a35"], app: "projects" },
     { id: "settings", label: "Settings", icon: "toggles", colors: ["#a5a7b0", "#686a74"], app: "settings" },

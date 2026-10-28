@@ -59,7 +59,7 @@ export function BlogWidget() {
 /** 2×2: the latest YouTube video, or a channel card while the channel has none public. */
 export function VideoWidget() {
   const { video } = useServerData();
-  const handle = profile.socials.find((s) => s.id === "youtube")?.handle ?? "@chetanpujari";
+  const handle = profile.socials.find((s) => s.id === "youtube")?.handle ?? "@ImaginaryProgrammer";
   return (
     <a
       href={video?.url ?? profile.youtube}

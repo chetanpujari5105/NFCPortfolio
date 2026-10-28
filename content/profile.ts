@@ -33,11 +33,11 @@ export const profile = {
     { id: "ai-instagram", label: "AI Instagram", handle: "@_chetan_pujari_", url: "https://www.instagram.com/_chetan_pujari_/" },
     { id: "substack", label: "Substack", handle: "chetanpujari", url: "https://chetanpujari.substack.com/" },
     { id: "udemy", label: "Udemy", handle: "chetan-pujari-3", url: "https://www.udemy.com/user/chetan-pujari-3/" },
-    { id: "youtube", label: "YouTube", handle: "@chetanpujari", url: "https://www.youtube.com/@chetanpujari" },
+    { id: "youtube", label: "YouTube", handle: "@ImaginaryProgrammer", url: "https://www.youtube.com/@ImaginaryProgrammer" },
     { id: "github", label: "GitHub", handle: "chetanpujari5105", url: "https://github.com/chetanpujari5105" },
   ],
   udemyProfile: "https://www.udemy.com/user/chetan-pujari-3/",
-  youtube: "https://www.youtube.com/@chetanpujari",
+  youtube: "https://www.youtube.com/@ImaginaryProgrammer",
   substack: "https://chetanpujari.substack.com/",
   github: "chetanpujari5105",
   stats: {
