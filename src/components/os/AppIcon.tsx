@@ -15,7 +15,7 @@ import { HOME_MARKS } from "./social-icons";
 import { faceProps, Glyph } from "./icons";
 
 type Props = {
-  item: Pick<HomeItem, "id" | "label" | "icon" | "colors" | "face" | "app" | "href" | "brand">;
+  item: Pick<HomeItem, "id" | "label" | "icon" | "colors" | "app" | "href" | "brand">;
   showLabel?: boolean;
   /** Custom tile content (e.g. a folder's preview) */
   tile?: ReactNode;
@@ -60,19 +60,15 @@ function usePress() {
   };
 }
 
-const isWhite = (c: string) => /^#f{3}(f{3})?$/i.test(c);
-
 /** The squircle itself. `tileKey: null` draws a copy that launches and folders don't anchor to. */
 export function IconFace({ item, tile, tileKey }: Pick<Props, "item" | "tile"> & { tileKey?: string | null }) {
   const mark = item.brand ? HOME_MARKS[item.brand] : undefined;
   const brand = mark?.tile;
-  // Brand tiles keep their own colours; a white one gets the light face's hairline edge
-  const face = brand
-    ? { "data-face": isWhite(brand.bg) ? "light" : "color", style: { "--tile": brand.bg, color: brand.fg } as CSSProperties }
-    : faceProps(item);
+  // Brand tiles keep their official colours
+  const face = brand ? { style: { "--tile": brand.bg, color: brand.fg } as CSSProperties } : faceProps(item);
   return (
     <span
-      className={cn("icon-tile wiggle-item", brand && "icon-brand")}
+      className="icon-tile wiggle-item"
       data-icon-tile={tileKey === null ? undefined : (tileKey ?? item.app ?? item.id)}
       {...face}
     >
@@ -98,7 +94,7 @@ export function AppIcon({ item, showLabel = true, tile, className, onOpen, tileK
     </>
   );
   const classes = cn(
-    "icon-press flex flex-col items-center gap-[5px] rounded-[14px] outline-offset-4 select-none [-webkit-touch-callout:none] [-webkit-tap-highlight-color:transparent]",
+    "icon-press flex flex-col items-center gap-[calc(var(--icon)*0.11)] rounded-[14px] outline-offset-4 select-none [-webkit-touch-callout:none] [-webkit-tap-highlight-color:transparent]",
     className,
   );
 

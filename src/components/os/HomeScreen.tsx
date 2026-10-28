@@ -393,15 +393,15 @@ function PageDots({ page, pages, height, onPage }: { page: number; pages: number
   const setSpotlightOpen = useOS((s) => s.setSpotlightOpen);
   return (
     <div data-fly="fade" className="flex items-start justify-center" style={{ height, paddingTop: height - 36 }} data-no-swipe>
-      <div data-search-pill className="glass-chrome flex h-[28px] items-center gap-0.5 rounded-full pr-2 pl-0.5 text-white">
+      <div data-search-pill className="glass-chrome flex h-[26px] items-center gap-0.5 rounded-full pr-2 pl-0.5 text-white">
         <button
           type="button"
           data-nav
           aria-label="Search"
           onClick={() => setSpotlightOpen(true)}
-          className="press-spring flex h-[26px] items-center gap-1 rounded-full px-2.5 text-[12.5px] font-medium tracking-[-0.01em]"
+          className="press-spring flex h-[24px] items-center gap-1 rounded-full px-2.5 text-[11.5px] font-medium"
         >
-          <Glyph name="search" className="size-[12px] opacity-90" />
+          <Glyph name="search" className="size-[11px] opacity-90" />
           Search
         </button>
         {Array.from({ length: pages }, (_, i) => (
@@ -447,7 +447,7 @@ const Dock = memo(function Dock({ entries, geo }: { entries: string[]; geo: Home
       onPointerLeave={() => mouseX.set(Infinity)}
       className={
         full
-          ? "dock-glass mx-[4.1cqw] grid grid-cols-4 justify-items-center gap-x-[4.2cqw] px-[4.9cqw]"
+          ? "dock-glass mx-[3.8cqw] flex justify-between px-[3.1cqw]"
           : "dock-glass mx-auto flex min-w-[calc(var(--icon)+32px)] justify-center px-[16px]"
       }
       style={{

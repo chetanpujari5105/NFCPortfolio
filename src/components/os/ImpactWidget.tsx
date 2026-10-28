@@ -62,11 +62,11 @@ export function ImpactWidget() {
       data-app-icon="journey-widget"
       onClick={() => openApp("journey")}
       aria-label={`Impact: ${STATS.map((s) => `${s.format(s.value)} ${s.label}`).join(", ")}. Open Journey`}
-      className="icon-press flex size-full flex-col items-center gap-[5px] select-none"
+      className="icon-press flex size-full flex-col items-center gap-[calc(var(--icon)*0.11)] select-none"
     >
       <span
         data-widget-tile
-        className="wiggle-item glass-dark [container-type:size] flex min-h-0 w-full flex-1 items-center gap-[3.4cqw] overflow-hidden widget-r px-[4cqw] text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.18)] transition-transform duration-150 ease-out [.icon-press:active_&]:scale-[0.97]"
+        className="wiggle-item widget-graphite [container-type:size] flex min-h-0 w-full flex-1 items-center gap-[3.4cqw] overflow-hidden widget-r px-[clamp(11px,4cqw,15px)] transition-transform duration-150 ease-out [.icon-press:active_&]:scale-[0.97]"
       >
         <svg
           viewBox={`0 0 ${COLS} ${ROWS}`}
@@ -88,10 +88,10 @@ export function ImpactWidget() {
         <span className="grid min-w-0 flex-1 grid-cols-2 gap-x-[2cqw] gap-y-[min(8px,5cqh)] text-left">
           {STATS.map((s) => (
             <span key={s.label} className="flex min-w-0 flex-col leading-none">
-              <span className="text-[clamp(14px,min(4.6cqw,13cqh),18px)] font-bold tracking-tight whitespace-nowrap tabular-nums">
+              <span className="text-[clamp(15px,min(5.4cqw,14cqh),20px)] font-bold tracking-[-0.03em] whitespace-nowrap tabular-nums">
                 <CountUp value={s.value} format={s.format} />
               </span>
-              <span className="mt-1 truncate text-[clamp(9.5px,min(2.9cqw,8cqh),11px)] font-medium text-white/70">{s.label}</span>
+              <span className="mt-1 truncate text-[clamp(9.5px,min(2.9cqw,8cqh),11px)] text-white/60">{s.label}</span>
             </span>
           ))}
         </span>

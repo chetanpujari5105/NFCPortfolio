@@ -88,12 +88,7 @@ export default function OpengraphImage() {
                   width: 40,
                   height: 40,
                   borderRadius: 10,
-                  background:
-                    t.face === "light"
-                      ? "linear-gradient(180deg, #ffffff, #e2e3ea)"
-                      : t.face === "ink"
-                        ? "linear-gradient(180deg, #3d3d45, #0b0b0e)"
-                        : `linear-gradient(160deg, ${t.colors[0]}, ${t.colors[1]})`,
+                  background: `linear-gradient(180deg, ${t.colors[0]}, ${t.colors[1]})`,
                 }}
               />
             ))}

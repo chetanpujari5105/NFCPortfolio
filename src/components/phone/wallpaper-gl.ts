@@ -19,7 +19,6 @@ uniform float t;
 uniform vec3 a;
 uniform vec3 d;
 uniform int mode;
-uniform float dark;
 
 vec3 tone(vec3 c){ return c / (c + vec3(0.9)) * 1.6; }
 
@@ -56,7 +55,6 @@ void main(){
   col = tone(col);
   float vig = smoothstep(1.25, .35, length(q * vec2(.9, .7)));
   col *= mix(.55, 1., vig);
-  col *= mix(1., .82, dark);
   col += (fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) - .5) * .022;
   gl_FragColor = vec4(col, 1.);
 }`;
@@ -141,7 +139,6 @@ export function startWallpaper(
       a: gl.getUniformLocation(program, "a"),
       d: gl.getUniformLocation(program, "d"),
       mode: gl.getUniformLocation(program, "mode"),
-      dark: gl.getUniformLocation(program, "dark"),
     };
 
     const readColors = () => {
@@ -149,10 +146,6 @@ export function startWallpaper(
       // The wallpaper's own tint when the finish sets one (Burgundy: deeper wine than its accent)
       gl.uniform3f(u.a, ...parseColor(css.getPropertyValue("--wall") || css.getPropertyValue("--accent")));
       gl.uniform3f(u.d, ...parseColor(css.getPropertyValue("--wall-deep") || css.getPropertyValue("--accent-deep")));
-      gl.uniform1f(
-        u.dark,
-        document.documentElement.classList.contains("dark") ? 1 : 0,
-      );
     };
     gl.uniform1i(u.mode, MODES[wallpaper]);
     readColors();

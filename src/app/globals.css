@@ -483,53 +483,14 @@ html[data-reduce-motion] .screen-off {
 }
 
 /*
- * Icon faces, shared by the home tile and everything drawn as an app's icon elsewhere (launch
- * overlay, app switcher, folder previews: `.tile-face`). Three looks, set by `data-face`:
- * color (white glyph on a 3-stop gradient), light (white tile, the gradient moves into the
- * glyph) and ink (near-black tile, same). Glyphs read `--g1`/`--g2` (see icons.tsx).
+ * App icon faces, shared by the home tile and everything drawn as an app's icon elsewhere (launch
+ * overlay, app switcher, folder previews: `.tile-face`): one smooth two-stop vertical gradient
+ * (`--c1` top, `--c2` foot) under one flat white glyph. The same in light and dark, as a phone's
+ * home screen is.
  */
 .tile-face,
 .icon-tile {
-  --face: linear-gradient(180deg, color-mix(in oklab, var(--c1), #fff 16%) 0%, var(--c1) 40%, var(--c2) 100%);
-  --g1: #fff;
-  /* A white that takes a breath of the tile colour at its foot (opaque: a rounding stroke over
-     its own fill must not show a seam) */
-  --g2: color-mix(in oklab, #fff 88%, var(--c1, #fff));
-  --g2-alpha: 1;
-  /* Glyph shadow in the tile's own deep colour, so it reads as depth, not dirt */
-  --glyph-shade: color-mix(in oklab, color-mix(in oklab, var(--c2, #000), #000 50%) 50%, transparent);
-  --edge-light: rgb(255 255 255 / 0.6);
-  /* Strength of the soft top highlight */
-  --hi: 0.26;
-}
-[data-face="light"] {
-  --face: linear-gradient(180deg, #fff 0%, #f6f6f9 46%, #e2e3ea 100%);
-  --g1: var(--c1);
-  --g2: var(--c2);
-  --g2-alpha: 1;
-  --glyph-shade: color-mix(in oklab, var(--c2, #000), transparent 72%);
-  --edge-light: rgb(255 255 255 / 0.95);
-}
-[data-face="ink"] {
-  --face: linear-gradient(180deg, #3d3d45 0%, #1f1f25 48%, #0b0b0e 100%);
-  --g1: var(--c1);
-  --g2: var(--c2);
-  --g2-alpha: 1;
-  --glyph-shade: rgb(0 0 0 / 0.55);
-  --edge-light: rgb(255 255 255 / 0.4);
-  --hi: 0.09;
-}
-/*
- * Dark mode, as the phone does it: app icons go dark (a near-black tile, the colour moves into
- * the glyph, lifted a touch so it holds up on black). Brand tiles keep their official colours.
- */
-.dark :is(.tile-face, .icon-tile:not(.icon-brand)):is([data-face="color"], [data-face="light"]) {
-  --face: linear-gradient(180deg, #36363d 0%, #1d1d22 50%, #0c0c0f 100%);
-  --g1: color-mix(in oklab, var(--c1), #fff 22%);
-  --g2: var(--c1);
-  --glyph-shade: rgb(0 0 0 / 0.5);
-  --edge-light: rgb(255 255 255 / 0.34);
-  --hi: 0.08;
+  --face: linear-gradient(180deg, var(--c1), var(--c2));
 }
 .tile-face {
   background: var(--face);
@@ -537,75 +498,37 @@ html[data-reduce-motion] .screen-off {
 }
 
 /*
- * Home tiles. The tile itself is unmasked so it can carry the outer shadow; every layer is cut
- * by the superellipse:
- *   ::before  the face, a soft top highlight and a faint inner shadow at the bottom edge
- *   ::after   a thin edge light: the squircle minus a squircle inset by --edge, lit from above
- * `--tile` replaces the face (brand tiles keep their official colour).
+ * Home tiles. The tile itself is unmasked so it can carry the outer shadow (a soft 3/60 lift);
+ * the face is `::before`, cut by the superellipse. `--tile` replaces the face (brand tiles keep
+ * their official colour, flat).
  */
 .icon-tile {
-  --edge: max(1px, calc(var(--icon) * 0.0105));
   position: relative;
   display: grid;
   place-items: center;
   width: var(--icon);
   height: var(--icon);
   color: #fff;
-  filter: drop-shadow(0 0.5px 0.5px rgb(0 0 0 / 0.1)) drop-shadow(0 calc(var(--icon) * 0.035) calc(var(--icon) * 0.075) rgb(0 0 0 / 0.17));
+  filter: drop-shadow(0 calc(var(--icon) * 0.05) calc(var(--icon) * 0.06) rgb(0 0 0 / 0.14));
 }
-.icon-tile::before,
-.icon-tile::after {
+.icon-tile::before {
   content: "";
   position: absolute;
   inset: 0;
   -webkit-mask: var(--squircle) center / 100% 100% no-repeat;
   mask: var(--squircle) center / 100% 100% no-repeat;
+  background: var(--tile, var(--face));
   pointer-events: none;
-}
-.icon-tile::before {
-  /* Rounded close to the mask, so the inset shadow hugs the squircle */
-  border-radius: 23%;
-  background:
-    radial-gradient(125% 62% at 50% -10%, rgb(255 255 255 / var(--hi)), rgb(255 255 255 / calc(var(--hi) * 0.27)) 55%, transparent 72%),
-    var(--tile, var(--face));
-  box-shadow:
-    inset 0 calc(var(--icon) * -0.035) calc(var(--icon) * 0.07) rgb(0 0 0 / 0.11),
-    inset 0 0 calc(var(--icon) * 0.04) rgb(0 0 0 / 0.05);
-}
-.icon-tile::after {
-  background: linear-gradient(180deg, var(--edge-light) 0%, rgb(255 255 255 / 0.16) 20%, rgb(255 255 255 / 0.05) 60%, rgb(255 255 255 / 0.2) 100%);
-  -webkit-mask:
-    var(--squircle) center / 100% 100% no-repeat,
-    var(--squircle) center / calc(100% - var(--edge) * 2) calc(100% - var(--edge) * 2) no-repeat;
-  -webkit-mask-composite: xor;
-  mask:
-    var(--squircle) center / 100% 100% no-repeat exclude,
-    var(--squircle) center / calc(100% - var(--edge) * 2) calc(100% - var(--edge) * 2) no-repeat;
-}
-/* A white tile needs its edge drawn in shade, or it melts into a light wallpaper */
-:root:not(.dark) .icon-tile[data-face="light"]::after,
-.icon-brand[data-face="light"]::after {
-  background: linear-gradient(180deg, rgb(255 255 255 / 0.9) 0%, rgb(0 0 0 / 0.05) 30%, rgb(0 0 0 / 0.1) 100%);
-}
-/* Brand tiles: the official colour stays flat; only a whisper of light, the same edge and shadow */
-.icon-brand::before {
-  background:
-    radial-gradient(125% 62% at 50% -10%, rgb(255 255 255 / 0.12), transparent 70%),
-    var(--tile);
-  box-shadow: inset 0 calc(var(--icon) * -0.03) calc(var(--icon) * 0.06) rgb(0 0 0 / 0.06);
 }
 
 /* Folder: frosted glass cut by the squircle itself (a backdrop blur can't be masked from a child) */
 .icon-folder .icon-tile {
-  --face: linear-gradient(180deg, rgb(255 255 255 / 0.3), rgb(255 255 255 / 0.18));
+  --face: rgb(255 255 255 / 0.24);
   filter: none;
   -webkit-mask: var(--squircle) center / 100% 100% no-repeat;
   mask: var(--squircle) center / 100% 100% no-repeat;
-  -webkit-backdrop-filter: blur(24px) saturate(1.5);
-  backdrop-filter: blur(24px) saturate(1.5);
-}
-.dark .icon-folder .icon-tile[data-face] {
-  --face: linear-gradient(180deg, rgb(64 64 72 / 0.5), rgb(28 28 32 / 0.46));
+  -webkit-backdrop-filter: blur(22px) saturate(1.5);
+  backdrop-filter: blur(22px) saturate(1.5);
 }
 
 .icon-tile > svg,
@@ -613,32 +536,23 @@ html[data-reduce-motion] .screen-off {
   position: relative;
   z-index: 1;
 }
-/* Glyphs: one optical size (≈ 58% of the tile), a slight drop shadow that scales with the tile */
+/*
+ * Glyphs: flat white, sized so every one fills about 58% of the tile at its widest. `--glyph` is
+ * the 24-unit box; each glyph's own extent inside it sets its value.
+ */
 .icon-tile > svg {
-  width: var(--glyph, 58%);
-  height: var(--glyph, 58%);
-  filter: drop-shadow(0 calc(var(--icon) * 0.01) calc(var(--icon) * 0.008) var(--glyph-shade))
-    drop-shadow(0 calc(var(--icon) * 0.02) calc(var(--icon) * 0.04) var(--glyph-shade));
+  width: var(--glyph, 68%);
+  height: var(--glyph, 68%);
 }
-/* Optical sizing: open, pointy shapes sit larger than dense, boxy ones */
-.icon-tile > [data-glyph="sparkles"],
+.icon-tile > [data-glyph="cap"] { --glyph: 62%; }
 .icon-tile > [data-glyph="bolt"],
-.icon-tile > [data-glyph="star"] {
-  --glyph: 62%;
-}
-.icon-tile > [data-glyph="cap"],
-.icon-tile > [data-glyph="plane"],
-.icon-tile > [data-glyph="rocket"],
-.icon-tile > [data-glyph="nib"] {
-  --glyph: 60%;
-}
-.icon-tile > [data-glyph="toggles"],
-.icon-tile > [data-glyph="chat"] {
-  --glyph: 55%;
-}
-.icon-brand > svg {
-  filter: none;
-}
+.icon-tile > [data-glyph="rocket"] { --glyph: 66%; }
+.icon-tile > [data-glyph="sparkles"] { --glyph: 69%; }
+.icon-tile > [data-glyph="nib"],
+.icon-tile > [data-glyph="layers"] { --glyph: 70%; }
+.icon-tile > [data-glyph="star"] { --glyph: 71%; }
+.icon-tile > [data-glyph="toggles"] { --glyph: 72%; }
+.icon-tile > [data-glyph="sprout"] { --glyph: 74%; }
 /* Pressed: the tile darkens on touch-down (fast in, eased out on release) */
 .icon-press .icon-tile > .icon-dim {
   position: absolute;
@@ -656,20 +570,13 @@ html[data-reduce-motion] .screen-off {
   transition-duration: 80ms;
 }
 
-/* GitHub heatmap (page 2): five greens that hold up on the light and the dark widget surface */
+/* GitHub heatmap (page 2): five greens on the white widget */
 .gh-heat {
   --gh-0: #ebedf0;
   --gh-1: #9be9a8;
   --gh-2: #40c463;
   --gh-3: #30a14e;
   --gh-4: #216e39;
-}
-.dark .gh-heat {
-  --gh-0: #2a2d33;
-  --gh-1: #0e4429;
-  --gh-2: #006d32;
-  --gh-3: #26a641;
-  --gh-4: #39d353;
 }
 .gh-grid {
   --weeks: 17;
@@ -804,18 +711,17 @@ html:not([data-unlocked]) [data-home-layer] [data-fly] {
   animation: lock-chevron 1.6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
 }
 
-/* Labels as a phone sets them: the system face, 12 px under a 60 px icon (a fifth of it) */
+/* Labels: the visitor's own system face (none is bundled), 10 px regular under a 60 px icon,
+   on a wide, soft shadow (plus a tight one) that holds up over the brightest gloss of every wallpaper */
 .icon-label {
   color: #fff;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, "Segoe UI", Roboto, sans-serif;
-  font-size: clamp(10.5px, calc(var(--icon, 60px) * 0.2), 12.5px);
-  line-height: 1.2;
-  font-weight: 450;
-  letter-spacing: 0.005em;
-  /* Holds up over the brightest gloss of the Electric and Chai wallpapers */
+  font-family: system-ui, "Segoe UI", Roboto, sans-serif;
+  font-size: clamp(10px, calc(var(--icon, 60px) * 0.17), 11px);
+  line-height: 1.35;
+  font-weight: 400;
   text-shadow:
-    0 0.5px 1.5px rgb(0 0 0 / 0.5),
-    0 0 6px rgb(0 0 0 / 0.22);
+    0 1px 7px rgb(0 0 0 / 0.6),
+    0 0.5px 1px rgb(0 0 0 / 0.3);
 }
 
 .glass {
@@ -834,50 +740,59 @@ html:not([data-unlocked]) [data-home-layer] [data-fly] {
   background: rgb(40 40 44 / 0.42);
 }
 
-/* Home widgets: corner radius scales with the icon size, like the icon squircles */
+/* Home widgets: one corner radius for every size (26 px beside a 60 px icon) */
 .widget-r {
-  border-radius: calc(var(--icon, 60px) * 0.37);
-}
-
-/* Home-screen chrome (dock, Search pill): heavier frost, a hairline ring and a lit top edge */
-.glass-chrome {
-  background: rgb(255 255 255 / 0.16);
-  -webkit-backdrop-filter: blur(28px) saturate(180%) brightness(1.04);
-  backdrop-filter: blur(28px) saturate(180%) brightness(1.04);
-  box-shadow:
-    inset 0 0 0 0.5px rgb(255 255 255 / 0.18),
-    inset 0 1px 0 rgb(255 255 255 / 0.24),
-    0 8px 24px rgb(0 0 0 / 0.12);
+  border-radius: calc(var(--icon, 60px) * 0.44);
 }
 /*
- * The dock: a thicker, brighter frost than the Search pill (a bigger surface reads as a thicker
- * material), a lit top edge, and soft corners that follow its icons' (icon radius + padding,
- * opened up a little, as a phone's dock is).
+ * Widgets keep one look in light and dark, as the home screen does: the app tokens inside them
+ * are pinned to their light values. Two opaque materials, each with a hairline edge:
+ * white (ink text) and graphite (white text).
  */
+[data-widget-tile] {
+  color-scheme: light;
+  --app-background: #efeff2;
+  --app-surface: #ffffff;
+  --app-ink: #0f0f10;
+  --app-secondary: #3c3c43;
+  --app-muted: #78787e;
+  --available: #1f9d55;
+}
+.widget-light {
+  background: #fff;
+  color: var(--app-ink);
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.1),
+    0 2px 8px rgb(0 0 0 / 0.08);
+}
+.widget-graphite {
+  background: linear-gradient(180deg, #262628, #111112);
+  color: #fff;
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.08),
+    inset 0 1px 1px rgb(255 255 255 / 0.1),
+    0 2px 6px rgb(0 0 0 / 0.2);
+}
+
+/*
+ * Home-screen chrome: a light frost with a hairline edge and a lit top edge, the same in light
+ * and dark. The Search pill is a thinner sheet of it; the dock's corners follow its icons'.
+ */
+.glass-chrome {
+  background: rgb(255 255 255 / 0.16);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  backdrop-filter: blur(18px) saturate(160%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.11);
+}
 .dock-glass {
   border-radius: calc(var(--icon) * 0.3 + var(--dock-pad, 12px));
-  background: linear-gradient(180deg, rgb(255 255 255 / 0.26), rgb(255 255 255 / 0.16));
-  -webkit-backdrop-filter: blur(30px) saturate(190%) brightness(1.06);
-  backdrop-filter: blur(30px) saturate(190%) brightness(1.06);
+  background: rgb(255 255 255 / 0.19);
+  -webkit-backdrop-filter: blur(22px) saturate(170%);
+  backdrop-filter: blur(22px) saturate(170%);
   box-shadow:
-    inset 0 0 0 0.5px rgb(255 255 255 / 0.22),
-    inset 0 1px 0 rgb(255 255 255 / 0.36),
-    inset 0 -0.5px 0 rgb(255 255 255 / 0.1),
-    0 10px 30px rgb(0 0 0 / 0.14);
-}
-.dark .dock-glass {
-  background: linear-gradient(180deg, rgb(58 58 64 / 0.44), rgb(30 30 34 / 0.4));
-  box-shadow:
-    inset 0 0 0 0.5px rgb(255 255 255 / 0.13),
-    inset 0 1px 0 rgb(255 255 255 / 0.18),
-    0 10px 30px rgb(0 0 0 / 0.24);
-}
-.dark .glass-chrome {
-  background: rgb(36 36 40 / 0.4);
-  box-shadow:
-    inset 0 0 0 0.5px rgb(255 255 255 / 0.12),
-    inset 0 1px 0 rgb(255 255 255 / 0.14),
-    0 8px 24px rgb(0 0 0 / 0.2);
+    inset 0 0 0 1px rgb(255 255 255 / 0.1),
+    inset 0 1px 1px rgb(255 255 255 / 0.21),
+    0 3px 12px rgb(0 0 0 / 0.07);
 }
 
 /* Control Center: hidden and click-through until it has any progress */
@@ -1031,7 +946,7 @@ html:not([data-unlocked]) [data-home-layer] [data-fly] {
 }
 
 /* Held over an app long enough to make a folder: the app shrinks onto a frosted folder plate */
-.icon-press > span:first-child {
+.icon-press > span:first-child:not([data-widget-tile]) {
   border-radius: 24%;
   transition:
     background-color 180ms ease-out,

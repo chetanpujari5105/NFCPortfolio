@@ -7,26 +7,26 @@ import type { AppsLayout } from "./schema";
 export const appsLayout = {
   // 2×2 block next to the "Work with me" widget
   block: [
-    { id: "journey", label: "Journey", icon: "sprout", colors: ["#5ddb8e", "#11924f"], app: "journey" },
-    { id: "expertise", label: "Expertise", icon: "sparkles", colors: ["#b98aff", "#6537e3"], app: "expertise" },
-    { id: "platforms", label: "Platforms", icon: "layers", colors: ["#5fd5ff", "#0d7bde"], app: "platforms" },
-    { id: "reviews", label: "Reviews", icon: "star", colors: ["#ffc53d", "#f57800"], app: "reviews" },
+    { id: "journey", label: "Journey", icon: "sprout", colors: ["#5cdb8b", "#16a156"], app: "journey" },
+    { id: "expertise", label: "Expertise", icon: "sparkles", colors: ["#b48cff", "#7247ee"], app: "expertise" },
+    { id: "platforms", label: "Platforms", icon: "layers", colors: ["#56cfff", "#1585ea"], app: "platforms" },
+    { id: "reviews", label: "Reviews", icon: "star", colors: ["#ffcd3f", "#ff9500"], app: "reviews" },
   ],
   row: [
     { id: "youtube", label: "YouTube", icon: "play", colors: ["#ff6a5c", "#d81f26"], href: "https://www.youtube.com/@chetanpujari", brand: "youtube" },
     { id: "socials", label: "Socials", icon: "folder", colors: ["#ffffff", "#ffffff"], app: "socials" },
-    { id: "projects", label: "Projects", icon: "rocket", colors: ["#ff8466", "#e3312c"], app: "projects" },
-    { id: "settings", label: "Settings", icon: "toggles", colors: ["#7b8cad", "#3a4865"], face: "light", app: "settings" },
+    { id: "projects", label: "Projects", icon: "rocket", colors: ["#ff7b66", "#ea3a35"], app: "projects" },
+    { id: "settings", label: "Settings", icon: "toggles", colors: ["#a5a7b0", "#686a74"], app: "settings" },
   ],
   links: [
     { id: "linkedin", label: "LinkedIn", icon: "briefcase", colors: ["#0A66C2", "#0A66C2"], href: "https://www.linkedin.com/in/chetan-pujari-ai", brand: "linkedin" },
     { id: "x", label: "X", icon: "at", colors: ["#000000", "#000000"], href: "https://x.com/Chetanpujari51", brand: "x" },
   ],
   dock: [
-    { id: "courses", label: "Courses", icon: "cap", colors: ["#5c9dff", "#2344df"], app: "courses" },
-    { id: "blog", label: "Blog", icon: "nib", colors: ["#ffaa5c", "#f2581c"], app: "blog" },
-    { id: "services", label: "Services", icon: "bolt", colors: ["#ffe36a", "#ff9d0a"], face: "ink", app: "services" },
-    { id: "contact", label: "Contact", icon: "plane", colors: ["#5be4cd", "#0a9487"], app: "contact" },
+    { id: "courses", label: "Courses", icon: "cap", colors: ["#52a2ff", "#205fea"], app: "courses" },
+    { id: "blog", label: "Blog", icon: "nib", colors: ["#ffa152", "#f4621e"], app: "blog" },
+    { id: "services", label: "Services", icon: "bolt", colors: ["#45454d", "#18181c"], app: "services" },
+    { id: "contact", label: "Contact", icon: "plane", colors: ["#4fe0c7", "#0f9d8b"], app: "contact" },
   ],
   titles: {
     courses: "Courses",

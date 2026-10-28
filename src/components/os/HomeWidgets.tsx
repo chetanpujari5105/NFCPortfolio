@@ -22,7 +22,7 @@ import { useServerData } from "./server-data";
  */
 
 const slugOf = (url: string) => url.replace(/\/+$/, "").split("/").pop() || url;
-const OUTER = "icon-press flex size-full flex-col items-center gap-[5px] select-none";
+const OUTER = "icon-press flex size-full flex-col items-center gap-[calc(var(--icon)*0.11)] select-none";
 const TILE = "widget-press [container-type:size] relative min-h-0 w-full flex-1 overflow-hidden widget-r text-left";
 
 /** 4×2: the latest Substack post. Opens it in Blog. */
@@ -42,16 +42,16 @@ export function BlogWidget() {
       }}
       className={OUTER}
     >
-      <span data-widget-tile className={`${TILE} flex flex-col justify-end bg-app-surface text-white shadow-[0_4px_14px_rgb(0_0_0/0.18)]`}>
+      <span data-widget-tile className={`${TILE} flex flex-col justify-end bg-[#111112] text-white shadow-[0_2px_8px_rgb(0_0_0/0.12)]`}>
         {post.image ? (
           <Image src={post.image} alt="" fill sizes="(max-width: 600px) 92vw, 380px" quality={70} className="object-cover" />
         ) : (
           <span className="absolute inset-0 bg-[linear-gradient(150deg,var(--accent),var(--accent-deep))]" />
         )}
-        <span className="absolute inset-0 bg-[linear-gradient(180deg,transparent_20%,rgb(0_0_0/0.55)_52%,rgb(0_0_0/0.88))]" />
+        <span className="absolute inset-0 bg-[linear-gradient(180deg,transparent_12%,rgb(0_0_0/0.62)_46%,rgb(0_0_0/0.9))]" />
         <span className="relative p-[clamp(10px,4cqw,16px)]">
           <span className="block text-[clamp(9px,2.6cqw,11px)] font-bold tracking-wider text-white/80 uppercase">Latest on the blog</span>
-          <span className="mt-0.5 line-clamp-2 text-[clamp(13px,min(4.6cqw,11cqh),18px)] leading-tight font-bold tracking-tight">{post.title}</span>
+          <span className="mt-0.5 line-clamp-2 text-[clamp(13px,min(4.4cqw,10.5cqh),17px)] leading-tight font-bold tracking-[-0.02em]">{post.title}</span>
         </span>
       </span>
       <span className="icon-label">Blog</span>
@@ -73,7 +73,7 @@ export function VideoWidget() {
       className={OUTER}
     >
       {video ? (
-        <span data-widget-tile className={`${TILE} flex flex-col justify-end bg-[#0b0b0d] text-white shadow-[0_4px_14px_rgb(0_0_0/0.18)]`}>
+        <span data-widget-tile className={`${TILE} flex flex-col justify-end bg-[#0b0b0d] text-white shadow-[0_2px_8px_rgb(0_0_0/0.12)]`}>
           <Image src={video.thumb} alt="" fill sizes="200px" quality={70} className="object-cover" />
           <span className="absolute inset-0 bg-[linear-gradient(180deg,transparent_30%,rgb(0_0_0/0.82))]" />
           <span className="absolute top-[9cqmin] left-[9cqmin] grid h-[15cqmin] w-[21cqmin] place-items-center rounded-[4cqmin] bg-[#ff0033]">
@@ -89,7 +89,7 @@ export function VideoWidget() {
       ) : (
         <span
           data-widget-tile
-          className={`${TILE} flex flex-col justify-between bg-[radial-gradient(120%_90%_at_100%_0%,rgb(255_0_51/0.38),transparent_60%),linear-gradient(160deg,#241012,#0d0d10_70%)] p-[10cqmin] text-white shadow-[0_4px_14px_rgb(0_0_0/0.18),inset_0_0.5px_0_rgb(255_255_255/0.14)]`}
+          className={`${TILE} flex flex-col justify-between bg-[radial-gradient(120%_90%_at_100%_0%,rgb(255_0_51/0.38),transparent_60%),linear-gradient(160deg,#241012,#0d0d10_70%)] p-[10cqmin] text-white shadow-[0_2px_8px_rgb(0_0_0/0.12),inset_0_0_0_1px_rgb(255_255_255/0.08)]`}
         >
           <span className="grid h-[25cqmin] w-[35cqmin] place-items-center rounded-[7cqmin] bg-white shadow-[0_4px_12px_rgb(255_0_51/0.35)]">
             <BrandGlyph mark={youtube} className="h-[17cqmin] w-[25cqmin] text-[#ff0033]" />
@@ -137,12 +137,12 @@ export function ExpertiseStack() {
               <span
                 key={area.id}
                 aria-hidden
-                className="absolute bottom-[10%] widget-r bg-app-surface shadow-[0_2px_8px_rgb(0_0_0/0.18)]"
+                className="absolute bottom-[10%] widget-r widget-light"
                 style={{ top: `${(2 - depth) * 6}%`, left: `${depth * 7}%`, right: `${depth * 7}%`, opacity: 1 - depth * 0.28 }}
               />
             );
           })}
-        <span className="absolute inset-x-0 top-[12%] bottom-0 flex flex-col justify-between widget-r bg-app-surface p-[9cqmin] text-app-ink shadow-[0_6px_16px_rgb(0_0_0/0.24)]">
+        <span className="absolute inset-x-0 top-[12%] bottom-0 flex flex-col justify-between widget-r widget-light p-[9cqmin]">
           <span className="flex items-start justify-between">
             <span aria-hidden className="text-[clamp(18px,17cqmin,30px)] leading-none">
               {front.emoji}
@@ -227,7 +227,7 @@ export function GitHubWidget() {
       <span
         data-widget-tile
         data-shown={shown || undefined}
-        className={`${TILE} gh-heat flex flex-col gap-[2.2cqw] bg-app-surface p-[3.6cqw] text-app-ink shadow-[0_4px_14px_rgb(0_0_0/0.18)]`}
+        className={`${TILE} gh-heat widget-light flex flex-col gap-[2.2cqw] p-[clamp(11px,3.8cqw,14px)]`}
       >
         <span className="flex items-center gap-2">
           <BrandGlyph mark={github} className="size-[18px] shrink-0" />
