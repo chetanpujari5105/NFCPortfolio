@@ -1,67 +1,81 @@
+import { projects } from "../content/projects";
+import { EMOJI, app, fitSuite, open, squash, swipeBack, textOf, unlocked, view } from "./apple";
 import { expect, test, type Page } from "./fixtures";
 
-import { projects } from "../content/projects";
+/* Projects, laid out like Settings (v12): a segmented filter, every project with its facts and
+ * link, details that push and swipe back, no emoji; plus the Android apps (v8) and the private
+ * Anti-Doom repo that must never be linked. */
 
-// The lock screen shows once per session; these tests start on the home screen.
-test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => sessionStorage.setItem("pp-unlocked", "1"));
-});
+unlocked();
 
 const ANDROID = ["Anti-Doom", "StackUp"];
 /** Any GitHub URL for Anti-Doom: its repo is private. */
 const PRIVATE_REPO = /github\.com\/[^"'\s<]*anti-doom/i;
+const filter = (page: Page) => page.getByRole("radiogroup", { name: "Filter projects" });
+const row = (page: Page, id: string) => app(page, "Projects").locator(`[data-project-row="${id}"]`);
 
-/** Deep-link into Projects and wait until the phone is still (3D swap done). */
-async function open(page: Page, hash = "projects") {
-  await page.goto(`/#${hash}`);
-  await expect(page.locator("[data-app-window] > [role=dialog]")).toBeVisible();
-  await page.waitForFunction(() => innerWidth < 900 || document.documentElement.hasAttribute("data-3d"), null, {
-    timeout: 25_000,
-  });
-  await page.waitForTimeout(700);
-}
+test("every project, the Android apps included, filters with the segmented control", async ({ page }) => {
+  await open(page, "projects");
+  const text = await textOf(page, "app");
+  for (const p of projects) {
+    expect(text).toContain(squash(p.name));
+    expect(text).toContain(squash(p.tagline));
+  }
+  expect(text).not.toMatch(EMOJI);
+  await expect(app(page, "Projects").locator("[data-project-row]")).toHaveCount(projects.length);
+  for (const name of ANDROID) await expect(app(page, "Projects").getByRole("button", { name: new RegExp(`^${name}`) })).toBeVisible();
 
-/** Every text element inside `root` that is cut off (ellipsis or overflow). */
-const clipped = (page: Page, selector: string) =>
-  page.locator(selector).evaluateAll((roots) =>
-    roots.flatMap((root) =>
-      [root, ...root.querySelectorAll<HTMLElement>("*")]
-        .filter((el) => el.childElementCount === 0 && el.textContent?.trim())
-        .filter((el) => el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1)
-        .map((el) => el.textContent!.trim()),
-    ),
-  );
+  await filter(page).getByRole("radio", { name: "Games" }).click();
+  await expect(filter(page).getByRole("radio", { name: "Games" })).toHaveAttribute("aria-checked", "true");
+  await expect(row(page, "anti-doom")).toHaveCount(0);
+  await expect(app(page, "Projects").locator("[data-project-row]")).toHaveCount(projects.filter((p) => p.category === "Games").length);
+  await filter(page).getByRole("radio", { name: "Apps" }).click();
+  await expect(row(page, "anti-doom")).toBeVisible();
+  await expect(row(page, "strikepoint")).toHaveCount(0);
+  await filter(page).getByRole("radio", { name: "All" }).click();
+  await expect(row(page, "strikepoint")).toBeVisible();
+});
 
-test("the Android apps are listed, filter with Apps and fit their rows", async ({ page }) => {
-  await open(page);
-  const group = page.getByRole("group", { name: "Filter projects" });
-  const row = (name: string) => page.getByRole("button", { name: new RegExp(`^${name}`) });
-  for (const name of ANDROID) await expect(row(name)).toBeVisible();
-  for (const name of ANDROID) expect(await clipped(page, `button:has-text("${name}") .min-w-0`), name).toEqual([]);
-
-  await group.getByRole("button", { name: "Games" }).click();
-  for (const name of ANDROID) await expect(row(name)).toHaveCount(0);
-  await group.getByRole("button", { name: "Apps" }).click();
-  for (const name of ANDROID) await expect(row(name)).toBeVisible();
-  await expect(page.getByRole("button", { name: /^Strikepoint/ })).toHaveCount(0);
-  await group.getByRole("button", { name: "All" }).click();
-  await expect(page.getByRole("button", { name: /^Strikepoint/ })).toBeVisible();
+test("each detail has the project's facts and its own link (or none)", async ({ page }) => {
+  for (const p of projects) {
+    await open(page, `projects/${p.id}`);
+    await expect(view(page)).toBeVisible();
+    const told = await textOf(page, "view");
+    for (const fact of [p.name, p.tagline, p.description, ...p.stack, ...(p.status ? [p.status] : [])]) expect(told, p.id).toContain(squash(fact));
+    expect(told).not.toMatch(EMOJI);
+    const link = view(page).locator("[data-project-link]");
+    if (!p.url) {
+      await expect(link).toHaveCount(0);
+      await expect(view(page).getByRole("link")).toHaveCount(0);
+      continue;
+    }
+    await expect(link).toHaveAttribute("href", p.url);
+    await expect(link).toHaveAttribute("target", "_blank");
+    await expect(link).toHaveAttribute("rel", /noopener/);
+    await expect(link).toHaveAccessibleName(`Open ${p.name} (opens in a new tab)`);
+    await expect(link).toContainText(new URL(p.url).host);
+  }
 });
 
 test("Anti-Doom shows its status and links nowhere (the repo is private)", async ({ page }) => {
   await open(page, "projects/anti-doom");
-  const detail = page.getByRole("heading", { name: "Anti-Doom", level: 2 }).locator("xpath=../..");
-  await expect(detail).toContainText("Android · source is private");
-  await expect(detail.getByRole("link")).toHaveCount(0);
+  await expect(view(page).locator("[data-project-status]")).toContainText("Android · source is private");
+  await expect(view(page).getByRole("link")).toHaveCount(0);
   expect(await page.content()).not.toMatch(PRIVATE_REPO);
 });
 
-test("StackUp opens its public repo", async ({ page }) => {
-  await open(page, "projects/stackup");
-  const detail = page.getByRole("heading", { name: "StackUp", level: 2 }).locator("xpath=../..");
-  await expect(detail).toContainText("Closed alpha on Google Play");
-  const link = detail.getByRole("link", { name: "Open StackUp (new tab)" });
-  await expect(link).toHaveAttribute("href", projects.find((p) => p.id === "stackup")!.url!);
+test("a project pushes its detail and swipes back from the left edge", async ({ page }) => {
+  await open(page, "projects");
+  await row(page, "stackup").click();
+  await expect(view(page)).toBeVisible();
+  await expect(page).toHaveURL(/#projects\/stackup$/);
+  await expect(view(page)).toContainText("Closed alpha on Google Play");
+  await swipeBack(page);
+  await expect(view(page)).toHaveCount(0);
+  await expect(page).toHaveURL(/#projects$/);
+  await app(page, "Projects").locator("[data-project-featured]").click();
+  await page.getByRole("button", { name: "Back to Projects" }).click();
+  await expect(view(page)).toHaveCount(0);
 });
 
 test("the private repo is never linked from any page source", async ({ request }) => {
@@ -70,3 +84,5 @@ test("the private repo is never linked from any page source", async ({ request }
     if (res.ok()) expect(await res.text(), path).not.toMatch(PRIVATE_REPO);
   }
 });
+
+fitSuite(["projects", "projects/sidekick", "projects/anti-doom", "projects/stackup"]);
