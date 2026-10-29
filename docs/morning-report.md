@@ -2,7 +2,35 @@
 
 Short version: the site is live and healthy on the latest `main` (8cdd6a7). Two tasks stopped at a login wall, so they're on your list below: Resend (not signed in) and the GitHub token (passkey "Confirm access"). Until you add `RESEND_API_KEY` the Contact form shows "Email isn't set up" with a prefilled "email me directly" link and keeps the visitor's text.
 
-## What I did
+## Second pass (morning, after you signed in)
+
+Still blocked on the same two walls, so nothing was created and no Vercel setting changed. The Chrome that Claude controls (the only one connected) has Vercel and GitHub signed in, but **not Resend**.
+
+| # | Task | Result |
+| --- | --- | --- |
+| 1 | Resend key + domains | **Blocked.** resend.com/domains and /overview redirect to "Log in to Resend" in that Chrome, even after a reload. I didn't click "Log in with Google/GitHub": if your account uses the other one, that would create a second Resend account. So I couldn't read Domains or your account email either. |
+| 2 | Vercel env vars | **Not done** (nothing to put in them yet). `vercel env ls production` for `nfcportfolio` still shows no variables. |
+| 3 | GitHub token `portfolio-heatmap` | **Blocked.** github.com/settings/personal-access-tokens/new shows "Confirm access" → "Use passkey" again. I left that tab open on that screen. |
+| 4 | Redeploy + restart :3100 | **Skipped:** no env var or code changed. Production (`nfcportfolio-essptao5j…`, Ready) already runs the latest `main`, and :3100 answers 200 from `nfc-portfolio-prod` (8cdd6a7; 7abe438 only changed docs). |
+| 5 | Live contact test | **Not sent.** Without `RESEND_API_KEY` the API answers 503 `unavailable` and the form shows "Email isn't set up…" and keeps the text (checked in all 4 runs). No email was sent. |
+| 6 | Heatmap source | `/api/contributions` returns `"source": "github"` (not `snapshot`), 1,015 contributions. Without a token that's the public contributions page, not GraphQL. |
+| 7 | Live Playwright (390x844, 1440x900, light + dark) | **No regressions.** 14 icons on page 1, nothing unpainted on either page, heatmap visible in 4–73 ms (117 squares), stack swipe → "2 of 8: UI/UX Design" and stays on page 2, Projects shows Anti-Doom and StackUp. The only console error is the expected contact 503. |
+
+**One external change, not a regression:** the YouTube widget showed "Latest video" in the first run and the channel card in the other three. YouTube's channel RSS (`youtube.com/feeds/videos.xml?channel_id=…`) answers **404 right now for every channel** (also Google Developers'), so when Vercel rebuilt the cached home page it got no video and fell back to the channel card, as designed. It returns by itself when YouTube's feed comes back; the cache refreshes every 6 hours. Possible follow-up: keep the last good video (a committed snapshot, like the heatmap) instead of falling back to the channel card.
+
+### To finish it yourself (about 5 minutes)
+
+1. In the **same Chrome window Claude uses**, open resend.com and sign in (the way you created the account).
+2. API Keys → Create API key → name `portfolio`, permission **Sending access** → copy it.
+3. Domains: if one is **Verified**, use `CONTACT_FROM_EMAIL="Chetan Pujari <hello@that-domain>"` and leave `CONTACT_TO_EMAIL` unset (mail then goes to `chetanpujari92@gmail.com` from `content/profile.ts`). If none is verified, leave `CONTACT_FROM_EMAIL` unset and set `CONTACT_TO_EMAIL` to the email you sign in to Resend with (the test sender only delivers there).
+4. Vercel → nfcportfolio → Settings → Environment Variables → Production: add `RESEND_API_KEY` (+ the email variable from step 3). Then Deployments → latest → Redeploy.
+5. GitHub: on the open "Confirm access" tab, press **Use passkey**, then create the `portfolio-heatmap` token (1 year, Public repositories, no permissions) and add it as `GITHUB_TOKEN` (Production). Add it before the redeploy in step 4 to redeploy only once.
+6. Send yourself a message from https://nfcportfolio-two.vercel.app/#contact. You should see "Message sent". If not, Vercel → Logs → filter `[contact]`: that line names the setting to fix.
+7. Optional, for local :3100: put the same lines in `nfc-portfolio-prod/.env.local`, then restart `next start -p 3100` there.
+
+Or sign in to Resend, pass the passkey, and ask me to run this again. I'll then do steps 2–7 without showing the keys.
+
+## What I did (overnight)
 
 | # | Task | Result |
 | --- | --- | --- |

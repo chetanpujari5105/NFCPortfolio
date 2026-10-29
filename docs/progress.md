@@ -360,6 +360,8 @@ Full report: `docs/morning-report.md`.
 - Hygiene: gitleaks found no leaks in 45 commits; no env files, keystores or `google-services.json` tracked; the private Anti-Doom repo URL isn't on the live site.
 - Deleted 10 merged local branches (none on GitHub).
 
+Second pass (morning): still blocked. Resend shows its login page in the Chrome Claude controls (Vercel and GitHub are signed in there), and GitHub token creation asks for the passkey again. No keys, no Vercel env changes, no redeploy needed. Live checks at all 4 sizes: no regressions; `/api/contributions` source is `github`. YouTube's channel RSS returns 404 for every channel right now, so the YouTube widget shows the channel card until it's back. Details and a 5-minute finish list in `docs/morning-report.md` → "Second pass".
+
 ## Needs Chetan
 
 - [ ] **Real-device check of v5:** iPhone Safari, Android Chrome, Brave, Samsung Internet, and the LinkedIn and Instagram in-app browsers.
@@ -369,9 +371,9 @@ Full report: `docs/morning-report.md`.
 
 - [ ] **Reviews:** all 5 are `verified: false` in `content/reviews.ts`. Confirm each is a real quote you may publish, then set `verified: true`.
 - [ ] **Prompt Chaining post URL:** not found in the Substack feed/sitemap; the fallback post links to the publication home. Put the real URL in `content/blog.ts` if it exists.
-- [ ] **Contact email delivery (the live form can't send until this is done; overnight run couldn't, Resend wasn't signed in):** in Resend, create an API key and verify a domain (DNS records). In Vercel → nfcportfolio → Settings → Environment Variables (Production), set `RESEND_API_KEY` and `CONTACT_FROM_EMAIL` (e.g. `Chetan Pujari <hello@chetanpujari.com>`), then redeploy and send yourself a test. Steps in README → "Contact form email (Resend)".
+- [ ] **Contact email delivery (the live form can't send until this is done; the overnight run and the morning second pass couldn't, Resend wasn't signed in in the Chrome Claude controls):** in Resend, create an API key and verify a domain (DNS records). In Vercel → nfcportfolio → Settings → Environment Variables (Production), set `RESEND_API_KEY` and `CONTACT_FROM_EMAIL` (e.g. `Chetan Pujari <hello@chetanpujari.com>`), then redeploy and send yourself a test. Steps in README → "Contact form email (Resend)".
 - [ ] **Ask Chetan (optional):** set `OPENAI_API_KEY` (server only) and `NEXT_PUBLIC_ENABLE_ASK=true` in Vercel, then redeploy. `OPENAI_MODEL` defaults to `gpt-5-mini`. Try a few questions before announcing it.
-- [x] **YouTube widget:** now @ImaginaryProgrammer (v9), which has public videos, so the widget shows the latest one.
+- [x] **YouTube widget:** now @ImaginaryProgrammer (v9), which has public videos, so the widget shows the latest one. (Morning of 2026-10-29: YouTube's channel RSS returned 404 for every channel, so it showed the channel card. Check it's back.)
 - [ ] **Expertise stack on a real phone:** check the swipe feel (spring, rubber-band), that a vertical swipe on it never scrolls or pulls down Search in iOS Safari, and that a sideways swipe still pages. Say if you'd rather autoplay wrap from 8 back to 1, or not run at all.
 - [ ] **Home-screen editing on a real phone:** on touch a long-press goes straight into edit mode (as on iOS when you keep holding); the Open/Share/Remove menu is right-click, Shift+F10 or the menu key. Say if you'd rather have the menu on touch too. Check the haptic tick on Android (iOS Safari has no vibration API).
 - [ ] **Domain:** point `chetanpujari.com` at the Vercel project (or set `NEXT_PUBLIC_SITE_URL`) so the canonical URL, sitemap and OG links match the live site.
