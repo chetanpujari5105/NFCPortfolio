@@ -5,7 +5,7 @@ import { useMotionValue } from "motion/react";
 import * as m from "motion/react-m";
 import { useDrag } from "@use-gesture/react";
 
-import { READ_ON, udemyProfileStats, verifiedReviews } from "@content/reviews";
+import { READ_ON, reviews as allReviews, udemyProfileStats } from "@content/reviews";
 import type { Review } from "@content/schema";
 import { AppHeader, AppScreen, Chip, ChipGroup, ListGroup, ListRow, PushView, useLastValue } from "@/components/ui/app-shell";
 import { releaseVelocity } from "@/lib/gesture";
@@ -284,7 +284,7 @@ function AllReviews({ reviews }: { reviews: Review[] }) {
 export default function ReviewsApp() {
   const sub = useOS((s) => (s.route.app === "reviews" ? s.route.sub : null));
   const shown = useLastValue(sub);
-  const reviews = verifiedReviews;
+  const reviews: Review[] = allReviews;
   const featured = reviews.filter((r) => r.featured);
 
   if (!reviews.length)

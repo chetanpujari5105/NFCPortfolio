@@ -146,7 +146,8 @@ export const ReviewSchema = z.object({
   /** Udemy's own date label ("2 years ago"), read on READ_ON */
   date: z.string(),
   source: z.literal("Udemy"),
-  verified: z.boolean(),
+  /** Only reviews read off Udemy are allowed; there are no placeholder entries. */
+  verified: z.literal(true),
   featured: z.boolean().optional(),
 });
 

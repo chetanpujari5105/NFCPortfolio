@@ -197,8 +197,6 @@ export const reviews = [
   },
 ] satisfies Review[];
 
-export const verifiedReviews: Review[] = reviews.filter((r) => r.verified);
-
 /** As shown on the public Udemy instructor profile on `READ_ON` (no average rating is shown there). */
 export const udemyProfileStats = {
   reviews: 10279,
