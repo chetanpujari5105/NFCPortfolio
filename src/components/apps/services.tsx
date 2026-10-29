@@ -4,7 +4,7 @@ import { philosophy } from "@content/philosophy";
 import type { Service } from "@content/schema";
 import { services, servicesFooter, servicesIntro, servicesTitle } from "@content/services";
 import { AppHeader, AppScreen, PushView, useLastValue } from "@/components/ui/app-shell";
-import { Row, Section } from "@/components/ui/grouped";
+import { ProminentButton, Row, Section } from "@/components/ui/grouped";
 import { ServiceTile } from "@/components/apps/service-tile";
 import { openApp } from "@/lib/router";
 import { useOS } from "@/lib/store";
@@ -57,15 +57,13 @@ function ServiceDetail({ service: s }: { service: Service }) {
         </>
       )}
 
-      <button
-        type="button"
-        data-start-conversation
+      <ProminentButton
         onClick={() => contact(s.title)}
-        aria-label={`Start a conversation about ${s.title}`}
-        className="press-spring mt-5 flex min-h-[3.125rem] w-full items-center justify-center rounded-full bg-finish px-5 text-ios-headline font-semibold text-finish-ink transition-[filter] duration-150 [@media(hover:hover)]:hover:brightness-110"
+        label={`Start a conversation about ${s.title}`}
+        data={{ "data-start-conversation": "" }}
       >
         Start a conversation
-      </button>
+      </ProminentButton>
     </AppScreen>
   );
 }

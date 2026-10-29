@@ -79,6 +79,26 @@ export const GLYPHS = {
       <path d="M9.5 20.5h5" fill="none" />
     </>
   ),
+  mail: (
+    <g fill="none">
+      <rect x="3.5" y="6" width="17" height="12" rx="2.2" />
+      <path d="m4.5 7.5 7.5 5.6 7.5-5.6" />
+    </g>
+  ),
+  search: (
+    <g fill="none">
+      <circle cx="10.5" cy="10.5" r="5.5" />
+      <path d="m14.8 14.8 4.7 4.7" />
+    </g>
+  ),
+  code: <path d="m8.5 7.5-4.5 4.5 4.5 4.5m7-9 4.5 4.5-4.5 4.5m-2-11-3 13" fill="none" />,
+  bolt: <path d="M13.2 3.5 5.8 13.3h5.4l-1 7.2 7.4-9.8h-5.4Z" />,
+  shapes: (
+    <g fill="none">
+      <circle cx="9.5" cy="9.5" r="5" />
+      <path d="M11 11h8.5v8.5H11Z" />
+    </g>
+  ),
 } satisfies Record<string, ReactNode>;
 
 export type GlyphName = keyof typeof GLYPHS;
@@ -106,7 +126,8 @@ export function Tile({
 }: {
   glyph: GlyphName;
   tint: string;
-  size?: number;
+  /** px, or any CSS length (the home widget sizes it from its container) */
+  size?: number | string;
   className?: string;
   data?: Record<string, string>;
 }) {
@@ -200,6 +221,8 @@ type RowProps = {
   secondary?: ReactNode;
   /** A value on the trailing side (a count), before the chevron */
   detail?: ReactNode;
+  /** A control on the trailing side (a switch); the row itself stays inert */
+  accessory?: ReactNode;
   /** Pushes a detail view: gets a chevron */
   onPush?: () => void;
   /** Does something in place or opens another app: tinted title, no accessory */
@@ -213,19 +236,22 @@ type RowProps = {
 
 /**
  * A grouped row. With a second line the title is Headline (17/600) over a Subheadline (15)
- * secondary, at least 60 px; alone it's Body (17) at least 44 px.
+ * secondary, at least 60 px; alone it's Body (17) at least 44 px. Nothing is clamped: long text
+ * wraps (Larger Text included), and a long trailing value wraps beside the title.
  */
-export function Row({ leading, title, secondary, detail, onPush, onAction, href, label, data }: RowProps) {
+export function Row({ leading, title, secondary, detail, accessory, onPush, onAction, href, label, data }: RowProps) {
   const body = (
     <>
       {leading}
-      <span className="min-w-0 flex-1 py-2.5">
+      {/* Beside a trailing value the title keeps its longest word whole; the value wraps instead */}
+      <span className={cn("flex-1 py-2.5", detail != null ? "min-w-min" : "min-w-0")}>
         <span className={cn("block", secondary ? "text-ios-headline font-semibold" : "text-ios-body", onAction && "text-ios-label-link")}>
           {title}
         </span>
-        {secondary && <span className="line-clamp-2 block text-ios-subheadline [overflow-wrap:anywhere] text-app-muted">{secondary}</span>}
+        {secondary && <span className="block text-ios-subheadline [overflow-wrap:anywhere] text-app-muted">{secondary}</span>}
       </span>
-      {detail != null && <span className="shrink-0 text-ios-body text-app-muted tabular-nums">{detail}</span>}
+      {detail != null && <span className="py-2.5 text-right text-ios-body text-app-muted tabular-nums">{detail}</span>}
+      {accessory}
       {onPush && <ChevronRight aria-hidden className="size-4 shrink-0 text-ios-label-tertiary" strokeWidth={2.6} />}
       {href && <ArrowUpRight aria-hidden data-external className="size-[1.125rem] shrink-0 text-ios-label-tertiary" strokeWidth={2.4} />}
     </>
@@ -253,5 +279,39 @@ export function Row({ leading, title, secondary, detail, onPush, onAction, href,
     <div {...data} className={classes}>
       {body}
     </div>
+  );
+}
+
+/* ───────────────────────── The screen's one prominent action ───────────────────────── */
+
+/**
+ * A full-width capsule in the phone's finish (kit button, 50 high), after the last section. With
+ * `href` it leaves the site in a new tab; otherwise it acts in place.
+ */
+export function ProminentButton({
+  children,
+  href,
+  onClick,
+  label,
+  data,
+}: {
+  children: ReactNode;
+  href?: string;
+  onClick?: () => void;
+  label?: string;
+  data?: Record<string, string>;
+}) {
+  const classes =
+    "press-spring mt-5 flex min-h-[3.125rem] w-full items-center justify-center rounded-full bg-finish px-5 py-2 text-center text-ios-headline font-semibold text-finish-ink transition-[filter] duration-150 [@media(hover:hover)]:hover:brightness-110";
+  if (href)
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer" aria-label={label} {...data} className={classes}>
+        {children}
+      </a>
+    );
+  return (
+    <button type="button" onClick={onClick} aria-label={label} {...data} className={classes}>
+      {children}
+    </button>
   );
 }
