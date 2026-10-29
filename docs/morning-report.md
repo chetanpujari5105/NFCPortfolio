@@ -1,5 +1,52 @@
 # Morning report (2026-10-29)
 
+## Final handoff (2026-10-30)
+
+In short: the template is released as v2.0.1, with the guide PDF attached. The site on Vercel matches `main`. Drafts of the Luch Dev email and the share posts are ready for you to send. Nothing was sent, posted or deleted for you.
+
+| Part | Result |
+| --- | --- |
+| Template fresh clone (`main` 0ce1c1e from GitHub) | `npm ci`, lint, typecheck, content check and build pass. Playwright: 644 passed, 0 failed, 0 flaky, 336 skipped. |
+| Template on GitHub | "Public template" with "Use this template". LICENSE reads "Copyright (c) 2026 Chetan Pujari". The README renders, and the Deploy button opens Vercel's clone page (nothing created). Both release PDFs download as valid PDFs. |
+| v2.0.1 | Tag on 0ce1c1e. The release "v2.0.1: LICENSE fix; guide PDF attached" is Latest, with `Build-Your-Own-Pocket-Portfolio-v2.0.1.pdf` (44 pages, 3.4 MB). v2.0.0 and its release are untouched. |
+| Guide v2.0.1 | Page 2 now shows the template's sample heatmap snapshot, not octocat's. Built from the template's `prompts/` (checksum unchanged before and after). Links: 49 external and 47 internal OK (GitHub sign-up 403 and LinkedIn 999 are bot blocks). The privacy sweep is clean. `docs/guide` pushed (c45cd7d), with no PDF or guide sources in git. |
+| Vercel | Production was Ready on 1427264, equal to `origin/main`, before this handoff's push. |
+| Live checks | 118/118 passed on nfcportfolio-two.vercel.app (390x844 and 1440x900, light and dark, plus the 360x640 lock); no contact message sent. The connection here was slow (300–980 ms round trips), and the stock script timed out three times. The passing run used a temporary copy of `scripts/live-check.mjs` with longer waits (navigation 180 s, wake 120 s), printing as it went; the checks are the same. Screens: `docs/morning/final-live/` (gitignored). |
+| Data snapshots | GitHub heatmap refreshed (1,048 contributions, 237 days to 2026-10-30; 31892f3). YouTube unchanged (latest video vFPjA6ShY30). |
+| Hygiene | gitleaks over the full history: site 81 commits, template 8, no leaks. `.env.local`, `.env` and `.env.production.local` are ignored in the site, the template and the prod folder; only `.env.example` (no secrets) is tracked. Merged local branches deleted with `git branch -d`; scratch worktree removed. |
+
+### Email settings (names only)
+
+- Vercel Production: `CONTACT_TO_EMAIL`, `GMAIL_USER`, `GMAIL_APP_PASSWORD`, `RESEND_API_KEY`, `GITHUB_TOKEN`.
+- `nfc-portfolio-prod/.env.local`: the same five. The site checkout has no `.env.local`.
+- Unused: `RESEND_API_KEY`. The form uses Gmail whenever `GMAIL_USER` and `GMAIL_APP_PASSWORD` are set, and Resend only without them. `CONTACT_FROM_EMAIL` isn't set anywhere (it only matters for Resend). Nothing was deleted.
+
+### Ready for you (in `docs/outbox/`, gitignored)
+
+- `luch-dev-email.md`: the licence question for Luch Dev. It's also a **draft in Gmail** (Drafts → "Licence for "iOS 27 Builder": CC BY 4.0 or All Rights Reserved?"), to support@luch.dev. Read it and press Send.
+- `share-post.md`: LinkedIn, X (246 characters, with the guide link as a reply) and an Instagram caption.
+
+### Needs Chetan (final)
+
+1. **Luch Dev email:** Gmail → Drafts → open the "iOS 27 Builder" draft → Send.
+2. **Share posts:** copy from `docs/outbox/share-post.md` and post.
+3. **iOS 18 icon pack:** keep it, or set `NEXT_PUBLIC_ICON_PACK=original` in Vercel Production and redeploy.
+4. **3D iPhone model:** find the licence for the "Binkies MDM" model and save it as `public/models/LICENSE-iphone-18-pro-max.txt`; keep `NEXT_PUBLIC_SHOW_MODEL_LOGO` off.
+5. **Anti-Doom:** put the Play Store URL in `url` for `anti-doom` in `content/projects.ts` once it's live.
+6. **StackUp:** confirm "Closed alpha on Google Play" and say whether to link the repo or a Play Store listing.
+7. **Google app password:** at myaccount.google.com/apppasswords (passkey), delete "NFCPortfolio" only; keep "portfolio".
+8. **Template history:** keep the older template commits that carry your name, or create a fresh-history copy as a new repo.
+9. **Small design calls:** Blog titles without their emoji (two posts), the Skillshare "S" tile, the Contact subject wording, lock-screen tap (wake first, or open), the removed swipe gestures. Say which to change.
+10. **Unused Resend key:** keep `RESEND_API_KEY` as a fallback, or remove it from Vercel and `nfc-portfolio-prod/.env.local`.
+11. **Optional:** the template README points to the v2.0.0 release for the guide (older PDF, octocat heatmap on page 2). Point it at v2.0.1 if you prefer.
+12. **Real-phone test** (iPhone Safari, Android Chrome and Brave):
+    - [ ] Lock screen: clock fit, notifications, swipe up, flashlight and camera.
+    - [ ] Notifications open the right post, reel and project.
+    - [ ] Control Center: pull down from the top right, the sliders, the menus, swipe up to close.
+    - [ ] Dock and Socials folder open the right apps and links.
+    - [ ] Each app (Reviews, Journey, Services, Platforms, Courses, Blog, Expertise, Projects, Settings, Contact): push a detail, then edge-swipe back.
+    - [ ] Larger Text on: nothing cut off, every row still tappable.
+
 ## v12: cleanup and the rest of the Apple-style pass
 
 In short: Courses, Blog, Expertise, Contact, Settings and Projects now use the same grouped rows, iOS tokens and push details as Services and Platforms. None of them has emoji, every row is at least 44 px, and nothing is cut off at 360/390/430 with Larger text on. It's live on nfcportfolio-two.vercel.app (`main` b84f89d, Vercel Production `nfcportfolio-7o30vfde2` Ready, :3100 rebuilt). Live checks passed 119/119, and one real contact message was sent (200, "Message sent").

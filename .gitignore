@@ -77,3 +77,6 @@ docs/morning/
 # v11 and v12 review frames
 /docs/v11/
 /docs/v12/
+
+# drafts to send by hand (email, share posts): never committed
+/docs/outbox/
