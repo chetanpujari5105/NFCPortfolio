@@ -1,6 +1,7 @@
 // Live checks against the deployed site (read-only unless --send): 390×844 and 1440×900, light and
-// dark. Lock screen (clock size and fit, Substack notification, unlock), home pages painted, heatmap,
-// YouTube widget, Journey, Projects, Contact. Screenshots to <outDir> (docs/morning is gitignored).
+// dark, plus the lock screen at 360×640. Lock screen (clock fit, the three notifications, unlock),
+// home pages painted, the dock, heatmap, YouTube widget, Control Center, Journey, Projects, Reviews,
+// Contact. Screenshots to <outDir> (docs/morning is gitignored).
 // --send: also sends ONE real message from the Contact form at 390×844 (light), and reports the API answer.
 // Usage: node scripts/live-check.mjs [base=https://nfcportfolio-two.vercel.app] [outDir=docs/morning] [--send]
 import { chromium } from "@playwright/test";
@@ -62,19 +63,17 @@ for (const [w, h] of [[390, 844], [1440, 900]])
             const b = n.getBoundingClientRect();
             return b.bottom > s.bottom + 0.5 || b.top < s.top - 0.5 || b.left < s.left - 0.5 || b.right > s.right + 0.5;
           }).length;
-        const tile = document.querySelector("[data-lock-stack] .squircle");
         return {
           share: box.height / s.height,
-          inside: ink.left >= s.left && ink.right <= s.right,
+          inside: ink.left - s.left >= s.width * 0.04 && s.right - ink.right >= s.width * 0.04,
           clipped,
           time: d.textContent,
-          cards: document.querySelectorAll("[data-lock-stack] button").length,
-          substack: tile ? getComputedStyle(tile).backgroundColor : null,
+          notes: [...document.querySelectorAll("[data-lock-stack] [data-note]")].map((n) => n.getAttribute("data-note")),
         };
       });
-      check(run, "Lock clock 28–34% of the screen, inside it", m.share > 0.27 && m.share < 0.35 && m.inside, `${(m.share * 100).toFixed(1)}%, "${m.time}"`);
+      check(run, "Lock clock inside the screen, 4%+ each side", m.inside, `${(m.share * 100).toFixed(1)}% tall, "${m.time}"`);
       check(run, "Lock screen: nothing clipped", m.clipped === 0, `${m.clipped} clipped`);
-      check(run, "Substack notification with its mark", m.cards > 0 && m.substack === "rgb(255, 103, 25)", `${m.cards} card(s)`);
+      check(run, "Notifications: Substack, Instagram, project", ["substack", "instagram", "project"].every((id) => m.notes.includes(id)), m.notes.join(", "));
       await p.screenshot({ path: shot("lock") });
       await p.getByRole("button", { name: "Swipe up to open" }).focus();
       await p.keyboard.press("Enter");
@@ -104,6 +103,22 @@ for (const [w, h] of [[390, 844], [1440, 900]])
       const icons = await p.locator("[data-home-page='0'] [data-home-key]").count();
       check(run, "Home page 1 paints", (await unpainted(0)) === 0, `${icons} entries`);
       await p.screenshot({ path: shot("home1") });
+      const dock = await p.locator("[data-dock] [data-dock-key]").evaluateAll((els) => els.map((e) => e.getAttribute("data-dock-key")));
+      check(run, "Dock: Courses, Blog, Contact, Settings", dock.join() === "courses,blog,contact,settings", dock.join(", "));
+      const page1 = await p.locator("[data-home-page='0'] [data-home-key]").evaluateAll((els) => els.map((e) => e.getAttribute("data-home-key")));
+      check(run, "Page 1 has AI Instagram and Services", page1.includes("ai-instagram") && page1.includes("services"));
+
+      // Control Center
+      await p.locator("[data-panel-handle]").click();
+      const cc = p.getByRole("dialog", { name: "Control Center" });
+      await cc.waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
+      await p.waitForTimeout(700);
+      const controls = await cc.locator("button, a, [role=slider]").count().catch(() => 0);
+      check(run, "Control Center opens with its controls", controls >= 10, `${controls} controls`);
+      await p.screenshot({ path: shot("control-center") });
+      await p.keyboard.press("Escape");
+      await p.waitForTimeout(600);
+
       await p.getByRole("button", { name: "Page 2 of 2" }).click();
       await p.waitForTimeout(900);
       check(run, "Home page 2 paints", (await unpainted(1)) === 0);
@@ -128,6 +143,12 @@ for (const [w, h] of [[390, 844], [1440, 900]])
       const txt = (await p.locator("[data-app-window]").textContent()) ?? "";
       check(run, "Projects shows Anti-Doom and StackUp", /Anti[- ]Doom/.test(txt) && /StackUp/.test(txt));
 
+      await p.goto(base + "/#reviews/all", { waitUntil: "networkidle" });
+      await p.waitForTimeout(1200);
+      const reviews = await p.locator("[data-review-row]").count();
+      check(run, "Reviews: the full list", reviews >= 12, `${reviews} reviews`);
+      await p.screenshot({ path: shot("reviews") });
+
       await p.goto(base + "/#contact", { waitUntil: "networkidle" });
       await p.waitForTimeout(1000);
       check(run, "Contact form shows", await p.getByRole("form", { name: "Contact form" }).isVisible());
@@ -137,6 +158,24 @@ for (const [w, h] of [[390, 844], [1440, 900]])
     }
   }
 
+// The smallest phone: the lock screen only
+{
+  const run = "360x640 light";
+  const { ctx, p, errors } = await page([360, 640], "light", { locked: true });
+  await p.goto(base + "/", { waitUntil: "networkidle" });
+  await arrive(p, 360);
+  const m = await p.evaluate(() => {
+    const s = document.querySelector("[data-screen]").getBoundingClientRect();
+    const d = document.querySelector(".lock-digits").getBoundingClientRect();
+    const date = document.querySelector("[data-lock] .lock-date")?.getBoundingClientRect();
+    return { left: (d.left - s.left) / s.width, right: (s.right - d.right) / s.width, underDate: !date || d.top + 1 >= date.bottom };
+  });
+  check(run, "Lock clock fits, 4%+ each side, under the date", m.left >= 0.04 && m.right >= 0.04 && m.underDate, `${(m.left * 100).toFixed(1)}% / ${(m.right * 100).toFixed(1)}%`);
+  await p.screenshot({ path: join(outDir, "lock-360x640-light.png") });
+  check(run, "No page errors (lock)", !errors.length, errors.slice(0, 2).join(" | "));
+  await ctx.close();
+}
+
 if (send) {
   const { ctx, p } = await page([390, 844], "light");
   await p.goto(base + "/#contact", { waitUntil: "networkidle" });
@@ -144,7 +183,7 @@ if (send) {
   await p.locator("#contact-email").fill("test@example.com");
   await p.locator("#contact-name").fill("Test");
   await p.locator("#contact-subject").fill("v10 live test");
-  await p.locator("#contact-message").fill("Live check after the v10 lock screen and Journey release. One test message; no reply needed.");
+  await p.locator("#contact-message").fill("Live check after the v10 reviews, lock screen, Control Center and home release. One test message; no reply needed.");
   const answer = p.waitForResponse((r) => r.url().endsWith("/api/contact") && r.request().method() === "POST", { timeout: 30_000 });
   await p.getByRole("button", { name: "Send message" }).click();
   const res = await answer;

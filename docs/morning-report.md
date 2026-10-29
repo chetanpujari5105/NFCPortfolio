@@ -1,5 +1,39 @@
 # Morning report (2026-10-29)
 
+## v10 Parts A and B: real reviews, lock screen, Control Center, home
+
+Short version: Reviews now has 16 real Udemy reviews, word for word, in an App Store-style app. The lock clock fits every screen. The lock screen shows three of the site's own notifications. Control Center is rebuilt on the Liquid Glass kit's grid. The home screen has AI Instagram and Services on page 1 and Settings on the dock. It's live on nfcportfolio-two.vercel.app (`main` f02bb15, Vercel Production `nfcportfolio-hwupep9c5` Ready, :3100 rebuilt). Live checks pass 75/75, and one real contact message was sent (200, "Message sent").
+
+| # | Part | Result |
+| --- | --- | --- |
+| A | Reviews (e2b1383) | 16 five-star reviews from 9 courses, read by hand on Udemy (no crawling, no avatars). The text is copied exactly, one review per person. The app has a summary computed from the shown reviews (plus the Udemy profile counts, labelled), a paged glass carousel and "See All Reviews" with course chips. Rows open the course. |
+| B1 | Lock clock fit (68dbefa) | Measured from the phone screen's own box, with 5% side margins, under the date and clear of the island. `tests/lock-fit.spec.ts` covers 7 sizes, 4 times, Larger Text, reduced motion and fonts still loading. |
+| B2 | Notifications (eee99bd) | Latest Substack post (opens in Blog), latest reel (Instagram, new tab), Sidekick (Projects). Older ones stack; tap spreads; swipe left clears one. |
+| B3 | Control Center (5cd1c62) | 2x2 cluster (Dark mode, Reduce motion, Larger text, Flashlight), Now Playing (latest video), Finish and Wallpaper glass menus, Contact shortcut, brightness and text size sliders. Every control does something real. |
+| B4 | Home (8caf631) | AI Instagram and Services on page 1, dock = Courses, Blog, Contact, Settings. GitHub moved into Socials (it keeps its page-2 widget), so rows stay full and no link was removed. |
+| C | Rest of v10 | Journey, tokens, shell pass, YouTube fallback and credits were already on `main`. The app password still needs you (Chrome's extension was disconnected this time, so I didn't try). |
+| — | Tests | Lint, typecheck and build are clean. The full suite passes except the 5 known throttled speed checks (58–66 ms on one worker, the same as since v5). Visual baselines for lock and home were updated on purpose. |
+
+Figma kits (licences, measurements and differences from iOS 27 Builder): `docs/ios27-spec.md`, section "v10". None allows more than values, so no new credits were added.
+
+### Screenshots (local, gitignored)
+
+- Lock fit before/after: `docs/v10/lockfit/lock-844x390-before.png`, `lock-844x390-after.png`, `lock-360x640-after.png`; notifications `docs/v10/lockfit/notes-*.png`
+- Control Center: `docs/v10/cc/cc-{390,land,desk}-{light,dark}.png` and `-finish-` variants
+- Home: `docs/v10/home/home-{390,360}-{light,dark}.png`
+- Reviews: `docs/v10/reviews/`
+- Live: `docs/v10/live/*.png` (390x844 and 1440x900, light and dark, plus `lock-360x640-light.png` and `contact-sent-390x844-light.png`)
+
+### Needs Chetan (new)
+
+- Reviews were copied from Udemy; remove any you don't want public. Left out on purpose: accounts named "Chetan", "Genstruct Sapna", "Shaila", "Shaila P" and anyone surnamed Pujari.
+- Apple's own iOS 26 kit says using it means agreeing to its licence. I accepted nothing and took only published measurements for the notification stack. Say if you'd rather drop those.
+- When you post a new reel, update `content/lock-notes.ts`.
+- Delete the Google app password "NFCPortfolio" (keep "portfolio").
+- Try Control Center, the notifications and the new home layout on a real phone. Your own browser keeps its saved home layout until Settings → Reset Home Screen.
+
+---
+
 ## v10 follow-up: iOS 27 tokens and the shell consistency pass
 
 Short version: the whole app shell now follows the iOS 27 Builder kit (Luch Dev). That covers bar, large title, grouped lists, rows, toggle, segmented control, sheets, alerts and search, in light and dark. It's live on nfcportfolio-two.vercel.app (`main` 586642b, Vercel Production Ready, :3100 rebuilt). Live checks pass 56/56. The Google app password still needs your passkey.
