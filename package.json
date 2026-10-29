@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "cn": "cn build --content 'src/**/*.{ts,tsx}' --content 'content/**/*.ts' -o src/lib/cn-tables.ts --css src/app/globals.css -q",
-    "prebuild": "npm run cn && node scripts/build-sw.mjs",
+    "prebuild": "npm run cn && node scripts/build-sw.mjs && tsx scripts/youtube-snapshot.mts --if-vercel",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",

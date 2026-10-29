@@ -2,28 +2,9 @@ import { cacheLife } from "next/cache";
 
 import { fallbackPosts, substackFeed } from "@content/blog";
 import type { FeedPost, LatestVideo } from "@/components/os/server-data";
+import { fetchLatestVideo } from "@/lib/youtube";
+import { decode, field } from "@/lib/xml";
 
-const ENTITIES: Record<string, string> = {
-  amp: "&",
-  lt: "<",
-  gt: ">",
-  quot: '"',
-  apos: "'",
-  nbsp: " ",
-  "#39": "'",
-};
-
-function decode(text: string) {
-  return text
-    .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
-    .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)))
-    .replace(/&([a-z#0-9]+);/gi, (m, name: string) => ENTITIES[name] ?? m);
-}
-
-function field(item: string, tag: string) {
-  const m = item.match(new RegExp(`<${tag}[^>]*>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?</${tag}>`));
-  return m ? m[1].trim() : "";
-}
 
 function stripHtml(html: string) {
   return decode(html.replace(/<(script|style|figure)[\s\S]*?<\/\1>/gi, " ").replace(/<[^>]+>/g, " "))
@@ -74,32 +55,13 @@ export async function getPosts(): Promise<{ posts: FeedPost[]; fromFeed: boolean
   }
 }
 
-/** Channel feed (public, no key). Empty or unreachable → null and the widget links the channel. */
-export const YOUTUBE_FEED = "https://www.youtube.com/feeds/videos.xml?channel_id=UCZHE1x_Qh-8YfgQm44F9KQg";
-
-export function parseVideoFeed(xml: string): LatestVideo | null {
-  const entry = xml.match(/<entry>([\s\S]*?)<\/entry>/)?.[1];
-  if (!entry) return null;
-  const id = field(entry, "yt:videoId");
-  const title = decode(field(entry, "title"));
-  if (!/^[\w-]{6,20}$/.test(id) || !title) return null;
-  return {
-    id,
-    title,
-    url: `https://www.youtube.com/watch?v=${id}`,
-    published: field(entry, "published").slice(0, 10),
-    thumb: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
-  };
-}
-
+/**
+ * The newest video, cached for 6 hours and refreshed in the background. If YouTube's feed fails
+ * (it has returned 404 for whole mornings), it is the committed snapshot: never the channel card
+ * while we have ever seen a video.
+ */
 export async function getLatestVideo(): Promise<LatestVideo | null> {
   "use cache";
   cacheLife({ stale: 3600, revalidate: 21600, expire: 604800 });
-  try {
-    const res = await fetch(YOUTUBE_FEED, { signal: AbortSignal.timeout(6000) });
-    if (!res.ok) return null;
-    return parseVideoFeed(await res.text());
-  } catch {
-    return null;
-  }
+  return fetchLatestVideo();
 }
