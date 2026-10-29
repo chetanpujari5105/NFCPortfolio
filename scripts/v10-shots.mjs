@@ -70,12 +70,15 @@ for (const view of ["390", "1440"])
   for (const theme of ["light", "dark"]) {
     const { ctx, page } = await open(VIEWS[view], theme, { locked: false, hash: "#journey" });
     await save(`journey-${view}-${theme}`, await page.screenshot());
-    // The first timeline row pushes its detail view (if this build has one)
-    const row = page.locator("[data-journey-row]").first();
-    if (await row.count()) {
+    // Rows push a detail view (if this build has them): the story, and a year with a highlight
+    for (const id of ["story", "2025"]) {
+      const row = page.locator(`[data-journey-row="${id}"]`);
+      if (!(await row.count())) continue;
       await row.click();
       await page.waitForTimeout(900);
-      await save(`journey-detail-${view}-${theme}`, await page.screenshot());
+      await save(`journey-${id}-${view}-${theme}`, await page.screenshot());
+      await page.keyboard.press("Escape");
+      await page.waitForTimeout(700);
     }
     await ctx.close();
   }
