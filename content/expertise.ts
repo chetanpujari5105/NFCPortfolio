@@ -1,10 +1,10 @@
 import type { Expertise } from "./schema";
 
-// relatedCourses / relatedServices cross-link to ids in courses.ts and services.ts
+// relatedCourses / relatedServices cross-link to ids in courses.ts and services.ts. Each area's tile
+// (a glyph on an accent) lives in components/apps/expertise-tile.tsx, not here.
 export const expertise = [
   {
     id: "ai",
-    emoji: "🤖",
     title: "AI & Prompt Engineering",
     tools: ["ChatGPT", "DeepSeek AI", "Generative AI", "AI Agents", "n8n Automation"],
     relatedCourses: ["prompt-engineering", "google-veo", "heygen-elevenlabs"],
@@ -12,7 +12,6 @@ export const expertise = [
   },
   {
     id: "uiux",
-    emoji: "🎨",
     title: "UI/UX Design",
     tools: ["Figma", "User Research", "Wireframing", "Prototyping", "Design Systems"],
     relatedCourses: ["figma-design"],
@@ -20,7 +19,6 @@ export const expertise = [
   },
   {
     id: "video",
-    emoji: "🎬",
     title: "Video Editing & Production",
     tools: ["Professional editing", "YouTube content", "Course production"],
     relatedCourses: ["google-veo", "heygen-elevenlabs"],
@@ -28,7 +26,6 @@ export const expertise = [
   },
   {
     id: "graphic",
-    emoji: "📐",
     title: "Graphic Design",
     tools: ["Canva", "Visual branding", "Social media graphics"],
     relatedCourses: ["canva-masterclass"],
@@ -36,7 +33,6 @@ export const expertise = [
   },
   {
     id: "web",
-    emoji: "💻",
     title: "Web Development",
     tools: ["HTML", "CSS", "JavaScript", "Google Apps Script", "Vercel deployments"],
     relatedCourses: [],
@@ -44,7 +40,6 @@ export const expertise = [
   },
   {
     id: "course-creation",
-    emoji: "📚",
     title: "Course Creation",
     tools: ["Curriculum design", "Educational psychology", "Multi-platform publishing"],
     relatedCourses: [],
@@ -52,7 +47,6 @@ export const expertise = [
   },
   {
     id: "marketing",
-    emoji: "📣",
     title: "Content Marketing",
     tools: ["LinkedIn strategy", "Substack newsletters", "Instagram growth", "Personal branding"],
     relatedCourses: ["canva-masterclass"],
@@ -60,7 +54,6 @@ export const expertise = [
   },
   {
     id: "automation",
-    emoji: "🔧",
     title: "Automation & Productivity",
     tools: ["Notion systems", "AI chatbots", "Appointment booking bots", "Workflow automation"],
     relatedCourses: ["master-notion"],

@@ -140,7 +140,7 @@ for (const scheme of ["light", "dark"] as const) {
       await landsOn(page, 3, /Video Editing & Production/);
       await stack(page).click();
       await expect(page).toHaveURL(/#expertise\/video$/);
-      await expect(page.locator("[data-sheet]").getByRole("heading", { name: "Video Editing & Production" })).toBeVisible();
+      await expect(page.locator("[data-push-view]").getByRole("heading", { name: "Video Editing & Production", level: 1 })).toBeVisible();
 
       await onStack(page, scheme);
       await stack(page).focus();

@@ -5,6 +5,7 @@ import { useMotionValue } from "motion/react";
 import { useDrag } from "@use-gesture/react";
 
 import { expertise } from "@content/expertise";
+import { ExpertiseTile } from "@/components/apps/expertise-tile";
 import { releaseVelocity } from "@/lib/gesture";
 import { setLaunchOrigin } from "@/lib/launch";
 import { animateTo, fadeTransition, FLICK_VELOCITY, homePagerX, project, rubberClamp, withVelocity } from "@/lib/motion";
@@ -350,7 +351,7 @@ export function ExpertiseStack() {
                     className="flex size-full flex-col justify-between p-[9cqmin]"
                     style={{ opacity: cardLook(i, 0, false).content }}
                   >
-                    <span className="text-[clamp(18px,17cqmin,30px)] leading-none">{card.emoji}</span>
+                    <ExpertiseTile id={card.id} size="clamp(22px,20cqmin,34px)" />
                     <span className="flex min-w-0 flex-col">
                       <span className="line-clamp-2 text-[clamp(12px,9.2cqmin,15px)] leading-tight font-bold tracking-tight">{card.title}</span>
                       <span className="mt-[2cqmin] truncate text-[clamp(9.5px,6.8cqmin,12px)] font-medium text-app-muted">

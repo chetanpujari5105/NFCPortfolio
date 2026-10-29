@@ -102,7 +102,6 @@ export const PlatformsSchema = z.object({
 
 export const ExpertiseSchema = z.object({
   id: z.string(),
-  emoji: z.string(),
   title: z.string(),
   tools: z.array(z.string()),
   relatedCourses: z.array(z.string()),
