@@ -1,4 +1,54 @@
-# Morning report (overnight run, 2026-10-29)
+# Morning report (2026-10-29)
+
+## v10 run (afternoon): lock screen, Journey, YouTube fallback
+
+Short version: the iOS-style lock screen and the Apple-style Journey are live on nfcportfolio-two.vercel.app (`main` 5cb239c, Vercel Production Ready, :3100 updated). The YouTube widget now keeps the last good video. One real contact message went out and landed in the Inbox. The Google app password wasn't deleted: Google asked for your passkey.
+
+| # | Task | Result |
+| --- | --- | --- |
+| 1 | Push the unpushed docs commit | Done (04a6384 on `origin/main`). |
+| 2 | Lock screen (Part 1) | Done, 8e33c7f. Tall glass clock (Archivo wdth 62, scaleY 1.8, ~28.5% of the screen), battery / GitHub / Pune widgets, flashlight and camera, Substack notification stack with the real mark. Depth effect skipped (would need a second shader pass every frame). |
+| 3 | Journey (Part 2) | Done, 4739813. Large title, inset groups, year headers on a hairline rail, push details with edge-swipe back, no emoji, rem type. Facts unchanged and tested word for word. |
+| 4 | YouTube widget | Done, 5cb239c. Live feed, else the committed `public/content/youtube-latest.json` (refreshed on each Vercel build). |
+| 5 | Delete app password "NFCPortfolio" | **Stopped at the passkey.** myaccount.google.com/apppasswords redirected to a passkey challenge; I closed the tab without touching it. Nothing was deleted or read. |
+| 6 | Live checks + contact test | 56/56 checks pass (390x844 and 1440x900, light and dark). Contact: API 200 `{"ok":true}`, "Message sent" pill, and "[chetanpujari.com] v10 live test (from Test)" is in the chetanpujari92@gmail.com Inbox (1:35 PM). |
+| 7 | Tests | Full suite on the branch build: 423 passed, 5 failed (the known throttled speed checks, 58–62 ms vs 50 ms, failing since v5), 319 skipped. Lint and typecheck clean. Visual baselines added on purpose: lock light/dark, `#journey`, `#journey/2025`. |
+
+### URLs checked
+
+- https://nfcportfolio-two.vercel.app/ (lock screen, home pages 1 and 2)
+- https://nfcportfolio-two.vercel.app/#journey and #journey/2025
+- https://nfcportfolio-two.vercel.app/#projects
+- https://nfcportfolio-two.vercel.app/#contact (one real send)
+- Vercel deployment `nfcportfolio-hjfjh9fc8-chetanpujari5105s-projects.vercel.app` (Ready, 30 s; build log shows the YouTube snapshot refresh)
+- https://myaccount.google.com/apppasswords → passkey challenge (stopped)
+
+### Live checks (`node scripts/live-check.mjs`)
+
+| Check | 390 light | 390 dark | 1440 light | 1440 dark |
+| --- | --- | --- | --- | --- |
+| Lock clock 27–35% of screen, inside it | 28.5% | 28.5% | 28.5% | 28.5% |
+| Lock screen: nothing clipped | Pass | Pass | Pass | Pass |
+| Substack notification with its mark | 3 cards | 3 cards | 3 cards | 3 cards |
+| Unlock | Pass | Pass | Pass | Pass |
+| Home pages 1 and 2 paint | Pass | Pass | Pass | Pass |
+| GitHub heatmap | 1,022, 236 squares | Pass | Pass | Pass |
+| YouTube: latest video | "sidekick launch v3 1080p" | Pass | Pass | Pass |
+| Journey: story + 6 milestones, detail pushes | Pass | Pass | Pass | Pass |
+| Projects: Anti-Doom and StackUp | Pass | Pass | Pass | Pass |
+| No page errors | Pass | Pass | Pass | Pass |
+
+Screenshots: `docs/morning/*-390x844-*.png`, `*-1440x900-*.png` (local only). Before/after: `docs/v10/*.jpg`.
+
+### Needs Chetan (new today)
+
+- Delete the Google app password "NFCPortfolio" after your passkey (keep "portfolio").
+- Real-phone check of v10 (lock feel, tap-to-wake, Journey with Larger text).
+- Unchanged, still open: the Apple-style icon pack (`NEXT_PUBLIC_ICON_PACK=original` is the safe fallback), the 3D model licence, the Anti-Doom Play Store link, StackUp status, the five unverified reviews, and the real-phone checks. Full list in `docs/progress.md`.
+
+---
+
+# Earlier: morning report (overnight run, 2026-10-29)
 
 Short version (updated after the Gmail switch, d0673ba): the Contact form sends through Gmail SMTP to chetanpujari92@gmail.com. A live test arrived in the Inbox. No domain needed. The heatmap reads GitHub with the `portfolio-heatmap` token. What's left is the decisions under "Needs Chetan".
 
