@@ -35,3 +35,20 @@ for (const scheme of ["light", "dark"] as const) {
     });
   });
 }
+
+// The lock screen at a fixed time (its clock is the subject here, so it isn't masked)
+for (const scheme of ["light", "dark"] as const) {
+  test(`lock screen looks right in ${scheme}`, async ({ page }) => {
+    await page.addInitScript(() => sessionStorage.removeItem("pp-unlocked"));
+    await page.clock.setFixedTime(new Date("2026-10-29T09:41:00"));
+    await page.emulateMedia({ colorScheme: scheme, reducedMotion: "reduce" });
+    await page.goto("/");
+    await expect(page.locator("[data-lock]")).toBeVisible();
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(600);
+    await expect(page).toHaveScreenshot(`lock-${scheme}.png`, {
+      // The battery and this week's contributions come from the machine and the network
+      mask: [page.locator(".lock-widget").nth(0), page.locator(".lock-widget").nth(1), page.locator("[data-lock-stack] .min-w-0")],
+    });
+  });
+}

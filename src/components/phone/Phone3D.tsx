@@ -12,6 +12,7 @@ import * as THREE from "three";
 import { FINISH_INFO } from "@/components/studio/FinishSwatches";
 import { DEVICE, SCREEN_INSET_RATIO } from "@/lib/device";
 import { startedIn } from "@/lib/gesture";
+import { phoneTilt } from "@/lib/motion";
 import { useOS } from "@/lib/store";
 
 /*
@@ -387,6 +388,8 @@ function Device({
       moving = easing.damp(tilt.current, "x", p.y * MAX_TILT, TILT_SMOOTH, dt) || moving;
       moving = easing.damp(tilt.current, "y", p.x * MAX_TILT, TILT_SMOOTH, dt) || moving;
     }
+    phoneTilt.x.set(tilt.current.y / MAX_TILT);
+    phoneTilt.y.set(tilt.current.x / MAX_TILT);
 
     g.rotation.y = rig.rotY + tilt.current.y + away * -18 * DEG;
     g.rotation.x = rig.rotX + tilt.current.x + away * 8 * DEG;

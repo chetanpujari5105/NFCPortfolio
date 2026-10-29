@@ -5,8 +5,9 @@ import { useEffect, useState } from "react";
 import { useOS } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
+/** 12-hour, no AM/PM, like iOS */
 function formatTime(d: Date) {
-  return `${d.getHours()}:${String(d.getMinutes()).padStart(2, "0")}`;
+  return `${d.getHours() % 12 || 12}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
 
 /** Live local clock — updates on the minute. */
@@ -33,6 +34,8 @@ function Clock() {
 export function StatusBar({ onApp }: { onApp: boolean }) {
   // Edit mode: like iOS, the status bar steps aside for the Done and + pills
   const editing = useOS((s) => s.wiggle);
+  // The lock screen's own clock is the time; like iOS, the bar's left side stays empty there
+  const locked = useOS((s) => s.locked);
   return (
     <div
       className={cn(
@@ -44,7 +47,7 @@ export function StatusBar({ onApp }: { onApp: boolean }) {
       aria-hidden
     >
       <span className="flex justify-center pl-[2cqw]">
-        <Clock />
+        {!locked && <Clock />}
       </span>
       <span />
       <span className="flex items-center justify-center gap-[5px] pr-[1cqw]">

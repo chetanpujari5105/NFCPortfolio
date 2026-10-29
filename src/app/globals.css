@@ -732,6 +732,146 @@ html[data-unlocked] [data-lock] {
 html:not([data-unlocked]) [data-home-layer] [data-fly] {
   opacity: 0;
 }
+/* The lock screen's sizes, from the screen: round widgets, corner buttons, and the clock, whose
+   size is held by the widest time ("10:08") across the screen, or ~30% of its height on wide screens */
+.lock-screen {
+  --lw: clamp(44px, 15.4cqw, 72px);
+  --lb: clamp(40px, 12.8cqw, 56px);
+  --clock-fs: min(50cqw, 27.5cqh);
+  --clock-stretch: 1.8;
+  background: linear-gradient(180deg, rgb(0 0 0 / 0.2), rgb(0 0 0 / 0) 32%, rgb(0 0 0 / 0) 62%, rgb(0 0 0 / 0.28));
+}
+.dark .lock-screen {
+  background: linear-gradient(180deg, rgb(0 0 0 / 0.32), rgb(0 0 0 / 0.1) 38%, rgb(0 0 0 / 0.14) 62%, rgb(0 0 0 / 0.4));
+}
+.lock-date {
+  margin-bottom: 0.9cqh;
+  font: 600 clamp(14px, 5.1cqw, 22px) / 1.2 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  letter-spacing: -0.01em;
+  color: rgb(255 255 255 / 0.92);
+  text-shadow: 0 1px 12px rgb(0 0 0 / 0.25);
+}
+/* The digits are stretched with a transform (the glyphs keep their own baseline); this box holds
+   the stretched height so everything below it lands in the right place */
+.lock-clock {
+  display: block;
+  height: calc(var(--clock-fs) * 0.7 * var(--clock-stretch));
+}
+.lock-digits {
+  position: relative;
+  display: block;
+  font-family: var(--font-display);
+  font-size: var(--clock-fs);
+  font-stretch: 62%;
+  font-weight: 330;
+  line-height: 1;
+  letter-spacing: -0.015em;
+  white-space: nowrap;
+  text-box: trim-both cap alphabetic;
+  transform: scaleY(var(--clock-stretch));
+  transform-origin: 50% 0;
+  /* Glass: light at the top to translucent at the foot, a sheen that slides with the tilt, a soft shadow */
+  color: transparent;
+  background-image:
+    linear-gradient(105deg, transparent 40%, rgb(255 255 255 / 0.45) 50%, transparent 60%),
+    linear-gradient(180deg, rgb(255 255 255 / 0.98), rgb(255 255 255 / 0.84) 30%, rgb(255 255 255 / 0.52) 76%, rgb(255 255 255 / 0.34));
+  background-size: 250% 100%, 100% 100%;
+  background-position: 55% 0, 0 0;
+  background-repeat: no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(0 calc(var(--clock-fs) * 0.02) calc(var(--clock-fs) * 0.05) rgb(0 0 0 / 0.2));
+}
+/* The inner highlight: a hairline edge, lit along the top of each glyph */
+.lock-digits::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  text-box: trim-both cap alphabetic;
+  color: transparent;
+  -webkit-text-stroke: 0.7px rgb(255 255 255 / 0.8);
+  -webkit-mask-image: linear-gradient(180deg, #000, transparent 42%);
+  mask-image: linear-gradient(180deg, #000, transparent 42%);
+}
+@supports not (text-box: trim-both cap alphabetic) {
+  .lock-digits {
+    margin-top: calc(var(--clock-fs) * -0.24);
+  }
+}
+.lock-widget {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: var(--lw);
+  height: var(--lw);
+  border-radius: 50%;
+  color: #fff;
+  background: rgb(255 255 255 / 0.14);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+  backdrop-filter: blur(14px) saturate(150%);
+  box-shadow: inset 0 0.5px 0 rgb(255 255 255 / 0.32), inset 0 0 0 0.5px rgb(255 255 255 / 0.1);
+}
+.dark .lock-widget {
+  background: rgb(0 0 0 / 0.2);
+}
+.lock-button {
+  --lock-btn-bg-on: #fff;
+  position: absolute;
+  bottom: calc(8.4cqh - var(--lb) / 2);
+  display: grid;
+  place-items: center;
+  width: var(--lb);
+  height: var(--lb);
+  border-radius: 50%;
+  color: #fff;
+  background: rgb(0 0 0 / 0.26);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  backdrop-filter: blur(16px) saturate(140%);
+  box-shadow: inset 0 0.5px 0 rgb(255 255 255 / 0.25);
+  transition:
+    transform 160ms cubic-bezier(0.23, 1, 0.32, 1),
+    background-color 200ms ease,
+    color 200ms ease;
+}
+.lock-button:active {
+  transform: scale(1.12);
+}
+.lock-button[aria-pressed="true"] {
+  color: #111;
+  background: #fff;
+}
+/* iOS notification platter: light glass with dark text, dark glass in dark mode */
+.lock-notification {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px 12px 12px;
+  border-radius: 22px;
+  text-align: left;
+  color: #000;
+  background: rgb(246 246 248 / 0.64);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+  box-shadow: 0 8px 28px rgb(0 0 0 / 0.14), inset 0 0.5px 0 rgb(255 255 255 / 0.6);
+}
+.dark .lock-notification {
+  color: #fff;
+  background: rgb(30 30 32 / 0.56);
+  box-shadow: 0 8px 28px rgb(0 0 0 / 0.25), inset 0 0.5px 0 rgb(255 255 255 / 0.12);
+}
+@media (prefers-reduced-transparency: reduce) {
+  .lock-widget,
+  .lock-button {
+    background: rgb(28 28 30 / 0.85);
+  }
+  .lock-notification {
+    background: rgb(246 246 248);
+  }
+  .dark .lock-notification {
+    background: rgb(30 30 32);
+  }
+}
 @keyframes lock-chevron {
   0%,
   100% {

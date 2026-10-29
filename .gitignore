@@ -70,3 +70,6 @@ docs/v4/**/*.webm
 
 # Overnight check screenshots (local only)
 docs/morning/
+/docs/v10/*/compare/
+# v10 review frames: full-size PNGs regenerate with scripts/v10-shots.mjs; compare sheets hold the reference images
+/docs/v10/*/*.png

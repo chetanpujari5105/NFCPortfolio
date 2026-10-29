@@ -39,6 +39,8 @@ type OSState = {
   panelOpen: boolean;
   /** 0.4–1: screen brightness from the control panel */
   brightness: number;
+  /** Lock-screen flashlight: a brightness boost over the screen until it's switched off or unlocked */
+  torch: boolean;
   homePage: number;
   /** Apps opened this session, most recent first (app switcher) */
   recents: AppId[];
@@ -67,6 +69,7 @@ type OSState = {
   setSwitcherOpen: (open: boolean) => void;
   setPanelOpen: (open: boolean) => void;
   setBrightness: (value: number) => void;
+  setTorch: (on: boolean) => void;
   setHomePage: (page: number) => void;
   forgetRecent: (app: AppId) => void;
   setHome: (layout: HomeLayout) => void;
@@ -118,6 +121,7 @@ export const useOS = create<OSState>()((set, get) => ({
   switcherOpen: false,
   panelOpen: false,
   brightness: 1,
+  torch: false,
   homePage: 0,
   recents: [],
   home: defaultLayout(),
@@ -157,11 +161,12 @@ export const useOS = create<OSState>()((set, get) => ({
   unlock: () => {
     writeSession(UNLOCK_KEY, "1");
     document.documentElement.setAttribute("data-unlocked", "");
-    set({ locked: false });
+    set({ locked: false, torch: false });
   },
   setSwitcherOpen: (switcherOpen) => set({ switcherOpen }),
   setPanelOpen: (panelOpen) => set({ panelOpen }),
   setBrightness: (brightness) => set({ brightness: Math.min(1, Math.max(0.4, brightness)) }),
+  setTorch: (torch) => set({ torch }),
   setHomePage: (homePage) => set({ homePage }),
   forgetRecent: (app) => set((s) => ({ recents: s.recents.filter((a) => a !== app) })),
   setHome: (layout) => {

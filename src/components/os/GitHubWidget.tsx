@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 
 import { profile } from "@content/profile";
+import { loadContributions } from "@/lib/contributions";
 import type { ContributionDay, Contributions } from "@/lib/github";
 import { homePagerX } from "@/lib/motion";
 import { prefersReducedMotion } from "@/lib/store";
@@ -18,24 +19,6 @@ const WEEKS = 34;
 /** The column fade's last square lands after this (16 columns × 24 ms stagger + 360 ms). */
 const FADE_MS = 800;
 
-/**
- * One request per visit, shared by every copy of the widget (edit mode draws its own): the cached
- * API route, else the committed snapshot, else nothing (the skeleton stays, still a full grid).
- */
-let request: Promise<Contributions | null> | null = null;
-function loadContributions() {
-  const json = async (url: string) => {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`${url} ${res.status}`);
-    const data = (await res.json()) as Contributions;
-    if (!data?.days?.length) throw new Error(`${url}: no days`);
-    return data;
-  };
-  request ??= json("/api/contributions")
-    .catch(() => json("/content/github-contributions.json").then((d): Contributions => ({ ...d, source: "snapshot" })))
-    .catch(() => null);
-  return request;
-}
 
 /** A square's place: weeks before the newest column (`age`) and weekday (`row`, Sunday first). */
 type Cell = { key: string; age: number; row: number; day?: ContributionDay };
