@@ -75,14 +75,14 @@ test("a milestone pushes its detail and swipes back from the left edge", async (
   await expect(page.locator("[data-push-view]")).toHaveCount(0);
 });
 
-test("one type scale (17 / 15 / 13), and Larger text makes all of it bigger", async ({ page }) => {
+test("the kit's type ramp (Headline 17 / Subheadline 15, years as Nested headers), and Larger text makes all of it bigger", async ({ page }) => {
   await open(page);
   const row = page.locator(`[data-journey-row="${timeline[0].year}"]`);
   const sizes = () =>
     row.evaluate((el) => [...el.querySelectorAll("span.block")].map((s) => parseFloat(getComputedStyle(s).fontSize)));
   expect(await sizes()).toEqual([17, 15]);
   const year = app(page).getByRole("heading", { name: String(timeline[0].year), exact: true });
-  await expect(year).toHaveCSS("font-size", "13px");
+  await expect(year).toHaveCSS("font-size", "17px");
   await page.evaluate(() => document.documentElement.setAttribute("data-text", "large"));
   const [title, secondary] = await sizes();
   expect(title).toBeGreaterThan(18.5);

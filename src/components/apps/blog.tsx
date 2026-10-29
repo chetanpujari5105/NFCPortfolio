@@ -44,7 +44,7 @@ async function share(title: string, url: string) {
 }
 
 const iconButton =
-  "press-spring grid size-[34px] place-items-center rounded-full bg-app-group";
+  "press-spring glass-button grid size-[44px] place-items-center rounded-full";
 
 function Thumb({
   post,
@@ -109,7 +109,7 @@ function Reader({ post }: { post: FeedPost }) {
         sizes="(max-width: 600px) 100vw, 400px"
       />
       <p className="mt-5 text-[16px] leading-[1.65]">{post.excerpt}</p>
-      <Pill href={post.url} className="mt-6 w-full py-3 text-[15.5px]">
+      <Pill href={post.url} className="mt-6 h-[50px] w-full text-ios-headline">
         Read the full post on Substack
       </Pill>
     </AppScreen>
@@ -198,7 +198,7 @@ export default function BlogApp() {
           </button>
         )}
 
-        <ul className="overflow-hidden rounded-[14px] bg-app-group">
+        <ul className="overflow-hidden rounded-ios-xxl bg-app-group">
           {rest.map((post, i) => (
             <li key={post.url} className="relative">
               <SwipeRow

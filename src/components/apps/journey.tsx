@@ -67,16 +67,16 @@ const GLYPHS = {
 
 type GlyphName = keyof typeof GLYPHS;
 
-/** iOS system colours, one flat fill per tile (as in Settings) */
+/** iOS 27 accents (lib/ios-tokens.ts), one flat fill per tile as in Settings; they shift with dark mode */
 const TINT = {
-  blue: "#0a84ff",
-  indigo: "#5e5ce6",
-  orange: "#ff9500",
-  green: "#30b158",
-  red: "#ff3b30",
-  purple: "#af52de",
-  teal: "#30b0c7",
-  gray: "#8e8e93",
+  blue: "var(--ios-blue)",
+  indigo: "var(--ios-indigo)",
+  orange: "var(--ios-orange)",
+  green: "var(--ios-green)",
+  red: "var(--ios-red)",
+  purple: "var(--ios-purple)",
+  teal: "var(--ios-teal)",
+  gray: "var(--ios-gray)",
 };
 
 function Tile({ glyph, tint, size = 30, rail }: { glyph: GlyphName; tint: string; size?: number; rail?: boolean }) {
@@ -137,14 +137,14 @@ const STORY = story.map(noEmoji);
 function Section({ header, footer, children, className }: { header?: ReactNode; footer?: ReactNode; children: ReactNode; className?: string }) {
   return (
     <section className={cn("mb-3", className)}>
-      {header && <h2 className="mb-1.5 px-4 pt-3 text-[0.8125rem] leading-snug text-app-muted">{header}</h2>}
-      <div className="overflow-hidden rounded-[12px] bg-app-group">{children}</div>
-      {footer && <p className="mt-1.5 px-4 text-[0.8125rem] leading-snug text-app-muted">{footer}</p>}
+      {header && <h2 className="px-4 pt-2.5 pb-2.5 text-ios-headline font-semibold text-app-muted">{header}</h2>}
+      <div className="overflow-hidden rounded-ios-xxl bg-app-group">{children}</div>
+      {footer && <p className="mt-2 px-4 text-ios-footnote leading-[1rem] text-app-muted">{footer}</p>}
     </section>
   );
 }
 
-/** A grouped row: tile, title (17/600) and secondary line (15 grey); a chevron when it pushes. */
+/** A grouped row (the kit's Tall row): tile, Headline title (17/600) and Subheadline secondary (15 grey); a chevron only when it pushes. */
 function Row({
   leading,
   title,
@@ -163,17 +163,17 @@ function Row({
   const body = (
     <>
       {leading}
-      <span className="min-w-0 flex-1 py-[11px]">
-        <span className="block text-[1.0625rem] leading-[1.3] font-semibold tracking-[-0.01em]">{title}</span>
-        {secondary && <span className="mt-0.5 block text-[0.9375rem] leading-[1.35] text-app-muted">{secondary}</span>}
+      <span className="min-w-0 flex-1 py-3">
+        <span className="block text-ios-headline font-semibold">{title}</span>
+        {secondary && <span className="block text-ios-subheadline text-app-muted">{secondary}</span>}
       </span>
-      {onPress && <ChevronRight aria-hidden className="size-[1.0625rem] shrink-0 text-app-muted/70" strokeWidth={2.4} />}
+      {onPress && <ChevronRight aria-hidden className="size-4 shrink-0 text-ios-label-tertiary" strokeWidth={2.6} />}
     </>
   );
-  const classes = "relative flex w-full items-center gap-3 pr-4 pl-4 text-left";
+  const classes = "relative flex min-h-[3.25rem] w-full items-center gap-3 px-4 text-left";
   if (!onPress) return <div className={classes}>{body}</div>;
   return (
-    <button type="button" onClick={onPress} aria-label={label} {...data} className={cn(classes, "active:bg-app-divider/45")}>
+    <button type="button" onClick={onPress} aria-label={label} {...data} className={cn(classes, "active:bg-ios-fill-tertiary")}>
       {body}
     </button>
   );
@@ -225,11 +225,11 @@ function Timeline() {
       <ol>
         {MILESTONES.map((m) => (
           <li key={m.id} className="mb-3">
-            <h3 className="relative flex items-center pt-3 pb-1.5 pl-[58px] text-[0.8125rem] leading-snug font-semibold text-app-muted tabular-nums">
+            <h3 className="relative flex items-center pt-2.5 pb-2.5 pl-[58px] text-ios-headline font-semibold text-app-muted tabular-nums">
               <span aria-hidden data-rail-node className="absolute z-1 size-[7px] rounded-full bg-[color-mix(in_oklab,var(--app-muted)_60%,var(--app-background))]" style={{ left: RAIL_X - 3.5 }} />
               {m.year}
             </h3>
-            <div className="overflow-hidden rounded-[12px] bg-app-group">
+            <div className="overflow-hidden rounded-ios-xxl bg-app-group">
               <Row
                 leading={<Tile glyph={m.glyph} tint={m.tint} rail />}
                 title={m.title}
@@ -334,7 +334,7 @@ export default function JourneyApp() {
             </span>
           </div>
           <Hairline inset={16} />
-          <p className="px-4 py-2.5 text-[0.8125rem] leading-snug text-app-muted">{profile.badges.join(" · ")}</p>
+          <p className="px-4 py-2.5 text-ios-footnote text-app-muted">{profile.badges.join(" · ")}</p>
         </Section>
 
         <Section header="About">

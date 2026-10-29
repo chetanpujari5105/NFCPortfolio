@@ -82,7 +82,7 @@ function Note({ tone, action, children }: { tone: "quiet" | "good" | "warn"; act
   return (
     <div
       className={cn(
-        "mb-4 flex items-start gap-2 rounded-[14px] px-4 py-3 text-[14px] leading-snug",
+        "mb-4 flex items-start gap-2 rounded-ios-xl px-4 py-3 text-[14px] leading-snug",
         tone === "quiet" && "bg-app-group text-app-secondary",
         tone === "good" && "bg-available/14 text-app-ink",
         tone === "warn" && "bg-finish/18 text-app-ink",
@@ -217,7 +217,7 @@ export default function ContactApp() {
               data-contact-send
               aria-busy={status === "sending"}
               disabled={status === "sending"}
-              className="grid size-[34px] place-items-center rounded-full bg-finish text-finish-ink transition-transform duration-150 ease-out active:scale-[0.9] disabled:opacity-70"
+              className="grid size-[44px] place-items-center rounded-full bg-finish text-finish-ink transition-transform duration-150 ease-out active:scale-[0.9] disabled:opacity-70"
             >
               {status === "sending" ? (
                 <LoaderCircle className="size-5 animate-spin" strokeWidth={2.6} aria-hidden />
@@ -277,7 +277,7 @@ export default function ContactApp() {
             </div>
           )}
 
-          <div className="mb-6 overflow-hidden rounded-[14px] bg-app-group [&>*+*]:border-t-[0.5px] [&>*+*]:border-app-divider">
+          <div className="mb-6 overflow-hidden rounded-ios-xxl bg-app-group [&>*+*]:border-t-[0.5px] [&>*+*]:border-app-divider">
             <Field label="To:" id="contact-to">
               <input
                 id="contact-to"

@@ -31,7 +31,7 @@ export default function ReviewsApp() {
           {verifiedReviews.map((r) => (
             <li key={r.name} className="w-[86%] shrink-0 snap-center rounded-[20px] bg-app-group p-5">
               <Stars rating={r.rating} />
-              <blockquote className="mt-3 text-[15.5px] leading-relaxed">“{r.quote}”</blockquote>
+              <blockquote className="mt-3 text-ios-body leading-relaxed">“{r.quote}”</blockquote>
               <p className="mt-4 text-[14px] font-semibold">{r.name}</p>
               <p className="text-[12.5px] text-app-muted">
                 {r.role}, {r.city}

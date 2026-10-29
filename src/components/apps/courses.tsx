@@ -210,7 +210,7 @@ export default function CoursesApp() {
           href={profile.udemyProfile}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-between rounded-[14px] bg-app-group px-4 py-4 text-[15px] font-semibold transition-transform duration-150 active:scale-[0.98]"
+          className="flex min-h-[3.25rem] items-center justify-between rounded-ios-xxl bg-app-group px-4 text-ios-headline transition-transform duration-150 active:scale-[0.98]"
         >
           Explore all {profile.stats.courses}+ courses
           <span aria-hidden className="text-finish-deep dark:text-finish">

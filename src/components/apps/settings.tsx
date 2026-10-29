@@ -48,9 +48,9 @@ const WALLPAPER_INFO: Record<Wallpaper, { label: string; preview: string }> = {
 
 const ICON_CREDIT =
   ICON_PACK === "ios18"
-    ? "App icons: iOS 18 App Icons by David Akhmedbayev, CC BY 4.0, via Figma Community (the wallpaper is original). iPhone and the app designs they depict are trademarks of Apple Inc. The 3D phone is a third-party iPhone 18 Pro Max model."
-    : "App icons and wallpaper are original; the 3D phone is a third-party iPhone 18 Pro Max model (iPhone is a trademark of Apple Inc.).";
-const CREDITS = `Designed and built for Chetan Pujari. ${ICON_CREDIT} Brand logos: Simple Icons (CC0) and Font Awesome Free (CC BY 4.0, LinkedIn), used only to link to Chetan's profiles. World map data: Natural Earth (public domain).`;
+    ? "App icons: iOS 18 App Icons by David Akhmedbayev, CC BY 4.0, via Figma Community (the wallpaper is original); the app designs they depict are Apple's. The 3D phone is a third-party iPhone 18 Pro Max model."
+    : "App icons and wallpaper are original; the 3D phone is a third-party iPhone 18 Pro Max model.";
+const CREDITS = `Designed and built for Chetan Pujari. ${ICON_CREDIT} Brand logos: Simple Icons (CC0) and Font Awesome Free (CC BY 4.0, LinkedIn), used only to link to Chetan's profiles. World map data: Natural Earth (public domain). Interface sizes and colours follow iOS 27 Builder by Luch Dev (Figma Community; © 2026 Luch Dev, all rights reserved), values only. iPhone, iOS and iPadOS are trademarks of Apple Inc.`;
 
 const TECH = ["Next.js 16", "React 19", "Tailwind CSS v4", "Motion", "Zustand", "Zod", "WebGL", "Nodemailer"];
 
@@ -102,7 +102,7 @@ function Profile() {
         <h2 className="mt-3 text-[24px] font-bold tracking-tight">{profile.name}</h2>
         <p className="text-[14px] text-app-muted">{profile.role}</p>
       </div>
-      <p className="mt-5 text-[15.5px] leading-relaxed">{profile.shortBio}</p>
+      <p className="mt-5 text-ios-body leading-relaxed">{profile.shortBio}</p>
       <ListGroup header="Details" className="mt-6">
         <ListRow title="Location" trailing={<span className="text-[14px] text-app-muted">{profile.location}</span>} />
         <ListRow title="Education" subtitle={profile.education} />
@@ -181,7 +181,7 @@ export default function SettingsApp() {
                   aria-hidden
                   className={cn(
                     "grid size-[22px] place-items-center rounded-full border-[1.5px] transition-colors duration-150",
-                    theme === t ? "border-transparent bg-[#0a84ff] text-white" : "border-app-divider",
+                    theme === t ? "border-transparent bg-ios-blue text-white" : "border-app-divider",
                   )}
                 >
                   {theme === t && (
@@ -222,7 +222,7 @@ export default function SettingsApp() {
                   className={cn(
                     "block aspect-[9/16] w-full rounded-[12px] transition-shadow duration-150",
                     wallpaper === w
-                      ? "shadow-[0_0_0_2px_var(--app-group),0_0_0_4px_#0a84ff]"
+                      ? "shadow-[0_0_0_2px_var(--app-group),0_0_0_4px_var(--ios-blue)]"
                       : "shadow-[0_0_0_0.5px_var(--app-divider)]",
                   )}
                   style={{ background: WALLPAPER_INFO[w].preview }}
@@ -250,7 +250,7 @@ export default function SettingsApp() {
                   className={cn(
                     "block size-11 rounded-full transition-shadow duration-150",
                     finish === f
-                      ? "shadow-[0_0_0_2.5px_var(--app-group),0_0_0_4.5px_#0a84ff]"
+                      ? "shadow-[0_0_0_2.5px_var(--app-group),0_0_0_4.5px_var(--ios-blue)]"
                       : "shadow-[inset_0_0_0_1px_rgb(0_0_0/0.12)]",
                   )}
                   style={{ background: `linear-gradient(150deg, ${FINISH_INFO[f].color}, ${FINISH_INFO[f].deep})` }}
@@ -282,7 +282,7 @@ export default function SettingsApp() {
             onClick={() => useOS.getState().setHomeSheet({ kind: "library" })}
           />
           <ListRow
-            title={<span className="text-[#ff3b30]">Reset Home Screen</span>}
+            title={<span className="text-ios-red">Reset Home Screen</span>}
             onClick={() => useOS.getState().setHomeSheet({ kind: "reset" })}
           />
         </ListGroup>
@@ -314,7 +314,7 @@ export default function SettingsApp() {
             subtitle="A portfolio you use like a phone. Every app is a section; open one from the home screen or press ⌘K to search."
           />
           <div className="px-4 py-3">
-            <p className="text-[15.5px] font-medium">Built with</p>
+            <p className="text-ios-body">Built with</p>
             <div className="mt-2 flex flex-wrap gap-1.5">
               {TECH.map((t) => (
                 <span key={t} className="rounded-full bg-app-background px-2.5 py-1 text-[12.5px] font-medium text-app-secondary">

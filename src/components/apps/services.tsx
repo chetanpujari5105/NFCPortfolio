@@ -40,7 +40,7 @@ export default function ServicesApp() {
       <SectionTitle>Why people trust me</SectionTitle>
       <ul className="space-y-2">
         {philosophy.map((p) => (
-          <li key={p.quote} className="flex gap-3 rounded-[14px] bg-app-group px-4 py-3">
+          <li key={p.quote} className="flex gap-3 rounded-ios-xl bg-app-group px-4 py-3">
             <span aria-hidden className="text-[20px] leading-none">
               {p.emoji}
             </span>

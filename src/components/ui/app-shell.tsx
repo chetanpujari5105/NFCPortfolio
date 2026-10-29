@@ -277,7 +277,7 @@ export function AppScreen({
           className="pointer-events-none absolute inset-x-0 top-0 z-20 px-4 pt-[max(env(safe-area-inset-top),12px)] pb-1.5 tab:pt-[7cqh]"
         >
           <m.div aria-hidden style={{ opacity: barOpacity }} className="nav-material absolute inset-0" />
-          <div ref={setSlot} className="relative flex h-[38px] items-center justify-between gap-2" />
+          <div ref={setSlot} className="relative flex h-[44px] items-center justify-between gap-2" />
           {onRefresh && (
             <m.div
               style={{ opacity: refreshing ? 1 : spinOpacity, y: spinY }}
@@ -327,9 +327,9 @@ export function BackButton({ label = "Back", onClick = goBack }: { label?: strin
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="press-spring grid size-[34px] place-items-center rounded-full bg-app-group text-app-ink shadow-[0_0_0_0.5px_var(--app-divider)]"
+      className="press-spring glass-button grid size-[44px] place-items-center rounded-full text-app-ink"
     >
-      <ChevronLeft className="size-5" strokeWidth={2.4} aria-hidden />
+      <ChevronLeft className="size-[22px]" strokeWidth={2.4} aria-hidden />
     </button>
   );
 }
@@ -357,7 +357,7 @@ export function AppNav({
         <m.span
           aria-hidden
           style={{ opacity: screen.titleOpacity }}
-          className="min-w-0 flex-1 truncate text-center text-[16px] font-semibold tracking-tight"
+          className="min-w-0 flex-1 truncate text-center text-ios-headline font-semibold"
         >
           {title}
         </m.span>
@@ -365,10 +365,10 @@ export function AppNav({
       {action && <span className="pointer-events-auto flex items-center gap-2">{action}</span>}
     </>
   );
-  if (!screen) return <div className="flex h-[38px] items-center justify-between">{row}</div>;
+  if (!screen) return <div className="flex h-[44px] items-center justify-between">{row}</div>;
   return (
     <>
-      <div aria-hidden className="h-[38px]" />
+      <div aria-hidden className="h-[44px]" />
       {screen.slot && createPortal(row, screen.slot)}
     </>
   );
@@ -401,24 +401,24 @@ export function AppHeader({
       <m.h1
         ref={h1}
         style={{ scale, transformOrigin: "0% 50%" }}
-        className="mt-2.5 text-[34px] leading-[1.08] font-bold tracking-[-0.02em]"
+        className="mt-2 text-ios-large-title font-bold"
       >
         {title}
       </m.h1>
-      {subtitle && <p className="mt-1 text-[14px] leading-snug text-app-muted">{subtitle}</p>}
+      {subtitle && <p className="mt-0.5 text-ios-subheadline text-app-muted">{subtitle}</p>}
     </header>
   );
 }
 
 export function SectionTitle({ children }: { children: ReactNode }) {
   return (
-    <h2 className="mt-6 mb-2 px-4 text-[13px] font-medium tracking-wide text-app-muted uppercase first:mt-0">
+    <h2 className="mt-6 mb-1 px-4 pb-1.5 text-ios-headline font-semibold text-app-muted first:mt-0">
       {children}
     </h2>
   );
 }
 
-/** Grouped list card with inset hairline dividers. */
+/** Inset grouped section (radius XXL) with opaque separators inset to the row's text. */
 export function ListGroup({
   header,
   footer,
@@ -434,7 +434,7 @@ export function ListGroup({
   return (
     <section className={cn("mb-6", className)}>
       {header && <SectionTitle>{header}</SectionTitle>}
-      <div className="overflow-hidden rounded-[14px] bg-app-group">
+      <div className="overflow-hidden rounded-ios-xxl bg-app-group">
         {rows.map((row, i) => (
           <div key={i} className="relative">
             {row}
@@ -444,7 +444,7 @@ export function ListGroup({
           </div>
         ))}
       </div>
-      {footer && <p className="mt-2 px-4 text-[12.5px] leading-snug text-app-muted">{footer}</p>}
+      {footer && <p className="mt-2 px-4 text-ios-footnote leading-[1rem] text-app-muted">{footer}</p>}
     </section>
   );
 }
@@ -465,17 +465,17 @@ export function ListRow({ title, subtitle, leading, trailing, onClick, href, che
     <>
       {leading && <span className="shrink-0">{leading}</span>}
       <span className="min-w-0 flex-1">
-        <span className="block text-[15.5px] leading-snug font-medium">{title}</span>
-        {subtitle && <span className="mt-0.5 block text-[13px] leading-snug text-app-muted">{subtitle}</span>}
+        <span className="block text-ios-body">{title}</span>
+        {subtitle && <span className="block text-ios-subheadline text-app-muted">{subtitle}</span>}
       </span>
       {trailing}
-      {chevron && <ChevronRight className="size-4 shrink-0 text-app-muted" aria-hidden />}
+      {chevron && (onClick || href) && <ChevronRight className="size-4 shrink-0 text-ios-label-tertiary" strokeWidth={2.6} aria-hidden />}
       {href && !chevron && !trailing && <ExternalLink className="size-3.5 shrink-0 text-app-muted" aria-hidden />}
     </>
   );
   const classes = cn(
-    "flex w-full items-center gap-3 px-4 py-3 text-left transition-colors duration-150",
-    (onClick || href) && "active:bg-app-divider/40",
+    "flex min-h-[3.25rem] w-full items-center gap-3 px-4 py-2.5 text-left transition-colors duration-150",
+    (onClick || href) && "active:bg-ios-fill-tertiary",
     className,
   );
   if (href)
@@ -712,15 +712,15 @@ export function Switch({
       aria-label={label}
       onClick={() => onChange(!checked)}
       className={cn(
-        "relative h-[31px] w-[51px] shrink-0 rounded-full transition-colors duration-200",
-        checked ? "bg-available" : "bg-app-divider",
+        "relative h-[28px] w-[64px] shrink-0 rounded-full transition-colors duration-200",
+        checked ? "bg-ios-green" : "bg-ios-label-tertiary",
       )}
     >
       <m.span
-        animate={{ x: checked ? 20 : 0 }}
+        animate={{ x: checked ? 21 : 0 }}
         transition={springs.snappy}
         initial={false}
-        className="absolute top-[2px] left-[2px] size-[27px] rounded-full bg-white shadow-[0_2px_6px_rgb(0_0_0/0.2)]"
+        className="absolute top-[2px] left-[2px] h-[24px] w-[39px] rounded-full bg-white shadow-[0_1px_4px_rgb(0_0_0/0.18)]"
       />
     </button>
   );
@@ -740,7 +740,7 @@ export function Segmented<T extends string>({
   const id = useId();
   return (
     <LayoutGroup id={id}>
-      <div role="radiogroup" aria-label={label} onKeyDown={onRadioGroupKeyDown} className="flex rounded-[10px] bg-app-divider/50 p-[2px]">
+      <div role="radiogroup" aria-label={label} onKeyDown={onRadioGroupKeyDown} className="flex h-8 gap-1 rounded-full bg-ios-fill-tertiary p-[2px]">
         {options.map((o) => (
           <button
             key={o.value}
@@ -750,15 +750,14 @@ export function Segmented<T extends string>({
             tabIndex={value === o.value ? 0 : -1}
             onClick={() => onChange(o.value)}
             className={cn(
-              "relative flex-1 rounded-[8px] px-2 py-1.5 text-[13px] font-semibold transition-colors duration-150",
-              value === o.value ? "text-app-ink" : "text-app-muted",
+              "relative flex-1 rounded-full px-2 text-[0.8125rem] font-semibold text-app-ink transition-colors duration-150",
             )}
           >
             {value === o.value && (
               <m.span
                 layoutId="segment-indicator"
                 transition={springs.snappy}
-                className="absolute inset-0 rounded-[8px] bg-app-group shadow-sm"
+                className="absolute inset-0 rounded-full bg-ios-segmented-selected shadow-[0_2px_8px_rgb(0_0_0/0.1)]"
               />
             )}
             <span className="relative">{o.label}</span>
@@ -887,7 +886,7 @@ export function Stars({ rating }: { rating: number }) {
   return (
     <span aria-label={`${rating} out of 5 stars`} className="text-[13px] tracking-[2px] text-finish">
       {"★".repeat(rating)}
-      <span className="text-app-divider">{"★".repeat(5 - rating)}</span>
+      <span className="text-ios-gray-4">{"★".repeat(5 - rating)}</span>
     </span>
   );
 }
@@ -1044,14 +1043,14 @@ export function Sheet({ open, children, label }: { open: boolean; children: Reac
         aria-label="Close"
         onClick={() => goBack()}
         style={{ opacity: prefersReducedMotion() ? fade : progress }}
-        className="absolute inset-0 bg-black/30"
+        className="absolute inset-0 bg-ios-overlay"
       />
       <LayerCtx.Provider value="sheet">
         <m.div
           ref={panelRef}
           data-sheet
           style={{ y, opacity: fade }}
-          className="absolute inset-x-0 bottom-0 flex h-[92%] flex-col rounded-t-[26px] bg-app-background shadow-[0_-10px_40px_rgb(0_0_0/0.18)]"
+          className="absolute inset-x-0 bottom-0 flex h-[92%] flex-col rounded-t-ios-sheet bg-app-background shadow-[0_-10px_40px_rgb(0_0_0/0.18)]"
         >
           <button
             type="button"
@@ -1068,7 +1067,7 @@ export function Sheet({ open, children, label }: { open: boolean; children: Reac
             }}
             className="flex h-[26px] shrink-0 cursor-grab touch-none items-center justify-center active:cursor-grabbing"
           >
-            <span aria-hidden className="block h-[5px] w-10 rounded-full bg-app-divider" />
+            <span aria-hidden className="block h-1 w-[58px] rounded-full bg-ios-fill-vibrant-primary" />
           </button>
           <div
             ref={contentRef}

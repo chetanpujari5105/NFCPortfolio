@@ -88,7 +88,7 @@ function ProjectDetail({ id }: { id: string }) {
           className="object-cover"
         />
       </div>
-      <p className="mt-5 text-[15.5px] leading-relaxed">{p.description}</p>
+      <p className="mt-5 text-ios-body leading-relaxed">{p.description}</p>
       <ListGroup header="Built with" className="mt-5">
         <div className="flex flex-wrap gap-1.5 px-4 py-3">
           {p.stack.map((s) => (
