@@ -1,16 +1,17 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import type { MotionValue } from "motion/react";
 import * as m from "motion/react-m";
 
 import { profile } from "@content/profile";
 import { loadContributions, recent } from "@/lib/contributions";
+import { animateTo, haptic, rubberBand, withVelocity } from "@/lib/motion";
+import { prefersReducedMotion } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
-import { BrandGlyph, BrandTile } from "./BrandIcon";
-import { github, substack } from "./brand-marks";
-import type { FeedPost } from "./server-data";
+import { BrandGlyph } from "./BrandIcon";
+import { github } from "./brand-marks";
 
 /* Lock-screen pieces: the round widgets under the clock, the corner buttons and the notification
    stack. Taps reach them through the lock screen's own gesture (it captures the pointer), by their
@@ -164,47 +165,78 @@ export function CameraGlyph() {
 
 /* ───────────────────────── Notification stack ───────────────────────── */
 
-/** "now" for the newest; then "3d ago", "2w ago". */
-function ago(post: FeedPost, newest: boolean, now: Date | null) {
-  if (newest || !now) return "now";
-  const days = Math.max(0, Math.round((now.getTime() - new Date(post.date).getTime()) / 86_400_000));
-  if (!Number.isFinite(days)) return "";
-  if (days < 1) return "today";
-  if (days < 7) return `${days}d ago`;
-  if (days < 60) return `${Math.round(days / 7)}w ago`;
-  return `${Math.round(days / 30)}mo ago`;
+/** One notification: the site's own content, with the tile of the app it opens. */
+export type LockNote = {
+  id: string;
+  app: string;
+  tile: ReactNode;
+  title: string;
+  body: string;
+  /** When it happened; none for the project, which has no date of its own */
+  at: Date | null;
+  /** What a tap does, and the screen-reader words for it */
+  action: string;
+  hint: string;
+};
+
+/** iOS's short ages: "now", "2m", "1h", "3d", "2w". */
+function age(at: Date | null, now: Date | null) {
+  if (!at || !now) return "";
+  const min = Math.max(0, (now.getTime() - at.getTime()) / 60_000);
+  if (!Number.isFinite(min)) return "";
+  if (min < 1) return "now";
+  if (min < 60) return `${Math.floor(min)}m`;
+  if (min < 60 * 24) return `${Math.floor(min / 60)}h`;
+  if (min < 60 * 24 * 7) return `${Math.floor(min / 1440)}d`;
+  return `${Math.floor(min / 10080)}w`;
 }
 
-/** Peek of each card under the front one, collapsed (px). */
+/*
+ * Stack metrics from Apple's iOS 26 kit (Notifications → Stack 1–3): the cards behind are inset
+ * 20 and 40 pt a side on a 386 pt card (scale 0.896, 0.79), at 90% and 80% opacity, each peeking
+ * 8 pt below the one in front.
+ */
 const PEEK = 8;
+const BEHIND_SCALE = [1, 0.896, 0.79];
+const BEHIND_OPACITY = [1, 0.9, 0.8];
+
+/** Sideways drag on one card, handed over by the lock screen's own gesture (it owns the pointer). */
+export type NoteSwipe = (index: number, state: { mx: number; vx: number; last: boolean }) => void;
 
 /**
- * Up to three Substack posts as iOS notifications. Collapsed: the newest in front, the others
- * peeking out beneath it. A tap spreads them (upward, from the bottom like iOS); a tap on a card
- * then opens that post. `collapse` runs 1 (stacked) → 0 (spread) and is driven by the lock screen.
+ * The notifications, newest in front. Collapsed, the older ones tuck under it with only their
+ * edges showing; a tap spreads them (upward, from the bottom, like iOS), and a tap on a card then
+ * opens it. Swipe a card left to clear it. `collapse` runs 1 (stacked) → 0 (spread), driven by
+ * the lock screen.
  */
 export function NotificationStack({
-  posts,
+  notes,
   collapse,
   expanded,
   now,
+  swipeRef,
+  onDismiss,
   onKeyOpen,
   onKeyExpand,
 }: {
-  posts: FeedPost[];
+  notes: LockNote[];
   collapse: MotionValue<number>;
   expanded: boolean;
   now: Date | null;
-  onKeyOpen: (i: number, el: HTMLElement) => void;
+  swipeRef: RefObject<NoteSwipe | null>;
+  onDismiss: (id: string) => void;
+  onKeyOpen: (action: string, el: HTMLElement) => void;
   onKeyExpand: () => void;
 }) {
   const cards = useRef<(HTMLButtonElement | null)[]>([]);
+  const shift = useRef<number[]>([]);
+  const placeRef = useRef<() => void>(() => {});
 
   // Each card's offset from its spread place to its stacked place, from the measured heights.
   // Written straight to the cards' styles: they mount before the motion features load.
   useLayoutEffect(() => {
     const place = () => {
-      const els = cards.current.slice(0, posts.length).filter(Boolean) as HTMLElement[];
+      const els = cards.current.slice(0, notes.length).filter(Boolean) as HTMLElement[];
       if (!els.length) return;
       const bottoms = els.map((el) => el.offsetTop + el.offsetHeight);
       const total = bottoms[bottoms.length - 1];
@@ -213,10 +245,15 @@ export function NotificationStack({
       els.forEach((el, i) => {
         // Behind the front card, each one smaller: its bottom edge peeks out by PEEK
         const stacked = total - PEEK * (n - 1 - i);
-        el.style.transform = `translateY(${c * (stacked - bottoms[i])}px) scale(${1 - c * 0.05 * i})`;
-        el.style.opacity = String(i === 0 ? 1 : 1 - c * (0.15 + 0.2 * i));
+        const k = Math.min(i, 2);
+        const scale = 1 - c * (1 - BEHIND_SCALE[k]);
+        const x = shift.current[i] ?? 0;
+        el.style.transform = `translate(${x}px, ${c * (stacked - bottoms[i])}px) scale(${scale})`;
+        const fade = i === 0 ? 1 : 1 - c * (1 - (i > 2 ? 0 : BEHIND_OPACITY[k]));
+        el.style.opacity = String(fade * Math.max(0, 1 - Math.abs(Math.min(0, x)) / (el.offsetWidth || 1)));
       });
     };
+    placeRef.current = place;
     place();
     const unsubscribe = collapse.on("change", place);
     const observer = new ResizeObserver(place);
@@ -225,46 +262,86 @@ export function NotificationStack({
       unsubscribe();
       observer.disconnect();
     };
-  }, [collapse, posts.length]);
+  }, [collapse, notes.length]);
 
-  if (!posts.length) return null;
-  const many = posts.length > 1;
+  // Swipe left to clear: follows the finger, resists to the right, and goes on a flick or past 40%
+  useEffect(() => {
+    swipeRef.current = (i, { mx, vx, last }) => {
+      const el = cards.current[i];
+      const note = notes[i];
+      if (!el || !note) return;
+      const w = el.offsetWidth;
+      const set = (x: number) => {
+        shift.current[i] = x;
+        placeRef.current();
+      };
+      if (!last) return set(mx < 0 ? mx : rubberBand(mx, 40));
+      if (-mx > w * 0.4 || vx < -500) {
+        haptic();
+        const done = () => {
+          shift.current = [];
+          onDismiss(note.id);
+        };
+        if (prefersReducedMotion()) return done();
+        animateTo(mx, -w * 1.15, { ...withVelocity("smooth", Math.min(vx, -800)), onUpdate: set }).then(done);
+      } else animateTo(mx < 0 ? mx : rubberBand(mx, 40), 0, { ...withVelocity("snappy", vx), onUpdate: set });
+    };
+    return () => {
+      swipeRef.current = null;
+    };
+  }, [notes, onDismiss, swipeRef]);
+
+  if (!notes.length) return null;
+  const many = notes.length > 1;
   return (
-    <div data-lock-stack className="pointer-events-none absolute inset-x-[3.6cqw] bottom-[calc(8.4cqh+var(--lb)/2+2.2cqh)] flex flex-col gap-2">
-      {posts.map((post, i) => {
-        const action = many && !expanded ? "stack" : `post:${i}`;
+    <div
+      data-lock-stack
+      role="list"
+      aria-label="Notifications"
+      className="pointer-events-none absolute inset-x-[2cqw] bottom-[calc(8.4cqh+var(--lb)/2+2.2cqh)] flex flex-col gap-2"
+    >
+      {notes.map((note, i) => {
+        const action = many && !expanded ? "stack" : note.action;
+        const when = age(note.at, now);
         return (
           <button
-            key={post.url}
+            key={note.id}
             ref={(el) => {
               cards.current[i] = el;
             }}
             type="button"
+            role="listitem"
             data-lock-item={i === 0 ? "" : undefined}
+            data-lock-note={i}
+            data-note={note.id}
             data-lock-action={action}
             aria-label={
               many && !expanded
-                ? `${posts.length} notifications from Substack. Newest: ${post.title}. Show all`
-                : `Substack: ${post.title}. Open in Blog`
+                ? `${notes.length} notifications. Newest, from ${note.app}: ${note.title}. Show all`
+                : `${note.app}: ${note.title}. ${note.body}. ${note.hint}`
             }
             aria-hidden={!expanded && i > 0 ? true : undefined}
             tabIndex={!expanded && i > 0 ? -1 : undefined}
             onClick={(e) => {
               if (e.detail !== 0) return;
               if (action === "stack") onKeyExpand();
-              else onKeyOpen(i, e.currentTarget);
+              else onKeyOpen(action, e.currentTarget);
             }}
-            style={{ zIndex: 3 - i, transformOrigin: "50% 100%" }}
+            onKeyDown={(e) => {
+              if (e.key !== "Delete" && e.key !== "Backspace") return;
+              e.preventDefault();
+              onDismiss(note.id);
+            }}
+            style={{ zIndex: notes.length - i, transformOrigin: "50% 100%" }}
             className={cn("lock-notification pointer-events-auto", "[&>*]:transition-opacity [&>*]:duration-200", i > 0 && !expanded && "[&>*]:opacity-0")}
           >
-            <BrandTile mark={substack} className="size-[2.375rem]" />
+            {note.tile}
             <span className="min-w-0 flex-1">
               <span className="flex items-baseline justify-between gap-2">
-                <span className="text-[0.75rem] font-semibold tracking-[0.06em] uppercase opacity-60">Substack</span>
-                <span className="text-[0.8125rem] opacity-60">{ago(post, i === 0, now)}</span>
+                <span className="truncate text-[0.9375rem] leading-[1.25rem] font-semibold">{note.title}</span>
+                {when && <span className="shrink-0 text-[0.8125rem] opacity-55">{when}</span>}
               </span>
-              <span className="block truncate text-[0.9375rem] leading-tight font-semibold">{post.title}</span>
-              <span className="block truncate text-[0.9375rem] leading-tight opacity-80">{post.subtitle || "New post"}</span>
+              <span className="block truncate text-[0.9375rem] leading-[1.25rem] opacity-80">{note.body}</span>
             </span>
           </button>
         );

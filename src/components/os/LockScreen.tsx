@@ -1,17 +1,23 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type RefObject } from "react";
 import { useMotionValue, useSpring, useTransform } from "motion/react";
 import * as m from "motion/react-m";
 import { useDrag } from "@use-gesture/react";
 
+import { appsLayout } from "@content/apps";
+import { latestReel, lockProjectId } from "@content/lock-notes";
+import { projects } from "@content/projects";
 import { setLaunchOrigin } from "@/lib/launch";
 import { animateTo, haptic, phoneTilt, rubberBand, springs, unlockProgress, withVelocity } from "@/lib/motion";
 import { openApp } from "@/lib/router";
 import { prefersReducedMotion, useOS } from "@/lib/store";
 
-import { CameraGlyph, LockWidgets, NotificationStack, TorchGlyph } from "./LockWidgets";
-import { useServerData } from "./server-data";
+import { IconFace } from "./AppIcon";
+import { BrandTile } from "./BrandIcon";
+import { instagram, substack } from "./brand-marks";
+import { CameraGlyph, LockWidgets, NotificationStack, TorchGlyph, type LockNote, type NoteSwipe } from "./LockWidgets";
+import { useServerData, type FeedPost } from "./server-data";
 
 function useNow() {
   const [now, setNow] = useState<Date | null>(null);
@@ -137,12 +143,63 @@ function useStandInTilt() {
   }, []);
 }
 
+const NOTE_TILE = "size-[2.375rem]";
+const PROJECTS_ITEM = appsLayout.row.find((i) => i.id === "projects")!;
+const PROJECT = projects.find((p) => p.id === lockProjectId);
+
+/**
+ * The three notifications, newest first: the latest Substack post, the latest reel and one
+ * project. All are the site's own content, opening its own apps (or the reel, in a new tab).
+ */
+function lockNotes(post: FeedPost | undefined): LockNote[] {
+  const notes: LockNote[] = [];
+  if (post)
+    notes.push({
+      id: "substack",
+      app: "Substack",
+      tile: <BrandTile mark={substack} className={NOTE_TILE} />,
+      title: post.title,
+      body: post.subtitle || "New post",
+      at: new Date(post.date),
+      action: "post:0",
+      hint: "Open in Blog",
+    });
+  notes.push({
+    id: "instagram",
+    app: "Instagram",
+    tile: <BrandTile mark={instagram} className={NOTE_TILE} />,
+    title: latestReel.title,
+    body: latestReel.text,
+    at: new Date(latestReel.posted),
+    action: "reel",
+    hint: "Opens the reel on Instagram in a new tab",
+  });
+  if (PROJECT)
+    notes.push({
+      id: "project",
+      app: "Projects",
+      tile: (
+        <span aria-hidden className="block shrink-0" style={{ "--icon": "2.375rem" } as CSSProperties}>
+          <IconFace item={PROJECTS_ITEM} tileKey={null} />
+        </span>
+      ),
+      title: `${PROJECT.name}: ${PROJECT.tagline}`,
+      body: PROJECT.description.split(/(?<=[.!?])\s/)[0],
+      at: null,
+      action: `project:${PROJECT.id}`,
+      hint: "Open in Projects",
+    });
+  // Dated ones newest first; the project (no date) last
+  return notes.sort((a, b) => (b.at?.getTime() ?? -Infinity) - (a.at?.getTime() ?? -Infinity));
+}
+
 /** Wheel / trackpad travel (px) that counts as a full swipe on the desktop. */
 const WHEEL_IDLE_MS = 140;
 
 /**
- * First visit of a session: date, a tall glass clock, three round widgets, the newest Substack
- * posts and the flashlight / camera buttons. Swipe up (it follows the finger and rubber-bands; the
+ * First visit of a session: date, a tall glass clock, three round widgets, a stack of
+ * notifications (the latest post, reel and a project; swipe one left to clear it) and the
+ * flashlight / camera buttons. Swipe up (it follows the finger and rubber-bands; the
  * wheel works too) to open; a tap wakes it (the sheet lifts to show the way), a second tap or
  * Enter opens. Deep links and repeat visits skip it.
  */
@@ -160,6 +217,8 @@ export function LockScreen() {
   const collapse = useMotionValue(1);
   const crossed = useRef(false);
   const downOn = useRef<Element | null>(null);
+  const swipeNote = useRef<NoteSwipe | null>(null);
+  const [cleared, setCleared] = useState<string[]>([]);
   const height = () => ref.current?.clientHeight ?? 800;
   useStandInTilt();
   useClockFit(ref);
@@ -213,12 +272,31 @@ export function LockScreen() {
     animateTo(y, -Math.min(56, height() * 0.07), springs.snappy).then(() => animateTo(y, 0, springs.release));
   };
 
-  const openPost = (i: number, el: HTMLElement) => {
-    const post = posts[i];
-    if (!post) return;
-    setLaunchOrigin("blog", el);
-    const slug = post.url.replace(/\/+$/, "").split("/").pop() || post.url;
-    commit(0, () => openApp("blog", slug));
+  const notes = useMemo(() => lockNotes(posts[0]).filter((n) => !cleared.includes(n.id)), [posts, cleared]);
+  const dismiss = (id: string) => {
+    // Down to one: nothing left to spread
+    if (notes.length <= 2) setStack(false);
+    setCleared((c) => [...c, id]);
+  };
+
+  /** A notification's own action: the post in Blog, the reel in a new tab, the project in Projects. */
+  const openNote = (action: string, el: HTMLElement) => {
+    if (action.startsWith("post:")) {
+      const post = posts[Number(action.slice(5))];
+      if (!post) return;
+      setLaunchOrigin("blog", el);
+      const slug = post.url.replace(/\/+$/, "").split("/").pop() || post.url;
+      return commit(0, () => openApp("blog", slug));
+    }
+    if (action === "reel") {
+      haptic();
+      window.open(latestReel.url, "_blank", "noopener,noreferrer");
+      return;
+    }
+    if (action.startsWith("project:")) {
+      setLaunchOrigin("projects", el);
+      return commit(0, () => openApp("projects", action.slice(8)));
+    }
   };
 
   const openCamera = (el: HTMLElement) => {
@@ -237,13 +315,19 @@ export function LockScreen() {
     }
     if (action === "camera") return openCamera(el);
     if (action === "stack") return setStack(true);
-    if (action.startsWith("post:")) return openPost(Number(action.slice(5)), el);
+    return openNote(action, el);
   };
 
   useDrag(
-    ({ tap, movement: [, my], velocity: [, vy], direction: [, dy], last, first }) => {
+    ({ tap, axis, movement: [mx, my], velocity: [vx, vy], direction: [dx, dy], last, first }) => {
       if (leaving) return;
       if (tap) return tapOn(downOn.current);
+      // Sideways: a notification being swiped away (elsewhere, sideways means nothing)
+      if (axis === "x") {
+        const card = downOn.current?.closest<HTMLElement>("[data-lock-note]");
+        if (card) swipeNote.current?.(Number(card.dataset.lockNote), { mx, vx: vx * dx * 1000, last });
+        return;
+      }
       const H = height();
       if (first) crossed.current = false;
       y.set(my < 0 ? my : rubberBand(my, 80));
@@ -257,7 +341,7 @@ export function LockScreen() {
         else animateTo(y, 0, withVelocity("snappy", v));
       }
     },
-    { target: ref, axis: "y", filterTaps: true, pointer: { capture: true } },
+    { target: ref, axis: "lock", filterTaps: true, pointer: { capture: true } },
   );
 
   // Desktop: a scroll (wheel or two-finger swipe) moves the sheet the same way and settles when it stops
@@ -288,7 +372,6 @@ export function LockScreen() {
   if (!locked) return null;
 
   const [date, time] = now ? clockText(now) : ["", ""];
-  const stack = posts.slice(0, 3);
 
   return (
     <m.div
@@ -315,12 +398,14 @@ export function LockScreen() {
 
       <m.div style={{ opacity: clockOpacity }}>
         <NotificationStack
-          posts={stack}
+          notes={notes}
           collapse={collapse}
           expanded={expanded}
           now={now}
+          swipeRef={swipeNote}
+          onDismiss={dismiss}
           onKeyExpand={() => setStack(true)}
-          onKeyOpen={openPost}
+          onKeyOpen={openNote}
         />
       </m.div>
 

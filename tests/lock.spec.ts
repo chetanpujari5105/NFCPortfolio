@@ -77,27 +77,63 @@ test.describe("lock screen", () => {
     await expect(page.locator("[data-torch]")).toHaveCount(0);
   });
 
-  test("Substack notifications: the brand mark, a stack that spreads, a card that opens the post", async ({ page }) => {
+  test("notifications: Substack, Instagram and a project, stacked like iOS, each opening its own place", async ({ page, context }) => {
     await page.goto("/");
     await settled(page);
-    const cards = page.locator("[data-lock-stack] button");
-    const n = await cards.count();
-    expect(n).toBeGreaterThan(0);
-    expect(n).toBeLessThanOrEqual(3);
-    // The Substack mark (simple-icons), on its orange squircle
-    const tile = cards.first().locator("span.squircle").first();
-    await expect(tile).toHaveCSS("background-color", "rgb(255, 103, 25)");
-    if (n > 1) {
-      // Stacked: the cards behind sit under the front one, only their edges showing
-      const [a, b] = [await cards.nth(0).boundingBox(), await cards.nth(1).boundingBox()];
-      expect(b!.y + b!.height - (a!.y + a!.height)).toBeLessThan(12);
-      await cards.first().click();
-      await expect(cards.first()).toHaveAttribute("aria-label", /Open in Blog$/);
-      await page.waitForTimeout(600);
-      const [c, d] = [await cards.nth(0).boundingBox(), await cards.nth(1).boundingBox()];
-      expect(d!.y).toBeGreaterThan(c!.y + c!.height - 1);
-    }
+    const cards = page.locator("[data-lock-stack] [data-note]");
+    await expect(cards).toHaveCount(3);
+    // Newest first: each card carries its app's tile (official marks for Substack and Instagram)
+    const ids = await cards.evaluateAll((els) => els.map((e) => (e as HTMLElement).dataset.note));
+    expect(new Set(ids)).toEqual(new Set(["substack", "instagram", "project"]));
+    expect(ids[2]).toBe("project");
+    const substack = page.locator('[data-note="substack"] span.squircle').first();
+    await expect(substack).toHaveCSS("background-color", "rgb(255, 103, 25)");
+    await expect(page.locator('[data-note="instagram"] span.squircle')).toHaveCount(1);
+    await expect(page.locator('[data-note="project"] .icon-tile')).toHaveCount(1);
+
+    // Stacked: the cards behind sit under the front one, only their edges showing
+    const [a, b] = [await cards.nth(0).boundingBox(), await cards.nth(1).boundingBox()];
+    expect(b!.y + b!.height - (a!.y + a!.height)).toBeLessThan(12);
     await cards.first().click();
+    await page.waitForTimeout(600);
+    const [c, d] = [await cards.nth(0).boundingBox(), await cards.nth(1).boundingBox()];
+    expect(d!.y).toBeGreaterThan(c!.y + c!.height - 1);
+
+    // The reel opens on Instagram in a new tab, and the lock screen stays
+    const popup = context.waitForEvent("page");
+    await page.locator('[data-note="instagram"]').click();
+    expect((await popup).url()).toContain("instagram.com/reel/");
+    await expect(page.locator("[data-lock]")).toBeVisible();
+
+    // The project opens Projects → Sidekick
+    await page.bringToFront();
+    await page.locator('[data-note="project"]').click();
+    await expect(page.locator("[data-lock]")).toHaveCount(0);
+    await expect(page).toHaveURL(/#projects\/sidekick$/);
+  });
+
+  test("a notification swipes left to clear; Substack opens the post in Blog", async ({ page }) => {
+    await page.goto("/");
+    await settled(page);
+    const cards = page.locator("[data-lock-stack] [data-note]");
+    await expect(cards).toHaveCount(3);
+    await cards.first().click();
+    await page.waitForTimeout(600);
+    const project = page.locator('[data-note="project"]');
+    const box = (await project.boundingBox())!;
+    const y = box.y + box.height / 2;
+    await page.mouse.move(box.x + box.width * 0.7, y);
+    await page.mouse.down();
+    for (let i = 1; i <= 10; i++) {
+      await page.mouse.move(box.x + box.width * (0.7 - 0.07 * i), y + i * 0.3);
+      await page.waitForTimeout(16);
+    }
+    await page.mouse.up();
+    await expect(project).toHaveCount(0);
+    await expect(cards).toHaveCount(2);
+    await expect(page.locator("[data-lock]")).toBeVisible();
+
+    await page.locator('[data-note="substack"]').click();
     await expect(page.locator("[data-lock]")).toHaveCount(0);
     await expect(page.getByRole("dialog", { name: "Blog" })).toBeVisible();
     await expect(page).toHaveURL(/#blog\/.+/);
