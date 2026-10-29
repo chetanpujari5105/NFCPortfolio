@@ -35,9 +35,13 @@ test("each detail lists its tools and opens its related courses and services", a
     await expect(view(page).locator("[data-related-service]")).toHaveCount(e.relatedServices.length);
   }
   await open(page, "expertise/uiux");
+  await expect(view(page).locator('[data-related-course="figma-design"]')).toBeInViewport();
   await view(page).locator('[data-related-course="figma-design"]').click();
   await expect(page).toHaveURL(/#courses\/figma-design$/);
   await open(page, "expertise/web");
+  // Coming from another app: let the detail finish arriving before pressing in it
+  await expect(view(page).locator('[data-related-service="websites"]')).toBeInViewport();
+  await page.waitForTimeout(400);
   await view(page).locator('[data-related-service="websites"]').click();
   await expect(page).toHaveURL(/#services\/websites$/);
 });
