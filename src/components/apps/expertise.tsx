@@ -5,6 +5,7 @@ import Image from "next/image";
 import { courses } from "@content/courses";
 import { expertise } from "@content/expertise";
 import { services } from "@content/services";
+import { ServiceTile } from "@/components/apps/service-tile";
 import { AppHeader, AppScreen, ListGroup, ListRow, Sheet, useLastValue } from "@/components/ui/app-shell";
 import { openApp } from "@/lib/router";
 import { useOS } from "@/lib/store";
@@ -54,8 +55,8 @@ function AreaSheet({ id }: { id: string }) {
             <ListRow
               key={s.id}
               chevron
-              onClick={() => openApp("services")}
-              leading={<span aria-hidden className="text-[20px]">{s.emoji}</span>}
+              onClick={() => openApp("services", s.id)}
+              leading={<ServiceTile id={s.id} />}
               title={s.title}
             />
           ))}

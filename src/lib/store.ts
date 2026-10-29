@@ -56,7 +56,7 @@ type OSState = {
   /** A folder just made: it opens with its name field focused */
   renameFolder: string | null;
   pill: PillEvent | null;
-  /** Pre-filled subject for the Contact app ("Let's talk" from a service) */
+  /** Pre-filled subject for the Contact app (a service's "Start a conversation") */
   contactSubject: string;
   setRoute: (route: Route) => void;
   setFinish: (finish: Finish) => void;

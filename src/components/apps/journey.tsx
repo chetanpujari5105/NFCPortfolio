@@ -8,6 +8,7 @@ import { profile } from "@content/profile";
 import { story } from "@content/story";
 import { timeline } from "@content/timeline";
 import { AppHeader, AppScreen, PushView, useLastValue } from "@/components/ui/app-shell";
+import { TINT, Tile, type GlyphName } from "@/components/ui/grouped";
 import { blurOf } from "@/lib/placeholders";
 import { openApp } from "@/lib/router";
 import { useOS } from "@/lib/store";
@@ -20,87 +21,6 @@ import { cn } from "@/lib/utils";
  * edge to go back). Every word comes from content/ (profile, story, timeline); none is written here.
  * Type is in rem, so Settings → Larger text scales all of it.
  */
-
-/* ───────────────────────── Glyphs: original, drawn on a 24 grid like SF Symbols ───────────────────────── */
-
-const GLYPHS = {
-  play: <path fillRule="evenodd" stroke="none" d="M12 3.6a8.4 8.4 0 1 1 0 16.8 8.4 8.4 0 0 1 0-16.8Zm-1.9 5v6.8l5.6-3.4Z" />,
-  stack: (
-    <>
-      <path d="m12 4 8.5 4.3L12 12.6 3.5 8.3Z" />
-      <path d="m4.8 11.4 7.2 3.7 7.2-3.7M4.8 14.9l7.2 3.7 7.2-3.7" fill="none" />
-    </>
-  ),
-  easel: (
-    <>
-      <path d="M4.5 5h15v10h-15Z" />
-      <path d="M12 3.5V5m-3.5 10L7 20.5M15.5 15l1.5 5.5" fill="none" />
-    </>
-  ),
-  book: (
-    <>
-      <path d="M12 6.6C10.2 5.3 7.7 4.8 4 5v13c3.7-.2 6.2.3 8 1.6Z" />
-      <path d="M12 6.6c1.8-1.3 4.3-1.8 8-1.6v13c-3.7-.2-6.2.3-8 1.6Z" />
-    </>
-  ),
-  mic: (
-    <>
-      <path d="M9.2 6.2a2.8 2.8 0 0 1 5.6 0v5.3a2.8 2.8 0 0 1-5.6 0Z" />
-      <path d="M6.4 11.2a5.6 5.6 0 0 0 11.2 0M12 16.8v3.4m-3 0h6" fill="none" />
-    </>
-  ),
-  sparkle: (
-    <>
-      <path d="M10 4.5c.6 3.6 2 5 5.6 5.6-3.6.6-5 2-5.6 5.6-.6-3.6-2-5-5.6-5.6 3.6-.6 5-2 5.6-5.6Z" />
-      <path d="M17.2 13.6c.3 1.7 1 2.4 2.7 2.7-1.7.3-2.4 1-2.7 2.7-.3-1.7-1-2.4-2.7-2.7 1.7-.3 2.4-1 2.7-2.7Z" />
-    </>
-  ),
-  cap: (
-    <>
-      <path d="m12 5 9.5 4.6L12 14.2 2.5 9.6Z" />
-      <path d="M6.5 11.6v3.7c1.4 1.3 3.3 2 5.5 2s4.1-.7 5.5-2v-3.7M20 10.4v5" fill="none" />
-    </>
-  ),
-  star: <path d="m12 4 2.4 5 5.4.6-4 3.7 1.1 5.4L12 16l-4.9 2.7 1.1-5.4-4-3.7 5.4-.6Z" />,
-  quote: <path d="M5 8.5A2.5 2.5 0 0 1 7.5 6H10v5H7.6c0 1.6.8 2.7 2.4 3.2V17c-3.2-.5-5-2.9-5-6.4Zm9 0A2.5 2.5 0 0 1 16.5 6H19v5h-2.4c0 1.6.8 2.7 2.4 3.2V17c-3.2-.5-5-2.9-5-6.4Z" />,
-} satisfies Record<string, ReactNode>;
-
-type GlyphName = keyof typeof GLYPHS;
-
-/** iOS 27 accents (lib/ios-tokens.ts), one flat fill per tile as in Settings; they shift with dark mode */
-const TINT = {
-  blue: "var(--ios-blue)",
-  indigo: "var(--ios-indigo)",
-  orange: "var(--ios-orange)",
-  green: "var(--ios-green)",
-  red: "var(--ios-red)",
-  purple: "var(--ios-purple)",
-  teal: "var(--ios-teal)",
-  gray: "var(--ios-gray)",
-};
-
-function Tile({ glyph, tint, size = 30, rail }: { glyph: GlyphName; tint: string; size?: number; rail?: boolean }) {
-  return (
-    <span
-      aria-hidden
-      data-rail-tile={rail ? "" : undefined}
-      className="squircle relative z-2 grid shrink-0 place-items-center text-white"
-      style={{ width: size, height: size, background: tint }}
-    >
-      <svg
-        viewBox="0 0 24 24"
-        className="size-[66%]"
-        fill="currentColor"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        {GLYPHS[glyph]}
-      </svg>
-    </span>
-  );
-}
 
 /* ───────────────────────── Content, shaped (never reworded) ───────────────────────── */
 
@@ -231,7 +151,7 @@ function Timeline() {
             </h3>
             <div className="overflow-hidden rounded-ios-xxl bg-app-group">
               <Row
-                leading={<Tile glyph={m.glyph} tint={m.tint} rail />}
+                leading={<Tile glyph={m.glyph} tint={m.tint} data={{ "data-rail-tile": "" }} />}
                 title={m.title}
                 secondary={m.detail}
                 onPress={() => openApp("journey", m.id)}

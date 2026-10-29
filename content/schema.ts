@@ -91,6 +91,8 @@ export const PlatformsSchema = z.object({
     z.object({
       name: z.string(),
       url: url.nullable(),
+      /** Where the link goes, shown under the name: part of `url`, never anything else */
+      handle: z.string().optional(),
       logo: z.string(),
       note: z.string().optional(),
     }),
@@ -109,14 +111,18 @@ export const ExpertiseSchema = z.object({
 
 export const ServiceSchema = z.object({
   id: z.string(),
-  emoji: z.string(),
   title: z.string(),
+  /** One line under the title in the list */
+  summary: z.string(),
   description: z.string(),
-  subject: z.string(),
+  /** "What you get" on the detail screen */
+  points: z.array(z.string()).min(3).max(5),
+  goodFor: z.string(),
+  tools: z.object({ label: z.string(), items: z.array(z.string()).min(1) }).optional(),
   chip: z.string().optional(),
 });
 
-export const PhilosophySchema = z.object({ emoji: z.string(), quote: z.string() });
+export const PhilosophySchema = z.object({ quote: z.string() });
 
 export const BlogPostSchema = z.object({
   date: z.string(),

@@ -144,8 +144,8 @@ function SpotlightPanel({ open }: { open: boolean }) {
         id: `svc-${s.id}`,
         kind: "Services",
         title: s.title,
-        subtitle: s.description.slice(0, 70) + "…",
-        run: () => openApp("services"),
+        subtitle: s.summary,
+        run: () => openApp("services", s.id),
       })),
       ...platforms.primary.map((p) => ({
         id: `plat-${p.name}`,

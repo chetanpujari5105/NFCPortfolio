@@ -73,3 +73,6 @@ docs/morning/
 /docs/v10/*/compare/
 # v10 review frames: full-size PNGs regenerate with scripts/v10-shots.mjs; compare sheets hold the reference images
 /docs/v10/*/*.png
+
+# v11 review frames
+/docs/v11/
