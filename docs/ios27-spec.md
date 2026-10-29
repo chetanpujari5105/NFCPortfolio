@@ -137,3 +137,50 @@ Read from the file's local text and colour styles and from its variable collecti
   bright top edge and the kit's inner shadows.
 - **Accent.** The phone finish (Burgundy by default) stays the site's tint for buttons and switches.
   Links use Labels/Link.
+
+## v10: Control Center, notifications and glass (four more kits, read 2026-10-29)
+
+Each file's first page was read for a licence before anything else. Only measurements were taken
+(sizes, spacing, radii, type, colours, glass values); nothing was exported, duplicated or copied, and
+every control on the site is our own SVG and CSS. None of the four states a licence that allows more,
+so none needs a credit beyond this record.
+
+| Kit (Figma file) | What its first page says | How it was used |
+| --- | --- | --- |
+| Liquid Glass Control Center UI Kit (`aUgrYkIfaZpvy2EZNLhlsf`) | No licence or terms. The cover has only the title; the Read Me says its values are "measured from Apple's official iOS 26 kit". | Values only: the Control Center grid, module sizes, glass and colour variables. |
+| Apple iOS 26 & iPadOS 26 UI Kit, community (`vpzTS14kp8KAooDn7Efl2V`) | A community adaptation inspired by Apple Design Resources, for non-commercial use, learning and design exploration, credited. | Values only, as a cross-check. It has no notification component. |
+| iOS and iPadOS 26, Apple (`2cdxEjNphFl72aUphywVus`) | Using the resources means agreeing to the licence included in the library; © 2026 Apple Inc. All rights reserved. | No agreement was accepted. Published measurements only (the notification stack below). On Needs Chetan in docs/progress.md. |
+| Glassmorphic UI Kit for iOS 26 (`YuUhFnLE5DS2alJftF2zSJ`) | No licence text. | Values only: blur and inner-shadow recipe for glass buttons. |
+
+### Control Center (Liquid Glass kit, 402 × 874 frame)
+
+- Grid: 4 columns of a 68 pt unit with 15 pt gutters (318 wide on a 402 screen), first row at y 130.
+  The site scales the unit with the screen: `--cc-u: min(16.9cqw, 14.6cqh)`, gutter `u × 0.2206`.
+- Modules: 2 × 2 cluster and Now Playing are 151 × 151, radius 30; round toggles 68; tall sliders
+  68 × 151 and the 2 × 1 shortcut are full pills. Now Playing art 52, radius 14; title 15 / 510.
+- Glass Regular: blur 6, depth 80, refraction 0.6, light 0.7 at 315°. Glass Clear: blur 5, depth 16,
+  refraction 0.8, light 0.5, drop shadow 40 at black 20%. Tint #242424 (linear dodge) over dark,
+  #000 at 7% over light.
+- Variables: tile radius 30; symbol well #fff 6% / #000 8%; label #fff / #000 92%; detail #fff 33% /
+  #000 45%; slider fill scrim #1c1c1e 85% over light; accent blue #0088ff, green #34c759.
+- Landscape is the site's own: the same modules in two rows of eight.
+
+### Notifications (Apple iOS 26)
+
+- Card 386 × 63, radius 24; app icon 38 at (14, 12); text from x 62; title and body 15; time 58 wide.
+- Stacks of 1, 2 and 3 are 64, 71 and 77 tall: cards behind are inset 20 and 40 (346 and 306 wide)
+  at 90% and 80% opacity. Glass: white 7% (screen) with blur and a 40 drop shadow.
+- The site's notifications are its own content (latest Substack post, latest reel, a project), never
+  styled as system alerts from other apps.
+
+### Glass buttons (Glassmorphic kit)
+
+- Background blur 40; inner shadows 22 #f2f2f2 50%, 1 px #b3b3b3, 0.5 px white 50%; radii 48 / 100;
+  fill #1d1d1d. Used as a reference for the Control Center rim, not copied as a component.
+
+### Differences from iOS 27 Builder
+
+- Corner radius: Control Center modules use the kit's 30 / 68 of a unit, not Builder's card radius.
+- Detail text: the kit's 33% white is too faint for 12 px text on a busy wallpaper, so `--cc-detail`
+  uses Builder's Labels/Secondary weight instead (60% white, 50% black).
+- Everything else (type ramp, label colours, link blue) stays on the Builder tokens.
