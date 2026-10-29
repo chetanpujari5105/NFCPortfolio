@@ -8,16 +8,8 @@ import { Glyph } from "@/components/os/icons";
 import { BrandTile } from "@/components/os/BrandIcon";
 import { SOCIAL_MARK } from "@/components/os/social-icons";
 import { FINISH_INFO, useSetFinish } from "@/components/studio/FinishSwatches";
-import {
-  AppHeader,
-  AppScreen,
-  AppNav,
-  ListGroup,
-  ListRow,
-  PushView,
-  Switch,
-  useLastValue,
-} from "@/components/ui/app-shell";
+import { AppHeader, AppScreen, PushView, Switch, useLastValue } from "@/components/ui/app-shell";
+import { Row, Section, TINT } from "@/components/ui/grouped";
 import { useTheme } from "@/components/ui/theme-toggle";
 import { onRadioGroupKeyDown } from "@/lib/a11y";
 import { ICON_PACK } from "@/lib/icon-pack";
@@ -27,6 +19,11 @@ import { useOS, WALLPAPERS, type Wallpaper } from "@/lib/store";
 import { FINISHES, setThemeWithReveal, type Theme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { blurOf } from "@/lib/placeholders";
+
+/*
+ * Settings, on the iOS 27 kit: inset-grouped sections, flat tinted tiles, rows at least 44 px, type
+ * in rem (so its own Larger text switch scales every row), and the profile as a pushed detail.
+ */
 
 const WALLPAPER_INFO: Record<Wallpaper, { label: string; preview: string }> = {
   ribbons: {
@@ -54,13 +51,10 @@ const CREDITS = `Designed and built for Chetan Pujari. ${ICON_CREDIT} Brand logo
 
 const TECH = ["Next.js 16", "React 19", "Tailwind CSS v4", "Motion", "Zustand", "Zod", "WebGL", "Nodemailer"];
 
-function RowIcon({ glyph, colors }: { glyph: string; colors: [string, string] }) {
+/** One white glyph on one flat accent, as in the grouped lists elsewhere */
+function RowIcon({ glyph, tint }: { glyph: string; tint: string }) {
   return (
-    <span
-      aria-hidden
-      className="squircle grid size-[30px] place-items-center text-white"
-      style={{ background: `linear-gradient(160deg, ${colors[0]}, ${colors[1]})` }}
-    >
+    <span aria-hidden className="squircle grid size-[30px] shrink-0 place-items-center text-white" style={{ background: tint }}>
       <Glyph name={glyph} className="size-[17px]" />
     </span>
   );
@@ -92,33 +86,29 @@ function ThemePreview({ theme }: { theme: Theme }) {
 function Profile() {
   return (
     <AppScreen>
-      <div className="mb-4">
-        <AppNav backLabel="Back to Settings" title={profile.name} />
-      </div>
-      <div className="flex flex-col items-center text-center">
-        <span className="relative size-24 overflow-hidden rounded-full shadow-[0_0_0_0.5px_var(--app-divider)]">
-          <Image src={profile.avatar} {...blurOf(profile.avatar)} alt={profile.name} fill sizes="96px" className="object-cover" />
-        </span>
-        <h2 className="mt-3 text-[24px] font-bold tracking-tight">{profile.name}</h2>
-        <p className="text-[14px] text-app-muted">{profile.role}</p>
-      </div>
-      <p className="mt-5 text-ios-body leading-relaxed">{profile.shortBio}</p>
-      <ListGroup header="Details" className="mt-6">
-        <ListRow title="Location" trailing={<span className="text-[14px] text-app-muted">{profile.location}</span>} />
-        <ListRow title="Education" subtitle={profile.education} />
-        <ListRow title="Email" href={`mailto:${profile.email}`} subtitle={profile.email} />
-      </ListGroup>
-      <ListGroup header="Find me">
+      <AppHeader title={profile.name} backLabel="Back to Settings" subtitle={profile.role} />
+      <span className="relative mb-5 block size-24 overflow-hidden rounded-full shadow-[0_0_0_0.5px_var(--app-divider)]">
+        <Image src={profile.avatar} {...blurOf(profile.avatar)} alt={profile.name} fill sizes="96px" className="object-cover" />
+      </span>
+      <p className="mb-6 text-ios-body">{profile.shortBio}</p>
+      <Section header="Details" inset={16}>
+        <Row title="Location" detail={profile.location} />
+        <Row title="Education" secondary={profile.education} />
+        <Row title="Email" secondary={profile.email} href={`mailto:${profile.email}`} label={`Email ${profile.email}`} data={{ "data-profile-email": "" }} />
+      </Section>
+      <Section header="Find me">
         {profile.socials.map((s) => (
-          <ListRow
+          <Row
             key={s.id}
-            href={s.url}
             leading={<BrandTile mark={SOCIAL_MARK[s.id]} />}
             title={s.label}
-            subtitle={s.handle}
+            secondary={s.handle}
+            href={s.url}
+            label={`Open ${s.label} profile (opens in a new tab)`}
+            data={{ "data-profile-social": s.id }}
           />
         ))}
-      </ListGroup>
+      </Section>
     </AppScreen>
   );
 }
@@ -147,21 +137,21 @@ export default function SettingsApp() {
       <AppScreen>
         <AppHeader title="Settings" />
 
-        <ListGroup>
-          <ListRow
-            chevron
-            onClick={() => openApp("settings", "profile")}
+        <Section label="Profile" inset={86}>
+          <Row
             leading={
-              <span className="relative block size-[58px] overflow-hidden rounded-full">
+              <span aria-hidden className="relative my-1.5 block size-[58px] shrink-0 overflow-hidden rounded-full">
                 <Image src={profile.avatar} {...blurOf(profile.avatar)} alt="" fill sizes="58px" className="object-cover" />
               </span>
             }
-            title={<span className="text-[19px] font-semibold">{profile.name}</span>}
-            subtitle="AI Educator, bio & links"
+            title={<span className="text-ios-title-3 font-semibold">{profile.name}</span>}
+            secondary="AI Educator, bio & links"
+            onPush={() => openApp("settings", "profile")}
+            data={{ "data-profile-row": "" }}
           />
-        </ListGroup>
+        </Section>
 
-        <ListGroup header="Display & Brightness">
+        <Section header="Display & Brightness" inset={16}>
           <div role="radiogroup" onKeyDown={onRadioGroupKeyDown} aria-label="Appearance" className="flex justify-center gap-12 px-4 pt-4 pb-3">
             {(["light", "dark"] as const).map((t) => (
               <button
@@ -176,7 +166,7 @@ export default function SettingsApp() {
                 className="flex flex-col items-center gap-2 transition-transform duration-150 ease-out active:scale-[0.96]"
               >
                 <ThemePreview theme={t} />
-                <span className="text-[14px] font-medium capitalize">{t}</span>
+                <span className="text-ios-subheadline font-medium capitalize">{t}</span>
                 <span
                   aria-hidden
                   className={cn(
@@ -193,19 +183,13 @@ export default function SettingsApp() {
               </button>
             ))}
           </div>
-          <ListRow
+          <Row
             title="Dark mode"
-            trailing={
-              <Switch
-                checked={theme === "dark"}
-                label="Dark mode"
-                onChange={(on) => setThemeWithReveal(on ? "dark" : "light")}
-              />
-            }
+            accessory={<Switch checked={theme === "dark"} label="Dark mode" onChange={(on) => setThemeWithReveal(on ? "dark" : "light")} />}
           />
-        </ListGroup>
+        </Section>
 
-        <ListGroup header="Wallpaper">
+        <Section header="Wallpaper">
           <div role="radiogroup" onKeyDown={onRadioGroupKeyDown} aria-label="Wallpaper" className="grid grid-cols-3 gap-3 p-4">
             {WALLPAPERS.map((w) => (
               <button
@@ -227,14 +211,14 @@ export default function SettingsApp() {
                   )}
                   style={{ background: WALLPAPER_INFO[w].preview }}
                 />
-                <span className="text-[13px] font-medium">{WALLPAPER_INFO[w].label}</span>
+                <span className="text-ios-footnote font-medium">{WALLPAPER_INFO[w].label}</span>
               </button>
             ))}
           </div>
-        </ListGroup>
+        </Section>
 
-        <ListGroup header="Phone finish">
-          <div role="radiogroup" onKeyDown={onRadioGroupKeyDown} aria-label="Phone finish" className="flex justify-around px-4 py-4">
+        <Section header="Phone finish">
+          <div role="radiogroup" onKeyDown={onRadioGroupKeyDown} aria-label="Phone finish" className="flex flex-wrap justify-around gap-y-3 px-4 py-4">
             {FINISHES.map((f) => (
               <button
                 key={f}
@@ -255,79 +239,74 @@ export default function SettingsApp() {
                   )}
                   style={{ background: `linear-gradient(150deg, ${FINISH_INFO[f].color}, ${FINISH_INFO[f].deep})` }}
                 />
-                <span className="text-[13px] font-medium">{FINISH_INFO[f].label}</span>
+                <span className="text-ios-footnote font-medium">{FINISH_INFO[f].label}</span>
               </button>
             ))}
           </div>
-        </ListGroup>
+        </Section>
 
-        <ListGroup
+        <Section
           header="Home Screen"
           footer="Or long-press the home screen: drag icons to move them, drop one on another to make a folder, and tap – to remove one."
         >
-          <ListRow
-            leading={<RowIcon glyph="sparkles" colors={["#bf5af2", "#7d2ae8"]} />}
+          <Row
+            leading={<RowIcon glyph="sparkles" tint={TINT.purple} />}
             title="Edit Home Screen"
-            chevron
-            onClick={() => {
+            onPush={() => {
               goHome();
               useOS.getState().setWiggle(true);
             }}
           />
-          <ListRow
-            leading={<RowIcon glyph="star" colors={["#64d2ff", "#0a84ff"]} />}
+          <Row
+            leading={<RowIcon glyph="star" tint={TINT.blue} />}
             title="App Library"
-            subtitle="Every app and link, and the ones you removed"
-            chevron
-            onClick={() => useOS.getState().setHomeSheet({ kind: "library" })}
+            secondary="Every app and link, and the ones you removed"
+            onPush={() => useOS.getState().setHomeSheet({ kind: "library" })}
           />
-          <ListRow
+          <Row
+            leading={<RowIcon glyph="toggles" tint={TINT.red} />}
             title={<span className="text-ios-red">Reset Home Screen</span>}
-            onClick={() => useOS.getState().setHomeSheet({ kind: "reset" })}
+            onAction={() => useOS.getState().setHomeSheet({ kind: "reset" })}
           />
-        </ListGroup>
+        </Section>
 
-        <ListGroup header="Accessibility" footer="Reduce motion swaps zooms and slides for gentle fades.">
-          <ListRow
-            leading={<RowIcon glyph="sparkles" colors={["#5ac8fa", "#0a84ff"]} />}
+        <Section header="Accessibility" footer="Reduce motion swaps zooms and slides for gentle fades.">
+          <Row
+            leading={<RowIcon glyph="sparkles" tint={TINT.teal} />}
             title="Reduce motion"
-            trailing={<Switch checked={reduceMotion} label="Reduce motion" onChange={setReduceMotion} />}
+            accessory={<Switch checked={reduceMotion} label="Reduce motion" onChange={setReduceMotion} />}
           />
-          <ListRow
-            leading={<RowIcon glyph="newspaper" colors={["#8e8e93", "#48484a"]} />}
+          <Row
+            leading={<RowIcon glyph="newspaper" tint={TINT.gray} />}
             title="Larger text"
-            trailing={<Switch checked={largeText} label="Larger text" onChange={setLargeText} />}
+            accessory={<Switch checked={largeText} label="Larger text" onChange={setLargeText} />}
           />
-          <ListRow
-            leading={<RowIcon glyph="gear" colors={["#636366", "#1c1c1e"]} />}
+          <Row
+            leading={<RowIcon glyph="gear" tint={TINT.gray} />}
             title="Control Center"
-            subtitle="Or pull down from the top-right corner of the screen."
-            chevron
-            onClick={() => settlePanel(true)}
+            secondary="Or pull down from the top-right corner of the screen."
+            onPush={() => settlePanel(true)}
           />
-        </ListGroup>
+        </Section>
 
-        <ListGroup header="General">
-          <ListRow
-            leading={<RowIcon glyph="gear" colors={["#a1a1a6", "#636366"]} />}
+        <Section header="General">
+          <Row
+            leading={<RowIcon glyph="gear" tint={TINT.gray} />}
             title="About this site"
-            subtitle="A portfolio you use like a phone. Every app is a section; open one from the home screen or press ⌘K to search."
+            secondary="A portfolio you use like a phone. Every app is a section; open one from the home screen or press ⌘K to search."
           />
-          <div className="px-4 py-3">
+          <div className="py-2.5 pr-4 pl-[58px]">
             <p className="text-ios-body">Built with</p>
             <div className="mt-2 flex flex-wrap gap-1.5">
               {TECH.map((t) => (
-                <span key={t} className="rounded-full bg-app-background px-2.5 py-1 text-[12.5px] font-medium text-app-secondary">
+                <span key={t} className="rounded-full bg-app-background px-2.5 py-1 text-ios-footnote font-medium text-app-secondary">
                   {t}
                 </span>
               ))}
             </div>
           </div>
-          <ListRow
-            title="Credits"
-            subtitle={CREDITS}
-          />
-        </ListGroup>
+          <Row leading={<RowIcon glyph="layers" tint={TINT.indigo} />} title="Credits" secondary={<span data-credits>{CREDITS}</span>} />
+        </Section>
       </AppScreen>
 
       <PushView open={sub === "profile"} label="Profile">
