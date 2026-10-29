@@ -3,17 +3,13 @@
 import { useRef, useState, type FormEvent, type ReactNode } from "react";
 import { AnimatePresence } from "motion/react";
 import * as m from "motion/react-m";
-import { ArrowUp, Check, Copy, LoaderCircle, Mail, RotateCw } from "lucide-react";
+import { ArrowUp, Check, LoaderCircle, RotateCw } from "lucide-react";
 
 import { profile } from "@content/profile";
 import { BrandTile } from "@/components/os/BrandIcon";
 import { SOCIAL_MARK } from "@/components/os/social-icons";
-import {
-  AppNav,
-  AppScreen,
-  ListGroup,
-  ListRow,
-} from "@/components/ui/app-shell";
+import { AppHeader, AppScreen } from "@/components/ui/app-shell";
+import { Row, Section, TINT, Tile } from "@/components/ui/grouped";
 import {
   ContactSchema,
   fieldErrorsOf,
@@ -32,6 +28,12 @@ type Problem =
   | { kind: "rate-limited"; retryAfter: number }
   | { kind: "failed" }
   | { kind: "network"; offline: boolean };
+
+/*
+ * Contact, laid out like Mail's compose sheet inside Settings-style groups: a large title that
+ * collapses under the bar (Send stays there), the fields as one inset group, then the ways to reach
+ * Chetan directly as grouped rows. Type is in rem, so Larger Text scales labels, fields and notes.
+ */
 
 const EMPTY = { name: "", email: "", subject: "", message: "", company: "" };
 
@@ -55,21 +57,14 @@ function Field({
 }) {
   return (
     <div className="px-4 py-2.5">
-      <div className="flex items-baseline gap-2">
-        <label
-          htmlFor={id}
-          className="w-[64px] shrink-0 text-[15px] text-app-muted"
-        >
+      <div className="flex min-h-[1.5rem] items-baseline gap-2">
+        <label htmlFor={id} className="w-[5rem] shrink-0 text-ios-body text-app-muted">
           {label}
         </label>
         <div className="min-w-0 flex-1">{children}</div>
       </div>
       {error && (
-        <p
-          id={`${id}-error`}
-          role="alert"
-          className="mt-1 pl-[72px] text-[12.5px] text-destructive"
-        >
+        <p id={`${id}-error`} role="alert" className="mt-1 pl-[5.5rem] text-ios-footnote text-destructive">
           {error}
         </p>
       )}
@@ -82,7 +77,7 @@ function Note({ tone, action, children }: { tone: "quiet" | "good" | "warn"; act
   return (
     <div
       className={cn(
-        "mb-4 flex items-start gap-2 rounded-ios-xl px-4 py-3 text-[14px] leading-snug",
+        "mb-4 flex items-start gap-2 rounded-ios-xl px-4 py-3 text-ios-subheadline",
         tone === "quiet" && "bg-app-group text-app-secondary",
         tone === "good" && "bg-available/14 text-app-ink",
         tone === "warn" && "bg-finish/18 text-app-ink",
@@ -99,7 +94,7 @@ function RetryButton({ onRetry }: { onRetry: () => void }) {
     <button
       type="button"
       onClick={onRetry}
-      className="-my-1 flex shrink-0 items-center gap-1 rounded-full bg-app-surface px-3 py-1 text-[13px] font-semibold shadow-[0_1px_2px_rgb(0_0_0/0.08)] transition-transform duration-150 ease-out active:scale-[0.96]"
+      className="-my-1 flex min-h-[2.75rem] shrink-0 items-center gap-1 rounded-full bg-app-surface px-3 text-ios-footnote font-semibold shadow-[0_1px_2px_rgb(0_0_0/0.08)] transition-transform duration-150 ease-out active:scale-[0.96]"
     >
       <RotateCw className="size-3.5" strokeWidth={2.4} aria-hidden />
       Try again
@@ -110,7 +105,7 @@ function RetryButton({ onRetry }: { onRetry: () => void }) {
 const FIELD_ORDER = ["email", "name", "subject", "message"] as const;
 
 const inputClass =
-  "w-full bg-transparent text-[16px] text-app-ink outline-none placeholder:text-app-muted/70 aria-invalid:text-destructive";
+  "w-full bg-transparent text-ios-body text-app-ink outline-none placeholder:text-app-muted/70 aria-invalid:text-destructive";
 
 export default function ContactApp() {
   const initialSubject = useOS((s) => s.contactSubject);
@@ -206,9 +201,10 @@ export default function ContactApp() {
   return (
     <>
       <AppScreen>
-        {/* In the frosted bar, so Send never scrolls away (and stays above the keyboard) */}
-        <AppNav
-          title="New Message"
+        {/* Send sits in the frosted bar, so it never scrolls away (and stays above the keyboard) */}
+        <AppHeader
+          title="Contact"
+          subtitle={profile.responseTime}
           action={
             <button
               type="submit"
@@ -227,11 +223,7 @@ export default function ContactApp() {
             </button>
           }
         />
-        <form id="contact-form" onSubmit={submit} noValidate aria-label="Contact form" className="mt-4">
-
-          <h1 className="mb-4 text-[34px] leading-[1.08] font-bold tracking-[-0.02em]">
-            Contact
-          </h1>
+        <form id="contact-form" onSubmit={submit} noValidate aria-label="Contact form">
 
           <div aria-live="polite" data-contact-status>
             {status === "sending" && (
@@ -341,7 +333,7 @@ export default function ContactApp() {
                 <p
                   id="contact-message-error"
                   role="alert"
-                  className="mt-1 text-[12.5px] text-destructive"
+                  className="mt-1 text-ios-footnote text-destructive"
                 >
                   {errors.message}
                 </p>
@@ -366,45 +358,29 @@ export default function ContactApp() {
           </div>
         </form>
 
-        <p className="mb-3 px-1 text-[13.5px] text-app-muted">
-          {profile.responseTime}
-        </p>
-
-        <ListGroup header="Or reach me directly">
-          <ListRow
-            onClick={copyEmail}
-            leading={
-              <Mail
-                className="size-5 text-finish-deep dark:text-finish"
-                aria-hidden
-              />
-            }
-            title={profile.email}
-            trailing={
-              <span className="flex items-center gap-1 text-[13px] text-app-muted">
-                {copied ? (
-                  <Check className="size-4 text-available" aria-hidden />
-                ) : (
-                  <Copy className="size-4" aria-hidden />
-                )}
-                {copied ? "Copied" : "Copy"}
-              </span>
-            }
+        <Section header="Or reach me directly">
+          <Row
+            leading={<Tile glyph="mail" tint={TINT.blue} />}
+            title={<span className="[overflow-wrap:anywhere]">{profile.email}</span>}
+            detail={copied ? "Copied" : "Copy"}
+            onAction={copyEmail}
+            label={copied ? `${profile.email} copied` : `Copy ${profile.email}`}
+            data={{ "data-copy-email": "" }}
           />
           {profile.socials
-            .filter((s) =>
-              ["linkedin", "x", "instagram", "substack", "github"].includes(s.id),
-            )
+            .filter((s) => ["linkedin", "x", "instagram", "substack", "github"].includes(s.id))
             .map((s) => (
-              <ListRow
+              <Row
                 key={s.id}
-                href={s.url}
                 leading={<BrandTile mark={SOCIAL_MARK[s.id]} />}
                 title={s.label}
-                subtitle={s.handle}
+                secondary={s.handle}
+                href={s.url}
+                label={`Open ${s.label} profile (opens in a new tab)`}
+                data={{ "data-contact-social": s.id }}
               />
             ))}
-        </ListGroup>
+        </Section>
       </AppScreen>
 
       {/* Paper-plane fly-off */}
