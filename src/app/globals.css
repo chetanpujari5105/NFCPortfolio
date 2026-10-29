@@ -74,6 +74,96 @@
 
   --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
+  /* iOS 27 system colours (lib/ios-tokens.ts): bg-ios-fill-tertiary, text-ios-label-link, … */
+  --color-ios-label-primary: var(--ios-label-primary);
+  --color-ios-label-secondary: var(--ios-label-secondary);
+  --color-ios-label-tertiary: var(--ios-label-tertiary);
+  --color-ios-label-quaternary: var(--ios-label-quaternary);
+  --color-ios-label-link: var(--ios-label-link);
+  --color-ios-bg-primary: var(--ios-bg-primary);
+  --color-ios-bg-secondary: var(--ios-bg-secondary);
+  --color-ios-bg-grouped-primary: var(--ios-bg-grouped-primary);
+  --color-ios-bg-grouped-secondary: var(--ios-bg-grouped-secondary);
+  --color-ios-bg-grouped-tertiary: var(--ios-bg-grouped-tertiary);
+  --color-ios-bg-grouped-secondary-elevated: var(--ios-bg-grouped-secondary-elevated);
+  --color-ios-fill-primary: var(--ios-fill-primary);
+  --color-ios-fill-secondary: var(--ios-fill-secondary);
+  --color-ios-fill-tertiary: var(--ios-fill-tertiary);
+  --color-ios-fill-quaternary: var(--ios-fill-quaternary);
+  --color-ios-fill-vibrant-primary: var(--ios-fill-vibrant-primary);
+  --color-ios-separator-opaque: var(--ios-separator-opaque);
+  --color-ios-separator-non-opaque: var(--ios-separator-non-opaque);
+  --color-ios-gray: var(--ios-gray);
+  --color-ios-gray-2: var(--ios-gray-2);
+  --color-ios-gray-3: var(--ios-gray-3);
+  --color-ios-gray-4: var(--ios-gray-4);
+  --color-ios-gray-5: var(--ios-gray-5);
+  --color-ios-gray-6: var(--ios-gray-6);
+  --color-ios-blue: var(--ios-blue);
+  --color-ios-red: var(--ios-red);
+  --color-ios-green: var(--ios-green);
+  --color-ios-orange: var(--ios-orange);
+  --color-ios-yellow: var(--ios-yellow);
+  --color-ios-cyan: var(--ios-cyan);
+  --color-ios-pink: var(--ios-pink);
+  --color-ios-purple: var(--ios-purple);
+  --color-ios-teal: var(--ios-teal);
+  --color-ios-indigo: var(--ios-indigo);
+  --color-ios-mint: var(--ios-mint);
+  --color-ios-brown: var(--ios-brown);
+  --color-ios-overlay: var(--ios-overlay);
+  --color-ios-segmented-selected: var(--ios-segmented-selected);
+  --color-ios-destructive-bg: var(--ios-destructive-bg);
+  --color-ios-scroll-edge: var(--ios-scroll-edge);
+  --color-ios-scroll-edge-hairline: var(--ios-scroll-edge-hairline);
+}
+
+/* iOS 27 Dynamic Type ramp (rem, so Larger text scales it) and corner radii: text-ios-body, rounded-ios-xxl */
+@theme {
+  --text-ios-large-title: 2.125rem;
+  --text-ios-large-title--line-height: 2.5625rem;
+  --text-ios-large-title--letter-spacing: 0.4px;
+  --text-ios-title-1: 1.75rem;
+  --text-ios-title-1--line-height: 2.125rem;
+  --text-ios-title-1--letter-spacing: 0.38px;
+  --text-ios-title-2: 1.375rem;
+  --text-ios-title-2--line-height: 1.75rem;
+  --text-ios-title-2--letter-spacing: -0.26px;
+  --text-ios-title-3: 1.25rem;
+  --text-ios-title-3--line-height: 1.5625rem;
+  --text-ios-title-3--letter-spacing: -0.45px;
+  --text-ios-headline: 1.0625rem;
+  --text-ios-headline--line-height: 1.375rem;
+  --text-ios-headline--letter-spacing: -0.43px;
+  --text-ios-body: 1.0625rem;
+  --text-ios-body--line-height: 1.375rem;
+  --text-ios-body--letter-spacing: -0.43px;
+  --text-ios-callout: 1rem;
+  --text-ios-callout--line-height: 1.3125rem;
+  --text-ios-callout--letter-spacing: -0.31px;
+  --text-ios-subheadline: 0.9375rem;
+  --text-ios-subheadline--line-height: 1.25rem;
+  --text-ios-subheadline--letter-spacing: -0.23px;
+  --text-ios-footnote: 0.8125rem;
+  --text-ios-footnote--line-height: 1.125rem;
+  --text-ios-footnote--letter-spacing: -0.08px;
+  --text-ios-caption-1: 0.75rem;
+  --text-ios-caption-1--line-height: 1rem;
+  --text-ios-caption-1--letter-spacing: 0px;
+  --text-ios-caption-2: 0.6875rem;
+  --text-ios-caption-2--line-height: 0.8125rem;
+  --text-ios-caption-2--letter-spacing: 0.06px;
+  --radius-ios-xs: 5px;
+  --radius-ios-s: 8px;
+  --radius-ios-m: 12px;
+  --radius-ios-l: 16px;
+  --radius-ios-xl: 20px;
+  --radius-ios-xxl: 26px;
+  --radius-ios-bubble: 18px;
+  --radius-ios-alert: 34px;
+  --radius-ios-sheet: 38px;
+  --radius-ios-full: 1000px;
 }
 
 :root {
@@ -86,15 +176,60 @@
   --studio-line: rgb(0 0 0 / 0.08);
   --studio-vignette: rgb(0 0 0 / 0.06);
 
-  /* Apps (inside the phone) */
-  --app-background: #f2f2f7;
-  --app-surface: #ffffff;
-  --app-group: #ffffff;
-  --app-ink: #111113;
+  /* Apps (inside the phone): the iOS 27 tokens below, by role. Secondary and muted text keep the
+     kit's grey hue but stay opaque, so 13–15 px text holds 4.5:1 (the kit's 60% label is 3.4:1). */
+  --app-background: var(--ios-bg-grouped-primary);
+  --app-surface: var(--ios-bg-grouped-secondary);
+  --app-group: var(--ios-bg-grouped-secondary);
+  --app-ink: var(--ios-label-primary);
   --app-secondary: #3c3c43;
   --app-muted: #6c6c72;
-  --app-divider: rgb(60 60 67 / 0.18);
+  --app-divider: var(--ios-separator-opaque);
   --app-glass: rgb(255 255 255 / 0.62);
+
+  /* iOS 27 system colours, named after the iOS 27 Builder kit (lib/ios-tokens.ts, docs/ios27-spec.md);
+     .dark switches all of them at once */
+  --ios-label-primary: #000000;
+  --ios-label-secondary: #3c3c4399;
+  --ios-label-tertiary: #3c3c434d;
+  --ios-label-quaternary: #3c3c432e;
+  --ios-label-link: #007aff;
+  --ios-bg-primary: #ffffff;
+  --ios-bg-secondary: #f2f2f7;
+  --ios-bg-grouped-primary: #f2f2f7;
+  --ios-bg-grouped-secondary: #ffffff;
+  --ios-bg-grouped-tertiary: #f2f2f7;
+  --ios-bg-grouped-secondary-elevated: #ffffff;
+  --ios-fill-primary: #78788033;
+  --ios-fill-secondary: #78788029;
+  --ios-fill-tertiary: #7676801f;
+  --ios-fill-quaternary: #74748014;
+  --ios-fill-vibrant-primary: #cccccc;
+  --ios-separator-opaque: #e7e7e8;
+  --ios-separator-non-opaque: #3c3c431f;
+  --ios-gray: #8e8e93;
+  --ios-gray-2: #aeaeb2;
+  --ios-gray-3: #c7c7cc;
+  --ios-gray-4: #d1d1d6;
+  --ios-gray-5: #e5e5ea;
+  --ios-gray-6: #f2f2f7;
+  --ios-blue: #0088ff;
+  --ios-red: #ff383c;
+  --ios-green: #34c759;
+  --ios-orange: #ff8d28;
+  --ios-yellow: #ffcc00;
+  --ios-cyan: #00c0e8;
+  --ios-pink: #ff2d55;
+  --ios-purple: #cb30e0;
+  --ios-teal: #00c3d0;
+  --ios-indigo: #6155f5;
+  --ios-mint: #00c8b3;
+  --ios-brown: #ac7f5e;
+  --ios-overlay: #00000033;
+  --ios-segmented-selected: #ffffff;
+  --ios-destructive-bg: #ff383c24;
+  --ios-scroll-edge: #ffffffd9;
+  --ios-scroll-edge-hairline: #0000000d;
 
   /* Phone finish — Burgundy by default (the 3D model as shipped); [data-finish] overrides */
   --accent: #a3283f;
@@ -150,14 +285,51 @@
   --studio-line: rgb(255 255 255 / 0.08);
   --studio-vignette: rgb(0 0 0 / 0.45);
 
-  --app-background: #000000;
-  --app-surface: #1c1c1e;
-  --app-group: #1c1c1e;
-  --app-ink: #f5f5f7;
   --app-secondary: rgb(235 235 245 / 0.72);
   --app-muted: #98989f;
-  --app-divider: rgb(84 84 88 / 0.6);
   --app-glass: rgb(30 30 32 / 0.55);
+
+  --ios-label-primary: #ffffff;
+  --ios-label-secondary: #ebebf599;
+  --ios-label-tertiary: #ebebf54d;
+  --ios-label-quaternary: #ebebf529;
+  --ios-label-link: #0984ff;
+  --ios-bg-primary: #000000;
+  --ios-bg-secondary: #1c1c1e;
+  --ios-bg-grouped-primary: #000000;
+  --ios-bg-grouped-secondary: #1c1c1e;
+  --ios-bg-grouped-tertiary: #2c2c2e;
+  --ios-bg-grouped-secondary-elevated: #2c2c2e;
+  --ios-fill-primary: #7878805c;
+  --ios-fill-secondary: #78788052;
+  --ios-fill-tertiary: #7676803d;
+  --ios-fill-quaternary: #7676802e;
+  --ios-fill-vibrant-primary: #333333;
+  --ios-separator-opaque: #2a2a2c;
+  --ios-separator-non-opaque: #54545880;
+  --ios-gray: #8e8e93;
+  --ios-gray-2: #636366;
+  --ios-gray-3: #48484a;
+  --ios-gray-4: #3a3a3c;
+  --ios-gray-5: #2c2c2e;
+  --ios-gray-6: #1c1c1e;
+  --ios-blue: #0091ff;
+  --ios-red: #ff4245;
+  --ios-green: #30d158;
+  --ios-orange: #ff9230;
+  --ios-yellow: #ffd600;
+  --ios-cyan: #3cd3fe;
+  --ios-pink: #ff375f;
+  --ios-purple: #db34f2;
+  --ios-teal: #00d2e0;
+  --ios-indigo: #6d7cff;
+  --ios-mint: #00dac3;
+  --ios-brown: #b78a66;
+  --ios-overlay: #0000007a;
+  --ios-segmented-selected: #636366;
+  --ios-destructive-bg: #ff424524;
+  --ios-scroll-edge: #0000008c;
+  --ios-scroll-edge-hairline: #0000001a;
 
   --available: #34c46a;
 
@@ -1008,16 +1180,40 @@ html:not([data-unlocked]) [data-home-layer] [data-fly] {
   outline-offset: 2px;
 }
 
-/* In-app bar: frosted over the content scrolling under it, with a hairline where they meet */
+/* In-app bar: the kit's hard scroll edge (Scroll Edge Effect/Hard) over the content under it, with
+   its faint hairline where they meet */
 .nav-material {
-  background: color-mix(in oklab, var(--app-background) 76%, transparent);
+  background: var(--ios-scroll-edge);
   -webkit-backdrop-filter: blur(22px) saturate(180%);
   backdrop-filter: blur(22px) saturate(180%);
-  box-shadow: 0 0.5px 0 var(--app-divider);
+  box-shadow: 0 0.5px 0 var(--ios-scroll-edge-hairline);
+}
+
+/*
+ * Liquid Glass control (the kit's 44 pt toolbar buttons, Glass Effect 5693:1385). CSS can't refract,
+ * so: a thin frosted fill, the lit top edge and shaded foot of its inner shadows, a hairline rim.
+ */
+.glass-button {
+  background: color-mix(in oklab, var(--ios-bg-grouped-secondary) 70%, transparent);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  backdrop-filter: blur(12px) saturate(180%);
+  box-shadow:
+    inset 0 1px 0.5px rgb(255 255 255 / 0.8),
+    inset 0 -1px 1px rgb(0 0 0 / 0.04),
+    0 0 0 0.5px var(--ios-separator-non-opaque),
+    0 4px 14px rgb(0 0 0 / 0.08);
+}
+.dark .glass-button {
+  box-shadow:
+    inset 0 1px 0.5px rgb(255 255 255 / 0.16),
+    inset 0 -1px 1px rgb(0 0 0 / 0.3),
+    0 0 0 0.5px var(--ios-separator-non-opaque),
+    0 4px 14px rgb(0 0 0 / 0.3);
 }
 
 @media (prefers-reduced-transparency: reduce) {
   .glass,
+  .glass-button,
   .nav-material {
     background: var(--app-background);
     -webkit-backdrop-filter: none;
@@ -1026,7 +1222,7 @@ html:not([data-unlocked]) [data-home-layer] [data-fly] {
 }
 
 /* While an app window grows or shrinks (AppWindow), nothing re-blurs what moves under it */
-[data-window-moving] :is(.glass, .glass-dark, .glass-chrome, .dock-glass, .nav-material, .icon-folder .icon-tile) {
+[data-window-moving] :is(.glass, .glass-button, .glass-dark, .glass-chrome, .dock-glass, .nav-material, .icon-folder .icon-tile) {
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
