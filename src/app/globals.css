@@ -1152,34 +1152,262 @@ html:not([data-unlocked]) [data-home-layer] [data-fly] {
   visibility: visible;
   pointer-events: auto;
 }
-.cc-tile {
-  background: rgb(28 28 32 / 0.5);
+/*
+ * Control Center, from the Liquid Glass Control Center kit (values only): a 4-column grid of 68 pt
+ * units and 15 pt gutters on a 402 pt screen (16.9% and 3.7% of its width), 2×2 tiles of radius 30,
+ * toggles and sliders as full pills. Glass "Regular" over a dark, blurred backdrop: the kit's
+ * #242424 linear-dodge tint (CSS can't add light inside the panel's own layer, so a 14% white),
+ * a highlight lit from 315°, and white content; "Over Light" swaps to a 7% black tint and dark
+ * content. Landscape lays the same modules out in two rows of eight.
+ */
+.cc-backdrop {
+  background: rgb(0 0 0 / 0.38);
+}
+html:not(.dark) .cc-backdrop {
+  background: rgb(245 245 247 / 0.3);
+}
+.cc-grid {
+  --cc-u: min(16.9cqw, 14.6cqh);
+  --cc-g: calc(var(--cc-u) * 0.2206);
+  --cc-fill: rgb(255 255 255 / 0.14);
+  --cc-well: rgb(255 255 255 / 0.1);
+  --cc-ink: #fff;
+  --cc-detail: rgb(255 255 255 / 0.6);
+  --cc-on: #fff;
+  --cc-on-ink: #000;
+  --cc-slider-fill: #fff;
+  --cc-slider-ink: #000;
+  --cc-rim: inset 0.75px 0.75px 0.5px rgb(255 255 255 / 0.32), inset -0.5px -0.5px 0.5px rgb(255 255 255 / 0.1);
+  display: grid;
+  width: max-content;
+  margin: max(env(safe-area-inset-top), 13cqh) auto 0;
+  grid-template-columns: repeat(4, var(--cc-u));
+  grid-auto-rows: var(--cc-u);
+  gap: var(--cc-g);
+  grid-template-areas:
+    "cluster cluster np np"
+    "cluster cluster np np"
+    "finish wallpaper bright text"
+    "contact contact bright text";
+  color: var(--cc-ink);
+  font-size: calc(var(--cc-u) * 0.22);
+}
+html:not(.dark) .cc-grid {
+  --cc-fill: rgb(0 0 0 / 0.07);
+  --cc-well: rgb(0 0 0 / 0.08);
+  --cc-ink: rgb(0 0 0 / 0.92);
+  --cc-detail: rgb(0 0 0 / 0.5);
+  --cc-slider-fill: rgb(28 28 30 / 0.85);
+  --cc-slider-ink: #fff;
+  --cc-rim: inset 0.75px 0.75px 0.5px rgb(255 255 255 / 0.7), inset -0.5px -0.5px 0.5px rgb(0 0 0 / 0.04);
+}
+@media (max-height: 519.98px) and (orientation: landscape) {
+  .cc-grid {
+    --cc-u: min(9.4cqw, 30cqh);
+    margin-top: max(env(safe-area-inset-top), 9cqh);
+    grid-template-columns: repeat(8, var(--cc-u));
+    grid-template-areas:
+      "cluster cluster np np finish wallpaper bright text"
+      "cluster cluster np np contact contact bright text";
+  }
+}
+.cc-module {
+  position: relative;
+  min-width: 0;
+  border-radius: calc(var(--cc-u) * 30 / 68);
+  color: var(--cc-ink);
+  background: var(--cc-fill);
+  box-shadow: var(--cc-rim);
+  overflow: hidden;
+}
+.cc-pill,
+.cc-round-module {
+  border-radius: 999px;
+}
+.cc-glyph {
+  width: calc(var(--cc-u) * 0.38);
+  height: calc(var(--cc-u) * 0.38);
+}
+.cc-label {
+  font-weight: 590;
+  line-height: 1.2;
+}
+.cc-detail {
+  font-size: 0.86em;
+  line-height: 1.25;
+  color: var(--cc-detail);
+}
+/* 2×2 of round toggles, each a well that turns white when on */
+.cc-cluster {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: calc(var(--cc-u) * 0.12);
+  padding: calc(var(--cc-u) * 0.12);
+}
+.cc-round {
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: var(--cc-ink);
+  background: var(--cc-well);
+  transition:
+    background-color 200ms ease,
+    color 200ms ease;
+}
+.cc-round[data-on],
+.cc-round-module[aria-expanded="true"] {
+  color: var(--cc-on-ink);
+  background: var(--cc-on);
+}
+.cc-round-module {
+  display: grid;
+  place-items: center;
+  transition:
+    background-color 200ms ease,
+    color 200ms ease;
+}
+.cc-dot {
+  position: absolute;
+  right: 22%;
+  bottom: 22%;
+  width: 18%;
+  height: 18%;
+  border-radius: 999px;
+  box-shadow: 0 0 0 1.5px var(--cc-ink);
+}
+/* Now Playing: the kit's 52 pt art (radius 14), title 15/510 */
+.cc-now {
+  display: flex;
+  flex-direction: column;
+  padding: calc(var(--cc-u) * 0.2);
+}
+.cc-art {
+  display: block;
+  width: calc(var(--cc-u) * 52 / 68);
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: calc(var(--cc-u) * 14 / 68);
+  background: var(--cc-well);
+}
+.cc-play {
+  display: grid;
+  place-items: center;
+  width: calc(var(--cc-u) * 0.56);
+  aspect-ratio: 1;
+  border-radius: 999px;
+  color: var(--cc-on-ink);
+  background: var(--cc-on);
+}
+.cc-play .cc-glyph {
+  width: 52%;
+  height: 52%;
+}
+/* 2×1 label pill: a symbol well, a title and a detail line */
+.cc-wide {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--cc-u) * 0.14);
+  padding: 0 calc(var(--cc-u) * 0.2) 0 calc(var(--cc-u) * 0.12);
+}
+.cc-well {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: calc(var(--cc-u) * 0.66);
+  aspect-ratio: 1;
+  border-radius: 999px;
+  background: var(--cc-well);
+}
+.cc-well .cc-glyph {
+  width: 52%;
+  height: 52%;
+}
+/* 1×2 slider: fills from the foot; its glyph sits in the fill */
+.cc-slider {
+  cursor: grab;
+}
+.cc-slider-fill {
+  position: absolute;
+  inset: auto 0 0;
+  background: var(--cc-slider-fill);
+  transform-origin: 50% 100%;
+}
+.cc-slider-glyph {
+  position: absolute;
+  bottom: calc(var(--cc-u) * 0.2);
+  left: 50%;
+  translate: -50% 0;
+  color: var(--cc-slider-ink);
+  mix-blend-mode: normal;
+}
+.cc-slider:focus-visible,
+.cc-module:focus-visible,
+.cc-round:focus-visible {
+  outline: 2px solid var(--cc-ink);
+  outline-offset: 2px;
+}
+/* Glass menu (finish, wallpaper): grows from its button over the lower half of the grid */
+.cc-menu {
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  right: 0;
+  top: calc(var(--cc-u) * 3 + var(--cc-g) * 2 + var(--cc-g));
+  padding: calc(var(--cc-u) * 0.12);
+  border-radius: calc(var(--cc-u) * 30 / 68);
+  transform-origin: 20% 0%;
+  color: var(--cc-ink);
+  background: color-mix(in oklab, var(--ios-bg-grouped-secondary) 62%, transparent);
   -webkit-backdrop-filter: blur(24px) saturate(170%);
   backdrop-filter: blur(24px) saturate(170%);
-  box-shadow: inset 0 0.5px 0 rgb(255 255 255 / 0.18);
+  box-shadow:
+    var(--cc-rim),
+    0 12px 40px rgb(0 0 0 / 0.3);
 }
-.cc-slider {
-  appearance: none;
-  border-radius: 12px;
-  background: linear-gradient(to right, #fff var(--fill), rgb(255 255 255 / 0.18) var(--fill));
-  cursor: pointer;
+@media (max-height: 519.98px) and (orientation: landscape) {
+  .cc-menu {
+    left: calc((var(--cc-u) + var(--cc-g)) * 4);
+    top: calc(var(--cc-u) + var(--cc-g));
+    transform-origin: 30% 0%;
+  }
 }
-.cc-slider::-webkit-slider-thumb {
-  appearance: none;
-  width: 6px;
-  height: 36px;
-  border-radius: 3px;
-  background: transparent;
+.cc-menu-title {
+  padding: 0.3em 0.6em 0.4em;
+  font-size: 0.86em;
+  font-weight: 600;
+  color: var(--cc-detail);
 }
-.cc-slider::-moz-range-thumb {
-  width: 6px;
-  height: 36px;
-  border: 0;
-  background: transparent;
+.cc-menu-row {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.7em;
+  padding: 0.55em 0.6em;
+  border-radius: calc(var(--cc-u) * 0.2);
+  font-weight: 510;
 }
-.cc-slider:focus-visible {
-  outline: 2px solid #fff;
-  outline-offset: 2px;
+.cc-menu-row:hover,
+.cc-menu-row:focus-visible {
+  background: var(--cc-well);
+  outline: none;
+}
+.cc-menu-swatch {
+  width: 1.5em;
+  height: 1.5em;
+  flex-shrink: 0;
+  border-radius: 0.4em;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.25);
+}
+@media (prefers-reduced-transparency: reduce) {
+  .cc-backdrop {
+    background: rgb(0 0 0 / 0.85);
+  }
+  html:not(.dark) .cc-backdrop {
+    background: rgb(242 242 247 / 0.96);
+  }
+  .cc-menu {
+    background: var(--ios-bg-grouped-secondary);
+  }
 }
 
 /* In-app bar: the kit's hard scroll edge (Scroll Edge Effect/Hard) over the content under it, with
