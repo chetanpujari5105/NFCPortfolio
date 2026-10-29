@@ -379,10 +379,30 @@ References: the tall-clock lock screen with round widgets and flashlight/camera 
 - **Live checks** (`node scripts/live-check.mjs [base] [outDir] [--send]`): 56/56 on nfcportfolio-two.vercel.app at 390x844 and 1440x900, light and dark; one real Contact message sent (API 200) and found in the chetanpujari92@gmail.com Inbox.
 - **Google app password "NFCPortfolio":** not deleted. myaccount.google.com/apppasswords went straight to a passkey challenge, so I stopped (see Needs Chetan).
 
+## v10 follow-up: iOS 27 tokens and the shell consistency pass (branch `feat/v10-ios-tokens`, merged to `main` 586642b)
+
+- **Tokens (53d2605).** Read from the iOS 27 Builder kit by Luch Dev (Figma `7fp30JpDD6R8MRCEf9GysN`) through the page's plugin API, in ~1 KB pieces (no network receiver, no clipboard). The kit's colours (light/dark), Dynamic Type ramp, spacing, radii and component metrics are in `src/lib/ios-tokens.ts`. The same values are `--ios-*` variables in `globals.css`, with `bg-ios-*`, `text-ios-*` and `rounded-ios-*` utilities, and one `.dark` switch. The app roles (`--app-background`, `--app-group`, `--app-ink`, `--app-divider`) point at them. Secondary text stays opaque for 4.5:1, a deliberate departure from the kit's 60% label. `docs/ios27-spec.md` lists what was read, with node ids. Apple's iOS and iPadOS 27 file (`ClYfkhyEVp6YXhlyWleSNA`) was opened read-only for numbers only. No licence prompt appeared, and nothing was exported or copied. The type ramp, accents and backgrounds match. Separators, grabber width and two fills differ, and Luch Dev is used for those. `tests/tokens.spec.ts` checks that the map and the CSS agree in both modes.
+- **Shell (6431747).**
+  - Bar: 44 pt glass back buttons; the bar title is Headline; the bar uses the kit's hard scroll edge.
+  - Lists and headers: the kit Large Title and Subheadline subtitle. Section headers are the kit's Nested header (Headline, grey, no caps). Grouped sections have radius 26 with opaque separators #E7E7E8 / #2A2A2C. Rows are 52 / 68 pt with a Body title and Subheadline detail, and a chevron only when the row navigates.
+  - Controls: the toggle is 64x28 with a capsule knob and Accents/Green. The segmented control is a grey capsule with a white pill.
+  - Sheets and alerts: sheets have radius 38 and a 58x4 grabber. The Home Screen alerts (Remove, Reset) are one radius-34 card with 48 pt capsule buttons, none filled; the destructive one is red. Spotlight search is a 48 pt capsule.
+  - Apps: Blog, Contact, Courses, Services, Reviews, Projects, Settings and Journey now use these tokens instead of their own sizes and blues. Journey's year headers are the kit's Nested header (17 px), and its tiles use the kit accents.
+- **Credits (586642b and Settings).** "iOS 27 Builder by Luch Dev (Figma Community; © 2026 Luch Dev, all rights reserved), values only", plus "iPhone, iOS and iPadOS are trademarks of Apple Inc." Apple's file is not credited as a source.
+- **Screens:** before/after per app in `docs/v10/shell-sheets/<app>.jpg`. In each sheet the top row is before and the bottom row is after; columns are 390 light, 390 dark, 1440 (3D phone) light, 1440 dark. Regenerate with `node scripts/shell-shots.mjs <dir> [base] --sheets <beforeDir>`.
+- **Tests:**
+  - Lint and typecheck are clean; the build passes.
+  - Full suite on the branch build: every test passes except two groups. The first is the 5 known throttled speed checks. The second is the visual baselines the redesign changed (courses, settings, projects, Journey), which were updated on purpose; a re-run of `visual.spec` gives 60/60.
+  - `journey.spec` now expects 17 px year headers. `tokens.spec`, `journey.spec` and `home-edit.spec` pass.
+- **Deploy and live checks:** Vercel Production `nfcportfolio-l1nniwpi0` is Ready, and :3100 was rebuilt at 586642b. `node scripts/live-check.mjs` passes 56/56 on nfcportfolio-two.vercel.app (390x844 and 1440x900, light and dark). No second contact message was sent; the earlier one had already arrived.
+- **Google app password "NFCPortfolio":** tried again. myaccount.google.com/apppasswords went straight to the passkey challenge, so I stopped and closed the tab.
+
 ## Needs Chetan
 
-- [ ] **Delete the Google app password "NFCPortfolio"** (keep "portfolio", which the contact form uses): myaccount.google.com/apppasswords asked for your passkey, so I stopped there. Open it, pass the passkey, and press the bin icon next to "NFCPortfolio" only.
+- [ ] **Delete the Google app password "NFCPortfolio"** (keep "portfolio", which the contact form uses): myaccount.google.com/apppasswords asked for your passkey twice (v10 run and the follow-up), so I stopped there both times. Open it, pass the passkey, and press the bin icon next to "NFCPortfolio" only.
 - [ ] **v10 on a real phone:** the lock clock's size and glass, the swipe-up feel and wallpaper blur, the tap that wakes, flashlight and camera buttons, the notification stack; Journey's rail, push and edge-swipe back, and with Larger text on. Say if a tap should open straight away instead of waking first.
+- [ ] **iOS 27 Builder licence:** the kit says "© 2026. All Rights Reserved. — Luch Dev" (Figma Community file; its agent skills are Apache 2.0). The site takes only values from it (sizes, colours), credited in Settings and the README. Confirm you are happy with that reading, or ask Luch Dev.
+- [ ] **Shell pass on a real phone:** the 44 pt glass back button, 17 px grey section headers (no caps), the rounder radius-26 groups, the wider 64x28 toggle and the Home Screen alerts. See `docs/v10/shell-sheets/`.
 - [ ] **Apple-style icon pack:** still on (see "iOS 18 icons: trademark call" below). `NEXT_PUBLIC_ICON_PACK=original` in Vercel, then redeploy, is the safe fallback.
 
 - [ ] **Real-device check of v5:** iPhone Safari, Android Chrome, Brave, Samsung Internet, and the LinkedIn and Instagram in-app browsers.

@@ -1,6 +1,57 @@
 # Morning report (2026-10-29)
 
-## v10 run (afternoon): lock screen, Journey, YouTube fallback
+## v10 follow-up: iOS 27 tokens and the shell consistency pass
+
+Short version: the whole app shell now follows the iOS 27 Builder kit (Luch Dev). That covers bar, large title, grouped lists, rows, toggle, segmented control, sheets, alerts and search, in light and dark. It's live on nfcportfolio-two.vercel.app (`main` 586642b, Vercel Production Ready, :3100 rebuilt). Live checks pass 56/56. The Google app password still needs your passkey.
+
+| # | Task | Result |
+| --- | --- | --- |
+| 1 | Read the kit tokens without the network | Done. Read through Figma's plugin API in ~1 KB pieces. The old receiver (PID 95647, port 47123) was stopped first, and the clipboard wasn't used. |
+| 2 | Tokens in one place | `src/lib/ios-tokens.ts` plus the `--ios-*` variables in `globals.css` (one `.dark` switch); `tests/tokens.spec.ts` keeps them equal. Spec and node ids: `docs/ios27-spec.md`. |
+| 3 | Cross-check with Apple's iOS and iPadOS 27 | Opened read-only, numbers only; no licence prompt appeared. The type ramp, accents and backgrounds match. Where the files differ (separators, grabber 60 vs 58, two fills), the site uses Luch Dev. |
+| 4 | Shell consistency pass | Done, 6431747. Shared shell plus Blog, Contact, Courses, Services, Reviews, Projects, Settings, Journey and the Home Screen alerts. |
+| 5 | Credits | Settings → Credits and README: "iOS 27 Builder by Luch Dev", values only; "iPhone, iOS and iPadOS are trademarks of Apple Inc." |
+| 6 | Tests | Lint, typecheck and build are clean. Full suite: all pass except the 5 known throttled speed checks and the visual baselines the redesign changed. Those baselines were updated on purpose, and `visual.spec` then passes 60/60. |
+| 7 | Deploy + live checks | `nfcportfolio-l1nniwpi0` Ready. 56/56 live checks (390x844 and 1440x900, light and dark). No new contact message was sent. |
+| 8 | App password "NFCPortfolio" | **Stopped at the passkey again.** Nothing was clicked or read. |
+| 9 | Disk | 14 GiB free. Branch build output, test results and the raw before/after PNGs were deleted; the JPEG sheets are kept. |
+
+### Extracted tokens (main ones; full table in `docs/ios27-spec.md`)
+
+| Token | Light | Dark |
+| --- | --- | --- |
+| Labels/Primary | #000000 | #ffffff |
+| Labels/Link | #007aff | #0984ff |
+| Accents/Blue (systemBlue) | #0088ff | #0091ff |
+| Backgrounds/Grouped-Primary | #f2f2f7 | #000000 |
+| Backgrounds/Grouped-Secondary | #ffffff | #1c1c1e |
+| Separators/Opaque | #e7e7e8 | #2a2a2c |
+| Fills/Tertiary (segmented track) | #7676801f | #7676803d |
+| Accents/Green (toggle on) | #34c759 | #30d158 |
+
+| Metric | Value |
+| --- | --- |
+| Type ramp | Large Title 34/41 · Title 2 22/28 · Title 3 20/25 · Headline/Body 17/22 · Subheadline 15/20 · Footnote 13/18 · Caption 12/16 (rem) |
+| Radii | 5 · 8 · 12 · 16 · 20 · 26 (grouped) · 34 (alert) · 38 (sheet) · capsule |
+| Spacing | 2 · 4 · 8 · 12 · 16 · 24 · 32 · 48 |
+| Rows / headers | 52 regular, 68 tall; Nested header 42 (Headline, grey, no caps); inset 16 |
+| Bars | nav buttons 44; inline bar 54; search 48 capsule; segmented 32 capsule; toggle 64x28 (knob 39x24) |
+
+### Screenshots
+
+Before/after per app (top row before, bottom row after; columns are 390 light, 390 dark, 1440 3D phone light, 1440 dark):
+`docs/v10/shell-sheets/{courses,expertise,platforms,reviews,projects,blog,services,contact,settings,journey}.jpg`. Live shots: `docs/morning/*.png` (local only).
+
+### Needs Chetan (new)
+
+- Delete the Google app password "NFCPortfolio" after your passkey (keep "portfolio").
+- The iOS 27 Builder licence reads "All Rights Reserved". The site takes values only, with credit. Confirm you're happy with that.
+- Check the new shell on a real phone (glass back button, 17 px grey section headers, rounder groups, wider toggle).
+- Still open, unchanged: the Apple-style icon pack (`NEXT_PUBLIC_ICON_PACK=original` fallback), the 3D model licence, the Anti-Doom Play Store link, StackUp status, the five unverified reviews and the real-phone checks.
+
+---
+
+## Earlier: v10 run (afternoon): lock screen, Journey, YouTube fallback
 
 Short version: the iOS-style lock screen and the Apple-style Journey are live on nfcportfolio-two.vercel.app (`main` 5cb239c, Vercel Production Ready, :3100 updated). The YouTube widget now keeps the last good video. One real contact message went out and landed in the Inbox. The Google app password wasn't deleted: Google asked for your passkey.
 
