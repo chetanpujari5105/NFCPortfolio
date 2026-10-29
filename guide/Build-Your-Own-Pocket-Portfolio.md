@@ -2,7 +2,7 @@
 
 *A 3D phone-style personal website. No coding experience needed.*
 
-by **Chetan Pujari** · October 2026 · v1.2
+by **Chetan Pujari** · October 2026 · v2.0
 
 ![The 3D phone on desktop](images/hero-front.jpg)
 
@@ -27,17 +27,17 @@ A personal website that works like a phone. On a laptop, visitors see a 3D phone
 
 Every section of your portfolio is an app on the home screen: your courses or products, your story, your skills, your projects, your blog, your services and a contact form.
 
-![The finished site on a desktop: the 3D phone, the name and nav on the right, finish swatches top-left.](images/hero-front.jpg)
+![The template on a desktop, with its sample persona: the 3D phone, the name and nav on the right, finish swatches top-left.](images/hero-front.jpg)
 
 ![Home page 2: the live GitHub heatmap, the latest blog post, a YouTube card and the Expertise stack.](images/page2.jpg)
 ![An open app (Courses). It grows out of its icon and flies back into it.](images/app-courses.jpg)
 
 
-![Control Center: dark mode, finish, wallpaper, brightness, Now Playing.](images/control.jpg)
+![Control Center: appearance, flashlight, finish, wallpaper, brightness, your newest video.](images/control.jpg)
 ![Drag beside the phone to turn it over. The back has your initials.](images/back.jpg)
 
 
-![On a phone: the lock screen.](images/mobile-lock.jpg)
+![On a phone: the lock screen, with widgets and notifications from your own content.](images/mobile-lock.jpg)
 ![On a phone: the home screen fills the screen.](images/hero-mobile.jpg)
 ![On a phone: an open app (Journey).](images/mobile-journey.jpg)
 
@@ -45,17 +45,34 @@ Every section of your portfolio is an app on the home screen: your courses or pr
 ## Features
 
 - **3D phone you can turn over.** Drag beside it (never on the screen) and it settles on its front or back. Clicks never move it.
-- **A real phone feel.** Lock screen with swipe up, apps that launch from their icon and close with a swipe on the home bar, an app switcher, home pages you swipe between, pull-down search.
+- **A real phone feel.** A lock screen with a tall clock, widgets, a flashlight and notifications; apps that launch from their icon and close with a swipe on the home bar; Control Center; an app switcher; home pages you swipe between; pull-down search.
 - **A home screen visitors can edit.** Long-press an icon to move apps, make folders, remove apps, edit the dock and add apps back from the App Library.
 - **Fits every phone.** The home screen works out its columns, icon size and pages from the screen it's on, from a small 320×568 phone to a phone on its side.
-- **Live content.** A GitHub contribution heatmap, your latest blog posts from RSS, your latest YouTube video, and a contact form that emails you.
+- **Live content.** A GitHub contribution heatmap, your latest blog posts from RSS, your latest YouTube video, and a contact form that emails you through your own Gmail (no domain needed).
 - **Installable.** "Add to Home Screen" on a phone opens it full screen like an app.
-- **Your look.** Light and dark themes, three phone finishes, three wallpapers. Larger text and reduce-motion settings.
-- **Fast and accessible.** Apps start opening in the same frame as the tap, and repeat visits load almost at once, even offline. Our build scored Lighthouse 100 on desktop and 93 on mobile for performance, and 100 for accessibility, best practices and SEO.
+- **Your look.** Light and dark themes, four phone finishes, three wallpapers. Larger text and reduce-motion settings.
+- **Fast and accessible.** Apps start opening in the same frame as the tap, and repeat visits load almost at once, even offline. The template's tests check launch speed on a slowed-down phone and run automated accessibility checks on every app.
+
+## New in v2.0
+
+Version 2.0 of this guide goes with version 2.0.0 of the template, which brings in everything the original site gained since v5. Every app now uses the same Apple-style grouped lists and system sizes, so the whole phone feels like one system.
+
+- **Lock screen.** A tall clock fitted to the screen, a row of widgets (battery, your GitHub week, a clock for your city), a flashlight and a camera shortcut that opens Contact, and a stack of notifications from your own content: your newest post, your newest reel and a project. You set them in `content/lock-notes.ts`.
+- **Control Center.** Pull down from the top-right corner: appearance, reduce motion, larger text, the flashlight, your newest video, finish and wallpaper menus, brightness and text size.
+- **A new home screen.** An extra brand tile for a second account, and Settings in the dock.
+- **Apps, redone.** Reviews (a carousel and an All Reviews list), Journey, Services, Platforms, Courses, Blog, Projects (a filter, a featured card and details) and Settings, plus an Expertise stack widget on page 2.
+- **Reviews you can trust.** The template ships four sample reviews with a visible "Sample" tag. The new [Real reviews](#the-real-reviews-prompt) prompt replaces them with real ones, copied word for word from your own platform.
+- **Contact through Gmail.** The form sends from your own Gmail with an app password, so you don't need a domain. Resend still works as a fallback.
+- **Steadier live data.** The GitHub heatmap falls back to a saved snapshot, and the YouTube widget keeps the last good video when YouTube's feed is down.
+
+![Reviews: the sample reviews carry a "Sample" tag until you replace them.](images/v2-reviews.jpg)
+![Projects: a filter, a featured card and grouped rows.](images/v2-projects.jpg)
+![Control Center on a phone.](images/v2-control-mobile.jpg)
+
 
 ## New in v5
 
-Version 1.1 of this guide adds v5 of the site, and the template includes all of it. On Path B it's Prompt 7.
+Version 1.1 of this guide added v5 of the site, and the template includes all of it. On Path B it's Prompt 7.
 
 - **Fits every phone.** Nothing is cut off on any of 17 tested screen sizes, with the browser toolbars and the keyboard showing, and in landscape. Icons that don't fit move to the next page, like on a real phone.
 - **Folders.** Drop one app on another and hold: they make a folder you can name. The Socials folder is a normal folder now.
@@ -92,9 +109,9 @@ Run the same series of seven prompts that built the original site. You'll watch 
 |---|---|---|
 | Time | 1–2 hours | 1–2 days of Claude Code time |
 | You start with | The template (working site with sample content) | An empty folder |
-| Prompts to run | 1, plus fix lists | 7 in order, plus fix lists |
+| Prompts to run | 1, then reviews and a polish pass, plus fix lists | 7 in order, plus fix lists |
 | Usage of your Claude plan | Low | High (expect to hit usage limits and type `continue`) |
-| Result | The same site, with your content | Your own build, which you can steer as it grows |
+| Result | The same site, with your content | Your own build up to v5, which you can steer as it grows |
 
 Whichever path you take, chapters 3 to 5 come first: get the tools, set up the toolbox, and gather your content.
 
@@ -111,7 +128,8 @@ Prices change, so this guide doesn't quote them. Check each provider's current p
 | Git | Saves versions of your project and uploads it | Free | [Download](https://git-scm.com/downloads) |
 | A GitHub account | Stores your project online | Free plan available | [Sign up](https://github.com/signup) |
 | A Vercel account | Puts your site on the internet | Free Hobby plan for personal projects; check current pricing | [Sign up](https://vercel.com/signup) |
-| Optional: a Resend account | Lets the contact form email you | Free tier available; check current pricing | [Pricing](https://resend.com/pricing) |
+| Optional: a Gmail account with 2-Step Verification | Lets the contact form email you (an app password; no domain needed) | Free | [App passwords](https://myaccount.google.com/apppasswords) |
+| Optional: a Resend account | A fallback way to send the contact form | Free tier available; check current pricing | [Pricing](https://resend.com/pricing) |
 | Optional: your own domain | `yourname.com` instead of a vercel.app address | Paid, from any registrar | – |
 | Optional: a GitHub token | A more reliable GitHub heatmap | Free | [Docs](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) |
 
@@ -260,6 +278,9 @@ Fill in this worksheet before you start. Save it as a plain text file called `my
 | Blog / newsletter RSS feed (Substack: `https://<name>.substack.com/feed`) | |
 | YouTube channel id (starts with `UC`, optional) | |
 | Old website or LinkedIn to import from | |
+| Your newest reel or short: link and the first line of its caption (lock screen) | |
+| Your city and time zone (the lock-screen clock, e.g. "Lisbon, Europe/Lisbon") | |
+| Where people review your work (Udemy, Google, Fiverr, …) and the link to your reviews | |
 | Your site address (if you have one) | |
 | Brand colour (hex, e.g. `#FFB800`) | |
 
@@ -277,7 +298,7 @@ Put your photos in a folder called `my-photos/` in the project, named after what
 
 > 💡 **Tip**
 >
-> **Reviews must be real.** Only add a review if it's a real quote and the person agreed you can publish it. The site hides every review until you mark it `verified: true`.
+> **Reviews must be real.** The template ships four sample reviews, each with a grey "Sample" tag. Replace them only with real reviews, copied word for word from the platform where people left them, and never write, edit or invent one. The [Real reviews](#the-real-reviews-prompt) prompt does this for you, read-only.
 
 
 If you have an old site, put its address in the worksheet. If you'd like to import from LinkedIn, open your profile, copy the About and Experience text, and paste it into a file called `linkedin.txt` in the project folder. Claude Code can't log in to LinkedIn for you, and it shouldn't.
@@ -331,32 +352,42 @@ Sources (read all of them first):
    - content/profile.ts: name, role, bio, email, socials, github (my GitHub username),
      youtubeChannelId (leave "" if unknown), youtubeLine, stats, sideLine, journeySubtitle, and site
      (url, title, description, shortName, mark = my initials).
+   - content/apps.ts: the brand row (links) and dock. Remove "ai-instagram" here and in
+     profile.socials if I have only one Instagram account.
+   - content/lock-notes.ts: my newest reel (its link and the first lines of its caption, word
+     for word; null if I have none), the project the lock screen shows, and my city's clock
+     (city + IANA time zone).
+   - New ids in services.ts or expertise.ts need a tile line in
+     src/components/apps/service-tile.tsx or expertise-tile.tsx (glyph + tint).
    - Remove sample entries I have no replacement for. Never invent numbers, ratings,
      dates, quotes or links. If something is missing, leave it out and list it.
-   - Reviews: add only real quotes from my sources, and keep every one verified: false.
+   - Reviews: leave content/reviews.ts alone (the 4 "Sample" reviews stay until I run
+     prompts/12-real-reviews.md), but set reviewSource to the platform my reviews are on.
+   - After setting github, run: npx tsx scripts/github-snapshot.mts (replaces the sample heatmap).
 2. Photos. Convert my photos with:
    node scripts/optimize-images.mjs my-photos public/content/_import 1200
    Then move each file to its place: public/content/profile.webp (square avatar),
    public/content/courses/<id>.webp (16:9), public/content/projects/<id>.webp (16:10),
    public/content/blog/<name>.webp. Crop to the right shape if needed. Delete sample
    images that are no longer used, and delete public/content/_import.
-3. Colours. Pick three phone finishes that suit my brand colour from my-content.md:
+3. Colours. Pick four phone finishes that suit my brand colour from my-content.md:
    edit FINISH_INFO in src/components/studio/FinishSwatches.tsx and the matching
    [data-finish] blocks (and :root --accent) in src/app/globals.css. Keep text readable
    (WCAG AA contrast) in light and dark. You may rename the finishes.
 4. Checks. Run, and fix anything that fails:
    npm run content:check && npm run lint && npm run typecheck && npm run build
    Then update the visual baselines once and run the tests:
-   npx playwright test --update-snapshots && npm test
+   npx playwright test tests/visual.spec.ts --update-snapshots=changed && npm test
    If port 3100 is busy, add PORT=3200 in front of both commands.
 5. Look at it. Start the site (npm run start -- -p 3200) and take Playwright screenshots
    at 1440x900 and 390x844 in light and dark: home, home page 2, Journey, Courses,
-   Contact, and the back of the phone (button "Flip the phone"). Look at every
+   Contact, the lock screen (open a fresh tab) and the back of the phone (button "Flip the phone"). Look at every
    screenshot and fix anything that looks wrong (cut-off text, wrong photo crop,
    leftover sample text). Save them in screenshots/.
-6. Leftovers. Search the whole project (not node_modules) for "Alex", "Rivera",
+6. Leftovers. Search the whole project (not node_modules) for "Alex", "Rivera", "Lisbon",
    "Sample", "example.com" and "octocat". Replace or remove every match in content/
-   and public/. Report any match you kept and why.
+   and public/ (except the sample reviews, which prompts/12 replaces). Report any match you
+   kept and why.
 7. Report: what you changed, the screenshot paths, test results, and the "Needs me" list.
 ```
 
@@ -378,7 +409,7 @@ npm run dev
 
 Open `http://localhost:3000` in your browser and click through this list. Note anything you want changed.
 
-1. The lock screen: swipe up (or click) to open.
+1. The lock screen: your city's clock, and notifications for your newest post, reel and project. Tap each one, then swipe up (or click) to open.
 2. Your name and nav beside the phone; the green status pill.
 3. Drag beside the phone to turn it over. Check your initials on the back. Click **Flip** to turn it back.
 4. Open every app on page 1 and in the dock. Read every line for typos.
@@ -386,15 +417,109 @@ Open `http://localhost:3000` in your browser and click through this list. Note a
 6. Long-press an icon: make a folder, remove an app and add it back from the App Library. Then **Settings → Home Screen → Reset** puts your layout back.
 7. Open Socials and click each icon: does it go to *your* profile?
 8. Contact: the "To" address is yours.
-9. Settings: switch dark mode, finishes and wallpapers.
+9. Control Center (pull down from the top-right corner): switch dark mode, finishes and wallpapers.
 10. Open the site on your phone too (Chapter 8 shows how, after deploying).
 
 ✅ You're done when every app shows your content and every link goes to your profiles.
 
 
-### Step 5: Make changes with a fix list
+### Step 5: Replace the sample reviews
+Run the [Real reviews](#the-real-reviews-prompt) prompt below. Sign in to your review platform in Chrome first: Claude Code reads your reviews there, one page at a time, and copies them word for word. No reviews yet? Delete the four samples and the Reviews app from `content/apps.ts` instead.
+
+
+### Step 6: A final polish
+Run the [Apple-style polish](#the-apple-style-polish-prompt) prompt below. It checks every screen against the template's own design rules, in light and dark, on a phone and a desktop, and fixes what's off.
+
+
+### Step 7: Make changes with a fix list
 Write what you want changed as a numbered list and paste it with the "Fix list" prompt below. Numbered lists work much better than one long paragraph, because Claude Code can tick them off one by one and you can refer to "number 3" later.
 
+
+## The "Real reviews" prompt
+
+Replace `{{PLATFORM}}` and `{{PLATFORM_REVIEWS_URL}}` with the platform and the page that lists your reviews. Claude Code only reads: it never clicks a button that changes anything, and it stops at any sign-in screen.
+
+```prompt
+Replace the sample reviews in my Pocket Portfolio with real reviews of my work, copied from my own
+account on {{PLATFORM}} ({{PLATFORM_REVIEWS_URL}}). Work autonomously; anything that needs me goes
+on a "Needs me" list at the end.
+
+Hard rules. These are not negotiable:
+- Read-only. Only open and read pages. Never click Reply, Report, Like, Helpful, Delete, Edit,
+  Accept or any button that changes something; never post, send a message or accept an agreement.
+- Human speed. One page at a time, a few seconds between pages, no scraping scripts, no APIs I
+  haven't given you, no bulk downloads. Stay within the platform's terms.
+- I'm already signed in, in Chrome (Claude in Chrome). Never type a password. If a login, passkey,
+  captcha or "confirm it's you" screen appears, stop and tell me.
+- Copy verbatim. Each review's text exactly as written, including its spelling, punctuation and
+  line breaks; the name exactly as the platform shows it; the rating; the platform's own date
+  label ("2 years ago"). Never write, edit, shorten, fix, translate, merge or "improve" a review,
+  and never invent one, a name, a rating or a date. If a review can't be read in full, skip it.
+- Leave out: reviews without text, anyone who asked not to be named, my family, my team and
+  myself, and anything with someone's private details (phone, email, address) in it.
+
+1. Open {{PLATFORM_REVIEWS_URL}} and read the reviews, newest first, until you have up to
+   {{HOW_MANY, e.g. 16}} that pass the rules (one per person). Prefer ones that say something
+   specific. Note the platform's own totals (reviews and learners/clients) if it shows them.
+2. Write them into content/reviews.ts:
+   - READ_ON: today's date (YYYY-MM-DD).
+   - reviewSource: name "{{PLATFORM}}", url (my profile there), linkLabel, and totals only if the
+     platform shows them.
+   - One entry per review: id (short slug), course, courseShort (a short chip label), courseUrl
+     (the course or service page on the platform), rating, text, author, date, source
+     "{{PLATFORM}}", verified: true. No `sample` field. Mark the 6–8 strongest featured: true.
+   - Delete the four sample reviews.
+3. Check: npm run content:check && npm run lint && npm run typecheck && npm run build, then
+   npx playwright test tests/reviews.spec.ts. Update the Reviews visual baselines if they exist
+   (npx playwright test tests/visual.spec.ts --update-snapshots=changed) and say which changed.
+4. Open the Reviews app (/#reviews and /#reviews/all) at 390x844 and check every review reads
+   exactly as on the platform and no "Sample" tag is left.
+5. Report: how many reviews you read, how many you kept, each skipped one with the reason (no
+   names of skipped people), the test results and the "Needs me" list.
+```
+
+Copy it from [prompts/12-real-reviews.md](https://github.com/chetanpujari5105/pocket-portfolio-template/blob/main/prompts/12-real-reviews.md)
+
+✅ You're done when every review on your site has a twin on your platform, word for word, and no "Sample" tag is left.
+
+## The "Apple-style polish" prompt
+
+```prompt
+Give my Pocket Portfolio a final Apple-style polish. Work autonomously on a branch
+polish/apple-style; anything that needs me goes on a "Needs me" list at the end. Don't change my
+content's meaning: wording fixes only where something is cut off or reads badly on a phone.
+
+Rules (they are how the template is built; keep to them):
+- Sizes, spacing, radii and system colours come only from src/lib/ios-tokens.ts and the `--ios-*`
+  variables in src/app/globals.css (Tailwind: bg-ios-*, text-ios-*, rounded-ios-*). No new
+  one-off hex colours or pixel sizes in components.
+- Lists use src/components/ui/grouped.tsx (Section, Row, Tile, ProminentButton). Rows are at
+  least 44 px tall, chevrons only on rows that push, an up-right arrow on rows that leave the site.
+- Type is in rem so Settings -> Larger text scales it. Secondary text stays opaque grey with at
+  least 4.5:1 contrast in light and dark.
+- No emoji in the interface (tests/apple.ts has the EMOJI check). Our own glyphs only: never copy
+  Apple's SF Symbols, icons, images, fonts or text, or anything from a design kit.
+- Motion: springs from src/lib/motion.ts, interruptible, and nothing moves under
+  prefers-reduced-motion.
+
+1. Look first. Start the site (npm run build && npm run start -- -p 3200) and run
+   node scripts/shell-shots.mjs screenshots/polish-before http://localhost:3200
+   Look at every screenshot (every app, 390x844 and 1440x900, light and dark) and the lock screen
+   and Control Center. Write down what looks off: cut-off text, uneven spacing, a row that doesn't
+   line up, a colour that clashes with my finish, a tap target under 44 px, an awkward empty state.
+2. Fix them one at a time, smallest change first. After each, re-check that app at both sizes.
+3. Run node scripts/label-contrast.mjs http://localhost:3200 and fix any home label under 4.5:1.
+4. Run node scripts/a11y.mjs http://localhost:3200 (axe + keyboard) and fix what it finds.
+5. Checks: npm run lint && npm run typecheck && npm run content:check && npm run build && npm test.
+   If a visual test fails only because of a polish you meant, update it with
+   npx playwright test tests/visual.spec.ts --update-snapshots=changed and list which ones.
+6. Take the same screenshots into screenshots/polish-after and report: each fix (before/after
+   file names), the test results and the "Needs me" list.
+```
+
+Copy it from [prompts/11-apple-style-polish.md](https://github.com/chetanpujari5105/pocket-portfolio-template/blob/main/prompts/11-apple-style-polish.md)
+
+✅ You're done when Claude Code reports the screens it fixed, with before and after screenshots, and every check passes.
 
 ## The "Fix list" prompt
 
@@ -430,6 +555,11 @@ Copy it from [prompts/09-fix-list.md](https://github.com/chetanpujari5105/pocket
 # 9. Path B: From Scratch
 
 This path rebuilds the whole site with the same seven prompts that built the original, cleaned up so they work for anyone. Run them in order, in an empty folder, each in the same Claude Code session if you can.
+
+> 📝 **Note**
+>
+> **Path B ends at v5.** The lock-screen widgets, Control Center, the grouped-list apps and the rest of what's new in v2.0 came from many small fix lists rather than one prompt. If you want them, start from the template (Path A), or give Claude Code the template as a reference and ask for one feature at a time with the "Fix list" prompt.
+
 
 > 📝 **Note**
 >
@@ -1046,13 +1176,16 @@ All of them are optional: the site works without any. Add them in Vercel under *
 
 | Variable | Used for | Without it |
 |---|---|---|
-| `RESEND_API_KEY` | Contact form email via Resend (server only) | Form shows "email me directly" |
+| `GMAIL_USER` | Contact form: the Gmail address that sends the messages (server only) | Form shows "email me directly" |
+| `GMAIL_APP_PASSWORD` | Contact form: a Google app password for that address, 16 letters (server only) | Same |
 | `CONTACT_TO_EMAIL` | Where contact messages go | `profile.email` |
-| `CONTACT_FROM_EMAIL` | Sender on a domain verified in Resend, e.g. `Your Name <hello@yourdomain.com>` | `onboarding@resend.dev` (Resend test sender) |
+| `RESEND_API_KEY` | Contact form fallback through Resend, used only when the Gmail variables aren't set (server only) | Not used |
+| `CONTACT_FROM_EMAIL` | Resend sender on a verified domain, e.g. `Your Name <hello@yourdomain.com>` | `onboarding@resend.dev` (Resend test sender) |
+| `GITHUB_TOKEN` | GitHub heatmap via GraphQL; a fine-grained token with no permissions is enough (server only) | Reads the public contributions page, then the saved snapshot |
 | `NEXT_PUBLIC_ENABLE_ASK` | `true` shows the Ask app | Hidden |
 | `OPENAI_API_KEY` | Ask app answers (server only) | App shows "email me directly" |
 | `OPENAI_MODEL` | Model for the Ask app | `gpt-5-mini` |
-| `GITHUB_TOKEN` | GitHub heatmap via GraphQL; a fine-grained token with no permissions is enough (server only) | Parses the public contributions page |
+| `NEXT_PUBLIC_ICON_PACK` | `ios18` uses an icon pack you add yourself (Chapter 10) | `original`: the template's own icons |
 | `NEXT_PUBLIC_SITE_URL` | Canonical URL for SEO, sitemap and OG images | `VERCEL_PROJECT_PRODUCTION_URL` (set by Vercel), then `site.url` in `content/profile.ts` |
 
 > ⚠️ **Warning**
@@ -1060,14 +1193,23 @@ All of them are optional: the site works without any. Add them in Vercel under *
 > `NEXT_PUBLIC_*` values are built into the page, so redeploy after changing them, and never put a secret in a `NEXT_PUBLIC_` variable. Keep real keys in Vercel and in `.env.local` on your computer only. Never commit them.
 
 
-## 5. Contact form with Resend
+## 5. Contact form with Gmail (no domain needed)
 
-1. Create an account at [resend.com](https://resend.com) and open **API Keys → Create API Key**.
-2. Add it to Vercel as `RESEND_API_KEY` and redeploy.
-3. Send yourself a test from your site's Contact app. Without a verified domain, Resend's test sender (`onboarding@resend.dev`) can only deliver to the email you signed up with, which is fine if that's your `profile.email`.
-4. To send from your own domain, add it under **Domains** in Resend, add the DNS records it shows at your domain provider, wait until it says **Verified**, then set `CONTACT_FROM_EMAIL` (for example `Your Name <hello@yourdomain.com>`).
+The form sends one email per message from your Gmail account to you, with the visitor as Reply-To.
 
-✅ The test message arrives in your inbox.
+1. Turn on 2-Step Verification for your Google account at [myaccount.google.com/security](https://myaccount.google.com/security). App passwords only exist with it on.
+2. Open [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords), type a name such as "portfolio" and click **Create**. Google shows a 16-letter password once. Copy it.
+3. In Vercel, add `GMAIL_USER` (your Gmail address) and `GMAIL_APP_PASSWORD` (that password; spaces are fine), and redeploy. Put the same two lines in `.env.local` to try it on your computer.
+4. Send yourself a message from the live site's Contact app.
+
+> ⚠️ **Warning**
+>
+> An app password can send mail as you. Keep it out of Git, screenshots and chats. To revoke it, delete it on the same Google page. Google Workspace accounts may need an admin to allow app passwords.
+
+
+**Prefer Resend?** Leave the Gmail variables unset and add `RESEND_API_KEY` from [resend.com](https://resend.com) (**API Keys → Create API Key**). Without a verified domain, Resend's test sender only delivers to the email you signed up with; to send from your own domain, verify it in Resend and set `CONTACT_FROM_EMAIL`.
+
+✅ The test message arrives in your inbox, and replying goes to the visitor.
 
 ## 6. GitHub token (optional, public read-only)
 
@@ -1202,6 +1344,27 @@ If it still times out, ask Claude Code to push a few commits at a time.
 **Do:** open **Settings → Home Screen → Reset Home Screen**. New visitors get your new layout straight away. Returning visitors keep their own, and a new app waits for them in the App Library.
 
 
+**The contact form says "email me directly"**
+
+**Why:** no email is set up on the server, or Google refused the app password.
+
+**Do:** add `GMAIL_USER` and `GMAIL_APP_PASSWORD` in Vercel for Production and redeploy (`.env.local` doesn't upload). Vercel → Logs names the missing setting; a "535" there means Google refused the password, so create a new one.
+
+
+**The YouTube widget shows your channel instead of a video ("feed returns 404")**
+
+**Why:** YouTube's channel feed sometimes answers 404 for hours. The widget then shows the last good video it saved, or links your channel if there isn't one yet.
+
+**Do:** check `youtubeChannelId` in `content/profile.ts` starts with `UC` (it's not your `@handle`). Once the feed answers, run `npx tsx scripts/youtube-snapshot.mts` and commit `public/content/youtube-latest.json`.
+
+
+**"ENOSPC: no space left on device" during install, build or tests**
+
+**Why:** the packages, the build, the test browser and test results need about 3 GB.
+
+**Do:** check with `df -h .`, then delete `.next/`, `test-results/` and `playwright-report/`, and run `npm cache clean --force`.
+
+
 **After a deploy, the phone still shows the old version**
 
 **Why:** the service worker loads the saved copy first, so repeat visits are instant. The new version downloads in the background and takes over on the next load.
@@ -1222,7 +1385,7 @@ If it still times out, ask Claude Code to push a few commits at a time.
 
 Ideas for going further. Each one is a good "Fix list" item.
 
-- **Your own wallpaper and finish colours.** Ask for a new wallpaper preset in your brand colours, or rename the finishes ("Electric, Graphite, Chai") to your own.
+- **Your own wallpaper and finish colours.** Ask for a new wallpaper preset in your brand colours, or rename the finishes ("Burgundy, Electric, Graphite, Chai") to your own.
 - **Extra apps.** A Podcast app with your episodes, a Speaking app with talks, a Gallery of your designs. Each app is a file in `src/components/apps/` and an entry in `content/apps.ts`.
 - **A booking widget.** Link a "Book a call" button to your scheduling page (Cal.com, Calendly or similar) from the Services app, opened in a new tab.
 - **The Ask-me AI app.** It's already built in, off by default. Set `NEXT_PUBLIC_ENABLE_ASK=true` and `OPENAI_API_KEY` in Vercel, and redeploy. It answers only from your `/content` and refuses off-topic questions. **Cost:** every question is a paid API call billed to your OpenAI account, so set a monthly spending limit in your OpenAI dashboard and check current API pricing. The built-in rate limit (15 questions per hour per visitor) helps keep costs down.
@@ -1235,10 +1398,11 @@ Ideas for going further. Each one is a good "Fix list" item.
 
 ## Optional: an iOS 18 icon pack
 
-The template ships with its own original icons. If you'd rather your apps look like the phone's
-system apps, the original site uses a free pack: **iOS 18 App Icons** by David Akhmedbayev on
-Figma Community (CC BY 4.0). Duplicate the file into your Figma drafts, then run this prompt.
-It adds the pack behind a switch, so your original icons stay one setting away.
+The template ships with its own original icons and no icon-pack images. If you'd rather your apps
+look like the phone's system apps, you can add a pack yourself. The original site uses a free one:
+**iOS 18 App Icons** by David Akhmedbayev on Figma Community (CC BY 4.0). Duplicate the file into
+your Figma drafts, fill in the placeholders and run this prompt. The template already has the
+switch (`NEXT_PUBLIC_ICON_PACK=ios18`), so your original icons stay one setting away.
 
 > ⚠️ **Warning**
 >
@@ -1248,30 +1412,31 @@ It adds the pack behind a switch, so your original icons stay one setting away.
 
 
 ```prompt
-Add an optional icon pack for my own apps. Keep the original icons as the fallback.
+Add an optional icon pack for my own apps. The template already supports one: src/lib/icon-pack.ts
+maps each app to an image in public/icons/ios18/ and NEXT_PUBLIC_ICON_PACK=ios18 turns it on
+(unset or "original" keeps the template's own icons). No pack images ship with the template.
 
-Pack: "iOS 18 App Icons • Free Resource" by David Akhmedbayev, Figma Community, CC BY 4.0.
-My duplicated copy: {{FIGMA_FILE_LINK}}
+Pack: {{PACK_NAME}} by {{PACK_AUTHOR}}, licence {{PACK_LICENCE}}, from {{PACK_LINK}}.
+(For example the free "iOS 18 App Icons" pack on the Figma Community, CC BY 4.0. Stop and tell me
+if the licence doesn't allow use on a public website, or if you can't find it.)
 
-1. Export the light-theme icons I map below as SVG (PNG at 3x only if one has raster
-   effects). Use my logged-in Figma session through Claude in Chrome, or the Figma REST API
-   if I put a read-only FIGMA_TOKEN in .env.local (never commit it). Never type my password.
-   If a login or captcha appears, stop and tell me.
-2. Mapping (my app -> pack icon): {{APP_1}} -> {{PACK_ICON_1}}, {{APP_2}} -> {{PACK_ICON_2}}, ...
-   An app with no match keeps its original icon. Brand tiles (LinkedIn, X, YouTube and the
-   rest) stay official. Check each export is the full icon on a clean squircle.
-3. Save them to public/icons/ios18/ as 180x180 WebP under 20 KB each, full bleed (the site's
-   squircle mask is the edge), plus a LICENSE.txt with the author, source link, CC BY 4.0
-   and what you changed.
-4. Draw them as the tile face everywhere an app icon appears: home, dock, folder previews,
-   launch animation, app switcher, lock-screen notification, banner and the OG image. Keep the
-   squircle mask, press dim, labels and spacing. Put it behind NEXT_PUBLIC_ICON_PACK=ios18;
-   unset or "original" keeps today's icons.
-5. Credit it in Settings -> About -> Credits and the README: "iOS 18 App Icons by David
-   Akhmedbayev, CC BY 4.0, via Figma Community. iPhone and the app designs they depict are
-   trademarks of Apple Inc."
-6. Run lint, typecheck, build and tests with the pack on and off. Update the home screenshot
-   baselines on purpose and say which ones changed.
+1. Export the icons in the mapping below as 180x180 images. Use my logged-in Figma session through
+   Claude in Chrome, or the Figma REST API if I put a read-only FIGMA_TOKEN in .env.local (never
+   commit it). Never type my password. If a login, passkey or captcha appears, stop and tell me.
+2. Mapping (my app -> pack icon -> file name expected by src/lib/icon-pack.ts):
+   courses -> {{ICON}} -> books, journey -> {{ICON}} -> maps, expertise -> {{ICON}} -> tips,
+   platforms -> {{ICON}} -> app-store, reviews -> {{ICON}} -> photos, projects -> {{ICON}} -> files,
+   settings -> {{ICON}} -> settings, blog -> {{ICON}} -> notes, services -> {{ICON}} -> wallet,
+   contact -> {{ICON}} -> mail. An app with no match keeps its original icon (remove its line
+   from IOS18 in src/lib/icon-pack.ts). Brand tiles (LinkedIn, X, YouTube and the rest) stay official.
+3. Save them to public/icons/ios18/<file>.webp, 180x180, under 20 KB each, full bleed (the site's
+   squircle mask is the edge), plus a LICENSE.txt with the author, source link, licence and what
+   you changed.
+4. Set NEXT_PUBLIC_ICON_PACK=ios18 in .env.local and in Vercel. Put the credit the licence asks for
+   into Settings -> Credits (ICON_CREDIT in src/components/apps/settings.tsx), e.g.
+   "App icons: <pack> by <author>, <licence>, via <source>."
+5. Run lint, typecheck, build and tests with the pack on and off (NEXT_PUBLIC_ICON_PACK set for the
+   build and for playwright). Update the home screenshot baselines on purpose and say which changed.
 ```
 
 Copy it from [prompts/10-optional-icon-pack.md](https://github.com/chetanpujari5105/pocket-portfolio-template/blob/main/prompts/10-optional-icon-pack.md)
@@ -1283,12 +1448,12 @@ Copy it from [prompts/10-optional-icon-pack.md](https://github.com/chetanpujari5
 - **Your design is yours.** The icons, wallpaper, phone model and code in this template are original. Keep anything you add original too, or licensed for reuse and credited.
 - **Study, don't copy.** It's fine to admire another site and describe how it *feels*. Never copy its code, text, images, icons, fonts or 3D models.
 - **Brand logos only link to your own profiles.** The LinkedIn, X, YouTube and other marks are there so visitors recognise where a link goes. Use the official mark, in its own colours, undistorted, and only on links to your profiles.
-- **Don't use other companies' product designs or logos.** No real phone models and no company logos on the phone. The template ships no system app icons. The iOS 18 pack above is the one opt-in exception: credit it and follow its owner's guidance.
+- **Don't use other companies' product designs or logos.** No real phone models and no company logos on the phone. The template's 3D phone is drawn in code, and it ships no system app icons. An icon pack you add yourself is the one opt-in exception: credit it and follow its owner's guidance.
 - **Reviews and numbers must be true.** Only publish real quotes with permission, and real stats.
 
 # 14. Credits, licenses and links
 
-- **Built by Chetan Pujari.** Template code is MIT licensed (see `LICENSE` in the template).
+- **Built by Chetan Pujari.** Template code is MIT licensed (see `LICENSE` in the template); third-party packages, fonts, brand marks and data are listed in its `THIRD-PARTY-NOTICES.md`.
 - **The original portfolio:** [github.com/chetanpujari5105/NFCPortfolio](https://github.com/chetanpujari5105/NFCPortfolio)
 - **The template:** [github.com/chetanpujari5105/pocket-portfolio-template](https://github.com/chetanpujari5105/pocket-portfolio-template)
 - **Inspiration:** the interaction idea comes from [prsd.dev](https://www.prsd.dev/) by Prasad Ware.
@@ -1310,6 +1475,7 @@ Copy it from [prompts/10-optional-icon-pack.md](https://github.com/chetanpujari5
 - Brand marks: [Simple Icons](https://simpleicons.org/) (CC0) and [Font Awesome Free](https://fontawesome.com/license/free) (CC BY 4.0, the LinkedIn mark).
 - Optional app icons (not in the template): iOS 18 App Icons by David Akhmedbayev, CC BY 4.0, via Figma Community. iPhone and the app designs they depict are trademarks of Apple Inc.
 - Map data: [Natural Earth](https://www.naturalearthdata.com/) (public domain).
+- iPhone, iOS and iPadOS are trademarks of Apple Inc. This guide and the template are not affiliated with Apple.
 - Fonts in this guide: Archivo, Inter and JetBrains Mono (SIL Open Font License), via Fontsource.
 
 ## Share your build
@@ -1328,7 +1494,7 @@ Built your own? I'd love to see it. Tag me on LinkedIn ([linkedin.com/in/chetan-
 6. **Fix list:** a numbered list of changes, checked and committed.
 7. **v5:** fits every phone, folders and App Library, instant app opens.
 
-Path A uses one prompt: **Personalize my portfolio** (`prompts/02-personalize.md`), then fix lists.
+Path A: **Personalize my portfolio** (`prompts/02-personalize.md`), then **Real reviews** (`prompts/12-real-reviews.md`) and **Apple-style polish** (`prompts/11-apple-style-polish.md`), then fix lists.
 
 **Key commands**
 
@@ -1349,5 +1515,5 @@ Path A uses one prompt: **Personalize my portfolio** (`prompts/02-personalize.md
 
 **Environment variables (all optional)**
 
-`RESEND_API_KEY` · `CONTACT_TO_EMAIL` · `CONTACT_FROM_EMAIL` · `NEXT_PUBLIC_ENABLE_ASK` · `OPENAI_API_KEY` · `OPENAI_MODEL` · `GITHUB_TOKEN` · `NEXT_PUBLIC_SITE_URL`
+`GMAIL_USER` · `GMAIL_APP_PASSWORD` · `CONTACT_TO_EMAIL` · `RESEND_API_KEY` · `CONTACT_FROM_EMAIL` · `GITHUB_TOKEN` · `NEXT_PUBLIC_ENABLE_ASK` · `OPENAI_API_KEY` · `OPENAI_MODEL` · `NEXT_PUBLIC_ICON_PACK` · `NEXT_PUBLIC_SITE_URL`
 

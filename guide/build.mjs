@@ -1,7 +1,10 @@
 // Builds the guide: guide/content.md → HTML book → A4 PDF (+ a GitHub Markdown version and the
-// prompts as plain files). Usage: npm run guide   (node guide/build.mjs [--keep-html] [--template <dir>])
-// A prompt fence names its file (```prompt 03-build-spec.md): the build writes it to guide/prompts/
-// (and <dir>/prompts/ with --template) and adds a "Copy it from" link to the template repo under it.
+// prompts as plain files). Usage: npm run guide
+//   node guide/build.mjs [--keep-html] [--template <dir>] [--out <file.pdf>]
+// A prompt fence names its file (```prompt 03-build-spec.md) and gets a "Copy it from" link to the
+// template repo under it. With --template, the template's prompts/<file> is the source: its text
+// replaces the fence's, and the build only reads that folder, never writes it. Every prompt is
+// also written to guide/prompts/. --out puts the PDF somewhere else (a release asset, not git).
 //
 // Pass 1 renders the body with placeholder page numbers in the table of contents, reads each
 // page's text with pdftotext (poppler) to find where every chapter and section landed, then
@@ -22,20 +25,45 @@ const root = resolve(here, "..");
 const TITLE = "Build Your Own Pocket Portfolio with Claude Code";
 const SUBTITLE = "A 3D phone-style personal website. No coding experience needed.";
 const AUTHOR = "Chetan Pujari";
-const VERSION = "v1.2";
+const VERSION = "v2.0";
 const DATE = "October 2026";
-const OUT_PDF = join(here, "Build-Your-Own-Pocket-Portfolio.pdf");
+const arg = (name) => (process.argv.includes(name) ? resolve(process.argv[process.argv.indexOf(name) + 1]) : null);
+const OUT_PDF = arg("--out") ?? join(here, "Build-Your-Own-Pocket-Portfolio.pdf");
 const OUT_MD = join(here, "Build-Your-Own-Pocket-Portfolio.md");
 const tmp = join(here, ".build");
 const keepHtml = process.argv.includes("--keep-html");
-const templateDir = process.argv.includes("--template") ? resolve(process.argv[process.argv.indexOf("--template") + 1]) : null;
+const templateDir = arg("--template");
 const PROMPTS_URL = "https://github.com/chetanpujari5105/pocket-portfolio-template/blob/main/prompts/";
 const fenceInfo = (info) => {
   const [kind, file] = info.trim().split(/\s+/);
   return { kind, file };
 };
 
-const source = await readFile(join(here, "content.md"), "utf8");
+// With --template, each named prompt's text comes from the template's prompts/ (read only)
+const source = await withTemplatePrompts(await readFile(join(here, "content.md"), "utf8"));
+
+async function withTemplatePrompts(src) {
+  if (!templateDir) return src;
+  const out = [];
+  let skipping = false;
+  for (const line of src.split("\n")) {
+    const fence = line.match(/^```prompt\s+(\S+)\s*$/);
+    if (fence) {
+      out.push(line, (await readFile(join(templateDir, "prompts", fence[1]), "utf8")).replace(/\n$/, ""));
+      skipping = true;
+      continue;
+    }
+    if (skipping) {
+      if (/^```\s*$/.test(line)) {
+        skipping = false;
+        out.push(line);
+      }
+      continue;
+    }
+    out.push(line);
+  }
+  return out.join("\n");
+}
 
 /* ───────────────────────────── Markdown → HTML ───────────────────────────── */
 
@@ -343,8 +371,8 @@ await writeFile(
   `# ${TITLE}\n\n*${SUBTITLE}*\n\nby **${AUTHOR}** · ${DATE} · ${VERSION}\n\n![The 3D phone on desktop](images/hero-front.jpg)\n\n## Contents\n\n${tocMd}\n\n${toGithubMarkdown(source)}`,
 );
 
-// Every named prompt as its own file, in guide/prompts/ and (with --template) the template's prompts/
-const promptDirs = [join(here, "prompts"), ...(templateDir ? [join(templateDir, "prompts")] : [])];
+// Every named prompt as its own file in guide/prompts/ (the template's prompts/ is never written)
+const promptDirs = [join(here, "prompts")];
 for (const dir of promptDirs) {
   await rm(dir, { recursive: true, force: true });
   await mkdir(dir, { recursive: true });

@@ -1,12 +1,13 @@
-// Compresses screenshots of our own site into guide/images/*.jpg for the PDF.
-// Usage: node guide/prepare-images.mjs <siteShotsDir> <templateShotsDir> [dryRunShotsDir] [v5ShotsDir]
+// Compresses screenshots of our own site or template into guide/images/*.jpg for the PDF.
+// Usage: node guide/prepare-images.mjs <siteShotsDir> <templateShotsDir> [dryRunShotsDir] [v5ShotsDir] [v2ShotsDir]
+// (since v2.0 the "site" shots are the template running its sample content too)
 // (shots dirs come from guide/capture.mjs and guide/capture-v5.mjs; the icon sheet is already in docs/v4)
 import { mkdir } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import sharp from "sharp";
 
-const [site, tpl, dry, v5] = process.argv.slice(2);
+const [site, tpl, dry, v5, v2] = process.argv.slice(2);
 const out = "guide/images";
 await mkdir(out, { recursive: true });
 
@@ -32,6 +33,10 @@ if (v5)
     ["fit-320x568", 520], ["fit-430x932", 640], ["fit-844x390", 1300],
   ])
     jobs.push([`v5-${name}`, join(v5, `${name}.png`), width]);
+
+if (v2)
+  for (const [name, file] of [["reviews", "phone-reviews"], ["projects", "phone-projects"], ["control-mobile", "phone-control-center"]])
+    jobs.push([`v2-${name}`, join(v2, `${file}.png`), 640]);
 
 for (const [name, src, width] of jobs) {
   if (!existsSync(src)) { console.log("skip (missing)", src); continue; }

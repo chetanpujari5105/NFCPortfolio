@@ -1,5 +1,5 @@
 // Screenshots of our own site for the guide (never of any other site).
-// Usage: node guide/capture.mjs <outDir> [baseUrl=http://localhost:3100]
+// Usage: node guide/capture.mjs <outDir> [baseUrl=http://localhost:3100]   (FINISH=<id> changes the finish)
 import { chromium, devices } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
@@ -9,7 +9,7 @@ await mkdir(outDir, { recursive: true });
 const browser = await chromium.launch({ args: ["--use-angle=metal", "--enable-gpu", "--ignore-gpu-blocklist"] });
 const errors = [];
 
-async function open(ctxOptions, { theme = "dark", finish = "electric", unlocked = true, hash = "" } = {}) {
+async function open(ctxOptions, { theme = "dark", finish = process.env.FINISH ?? "electric", unlocked = true, hash = "" } = {}) {
   const ctx = await browser.newContext(ctxOptions);
   await ctx.addInitScript(
     ([t, f, u]) => {
