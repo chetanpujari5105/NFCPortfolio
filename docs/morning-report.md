@@ -1,6 +1,21 @@
 # Morning report (overnight run, 2026-10-29)
 
-Short version: the site is live and healthy on the latest `main` (8cdd6a7). Two tasks stopped at a login wall, so they're on your list below: Resend (not signed in) and the GitHub token (passkey "Confirm access"). Until you add `RESEND_API_KEY` the Contact form shows "Email isn't set up" with a prefilled "email me directly" link and keeps the visitor's text.
+Short version (updated after the third pass): the Contact form now sends. A live test was Delivered to cpujari12@gmail.com, your Resend account, because no domain is verified yet. The heatmap reads GitHub with the `portfolio-heatmap` token. What's left for you: verify a domain in Resend so mail reaches chetanpujari92@gmail.com, plus the decisions under "Needs Chetan".
+
+## Third pass (done: email sends, heatmap on the token)
+
+After you signed in to Resend and approved the GitHub passkey:
+
+| # | Task | Result |
+| --- | --- | --- |
+| 1 | Resend key + domains | Done. API key `portfolio` (Sending access, all domains) created in team `cpujari12`. Domains: **none added**, so no DNS records to copy; the site uses the test sender `onboarding@resend.dev`. |
+| 2 | Vercel env (Production) | Done: `RESEND_API_KEY` (Secret), `CONTACT_TO_EMAIL` = `cpujari12@gmail.com` (the Resend account email from Settings → Team), `GITHUB_TOKEN` (Secret). `CONTACT_FROM_EMAIL` left unset (no verified domain). The same three are in `nfc-portfolio-prod/.env.local` (gitignored, mode 600). Keys went clipboard → file/CLI and were never printed or screenshotted; the clipboard was cleared after. |
+| 3 | GitHub token | Done. `portfolio-heatmap`, expires 29 Oct 2027, public repositories (read-only), no permissions. GraphQL test: HTTP 200, 1,016 contributions. |
+| 4 | Redeploy + :3100 | One redeploy: `dpl_ARyDWoqt1gRSt8DrCyoav2BL6uBV` is Ready (1 min) and aliased to nfcportfolio-two.vercel.app. :3100 restarted from `nfc-portfolio-prod`, now on `main` 2ff003d (only docs and `.gitignore` changed since 8cdd6a7, so no rebuild). |
+| 5 | Live test message | **Sent once.** From the live form at 390x844 (name "Test", subject "Overnight test"): API 200 `{"ok":true}`, the form showed **"Message sent"**. Resend → Emails: to `cpujari12@gmail.com`, **Delivered**, subject "[chetanpujari.com] Overnight test (from Test)". Vercel logs for that request: only the expected warn `[contact] CONTACT_FROM_EMAIL is not set: sending from onboarding@resend.dev…`. On desktop the form sits on the 3D phone and Claude in Chrome couldn't click it, so the send ran in a phone-sized Playwright browser against the live site. |
+| 6 | Heatmap | `/api/contributions` → `"source": "github"`, 1,016 contributions (the GraphQL total; the public page gave 1,015 earlier). |
+
+**Important:** messages now go to **cpujari12@gmail.com** (your Resend account), not `chetanpujari92@gmail.com`, which the form shows in "To:". That's a Resend rule for the test sender. To receive mail at `chetanpujari92@gmail.com`, verify a domain in Resend, set `CONTACT_FROM_EMAIL="Chetan Pujari <hello@that-domain>"`, delete `CONTACT_TO_EMAIL` in Vercel and `.env.local`, then redeploy.
 
 ## Second pass (morning, after you signed in)
 
@@ -80,12 +95,8 @@ Or sign in to Resend, pass the passkey, and ask me to run this again. I'll then 
 
 ## Needs Chetan (morning)
 
-1. **Resend (the form can't send until this is done).** Sign in at resend.com, then:
-   - API Keys → Create → name `portfolio`, permission **Sending access**. Copy it once.
-   - Domains → Add `chetanpujari.com` (or the domain you'll use). Resend then shows the exact records to add: an MX and a TXT (SPF) on a `send` subdomain, and a TXT DKIM record `resend._domainkey`. I couldn't read them because I wasn't signed in. Add them at your DNS provider and click Verify.
-   - Vercel → nfcportfolio → Settings → Environment Variables (Production): `RESEND_API_KEY` = the key; `CONTACT_FROM_EMAIL` = `Chetan Pujari <hello@chetanpujari.com>` once the domain is verified. **Before it's verified:** leave `CONTACT_FROM_EMAIL` unset and set `CONTACT_TO_EMAIL` to your Resend sign-in email (the test sender only delivers there).
-   - Redeploy, send yourself a message from the live form, and look for "Message sent". If it fails, Vercel → Logs shows a `[contact]` line that names the setting to fix.
-2. **GitHub token (optional).** github.com → Settings → Developer settings → Fine-grained tokens → Generate. Name `portfolio-heatmap`, public repositories (read-only), no extra permissions. Set it as `GITHUB_TOKEN` in Vercel (Production) and in `nfc-portfolio-prod/.env.local`, then redeploy. Blocked overnight by the passkey prompt.
+1. ~~Resend~~ Done (third pass). **Still open:** verify a domain in Resend so mail reaches `chetanpujari92@gmail.com` and can come from your own address. Resend → Domains → Add domain shows the exact MX/TXT (SPF) records for a `send` subdomain and a DKIM TXT `resend._domainkey`. Add them at your DNS provider, Verify, then set `CONTACT_FROM_EMAIL`, delete `CONTACT_TO_EMAIL`, and redeploy.
+2. ~~GitHub token~~ Done (third pass). It expires 29 Oct 2027; renew it before then.
 3. **Apple icon pack.** Your call whether to keep the iOS 18 pack on the public site. `NEXT_PUBLIC_ICON_PACK=original` in Vercel (then redeploy) is the safe fallback. I didn't change the default.
 4. **3D model licence.** The iPhone 18 Pro Max model has no licence file (its export says "Binkies MDM"). Confirm where it came from and that it can be used on a public site, then add `public/models/LICENSE-iphone-18-pro-max.txt`. `NEXT_PUBLIC_SHOW_MODEL_LOGO` stays off.
 5. **Anti-Doom Play Store link.** If it's live, put the URL in `url` for `anti-doom` in `content/projects.ts`. Until then the card has no Open button.
