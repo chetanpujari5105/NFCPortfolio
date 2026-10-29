@@ -52,7 +52,7 @@ const ICON_CREDIT =
     : "App icons and wallpaper are original; the 3D phone is a third-party iPhone 18 Pro Max model (iPhone is a trademark of Apple Inc.).";
 const CREDITS = `Designed and built for Chetan Pujari. ${ICON_CREDIT} Brand logos: Simple Icons (CC0) and Font Awesome Free (CC BY 4.0, LinkedIn), used only to link to Chetan's profiles. World map data: Natural Earth (public domain).`;
 
-const TECH = ["Next.js 16", "React 19", "Tailwind CSS v4", "Motion", "Zustand", "Zod", "WebGL", "Resend"];
+const TECH = ["Next.js 16", "React 19", "Tailwind CSS v4", "Motion", "Zustand", "Zod", "WebGL", "Nodemailer"];
 
 function RowIcon({ glyph, colors }: { glyph: string; colors: [string, string] }) {
   return (

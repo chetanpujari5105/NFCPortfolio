@@ -2,13 +2,17 @@ import { spawn, type ChildProcess } from "node:child_process";
 import { createServer, type IncomingMessage, type Server } from "node:http";
 import type { AddressInfo } from "node:net";
 
+import { simpleParser, type ParsedMail } from "mailparser";
+import { SMTPServer } from "smtp-server";
+
 import { expect, test, type Page } from "./fixtures";
 
 /*
- * The Contact form and /api/contact. Resend is never called for real:
+ * The Contact form and /api/contact. Gmail and Resend are never called for real:
  * - UI tests answer /api/contact from the browser (page.route).
- * - API tests start the built app (`next start`) on spare ports with RESEND_API_URL pointing at a
- *   fake Resend in this process, so the real route builds the real request.
+ * - API tests start the built app (`next start`) on spare ports with GMAIL_SMTP_URL and
+ *   RESEND_API_URL pointing at a fake SMTP server and a fake Resend in this process, so the real
+ *   route builds and sends the real message.
  */
 
 const VALID = { name: "Ada Lovelace", email: "ada@example.com", subject: "A course question", message: "Hello! Is the Notion course still open?" };
@@ -148,18 +152,25 @@ test.describe("form", () => {
   });
 });
 
-/* ───────────────────────── API (real route, fake Resend) ───────────────────────── */
+/* ───────────────────────── API (real route, fake Gmail SMTP and Resend) ───────────────────────── */
 
 type Sent = { auth?: string; body: Record<string, unknown> };
 type Reply = { status: number; json: unknown };
+type Smtp = { user: string; pass: string; mail: ParsedMail };
+/** How the fake Gmail answers: accept, refuse the login (535), or refuse the message with a code. */
+type SmtpReply = { auth: "ok" | 535; data: "ok" | { code: number; text: string } };
+
+const GMAIL = { GMAIL_USER: "site@example.com", GMAIL_APP_PASSWORD: "abcd efgh ijkl mnop" };
 
 test.describe("api", () => {
   test.describe.configure({ mode: "serial" });
 
   let resend: Server;
-  let resendUrl = "";
+  let smtp: SMTPServer;
   const sent: Sent[] = [];
+  const mails: Smtp[] = [];
   let reply: Reply = { status: 200, json: { id: "email_123" } };
+  let smtpReply: SmtpReply = { auth: "ok", data: "ok" };
   const apps: { proc: ChildProcess; url: string; log: string[] }[] = [];
 
   const readBody = (req: IncomingMessage) =>
@@ -168,11 +179,13 @@ test.describe("api", () => {
       req.on("data", (c) => (data += c));
       req.on("end", () => resolve(data));
     });
+  const smtpError = (code: number, text: string) => Object.assign(new Error(text), { responseCode: code });
 
   async function startApp(port: number, env: Record<string, string | undefined>) {
     const log: string[] = [];
     const clean = { ...process.env };
-    for (const k of ["RESEND_API_KEY", "CONTACT_FROM_EMAIL", "CONTACT_TO_EMAIL", "RESEND_API_URL"]) delete clean[k];
+    for (const k of ["RESEND_API_KEY", "CONTACT_FROM_EMAIL", "CONTACT_TO_EMAIL", "RESEND_API_URL", "GMAIL_USER", "GMAIL_APP_PASSWORD", "GMAIL_SMTP_URL"])
+      delete clean[k];
     const proc = spawn("node_modules/.bin/next", ["start", "-p", String(port)], { env: { ...clean, ...env }, stdio: ["ignore", "pipe", "pipe"] });
     proc.stdout!.on("data", (d) => log.push(String(d)));
     proc.stderr!.on("data", (d) => log.push(String(d)));
@@ -188,9 +201,10 @@ test.describe("api", () => {
     return app;
   }
 
-  let configured: Awaited<ReturnType<typeof startApp>>;
-  let testSender: Awaited<ReturnType<typeof startApp>>;
-  let noKey: Awaited<ReturnType<typeof startApp>>;
+  let gmail: Awaited<ReturnType<typeof startApp>>;
+  let gmailHalf: Awaited<ReturnType<typeof startApp>>;
+  let resendOnly: Awaited<ReturnType<typeof startApp>>;
+  let noMail: Awaited<ReturnType<typeof startApp>>;
 
   test.beforeAll(async ({}, info) => {
     test.skip(info.project.name !== "desktop", "server-only: one project is enough");
@@ -199,23 +213,47 @@ test.describe("api", () => {
       res.writeHead(reply.status, { "Content-Type": "application/json" }).end(JSON.stringify(reply.json));
     });
     await new Promise<void>((r) => resend.listen(0, r));
-    resendUrl = `http://127.0.0.1:${(resend.address() as AddressInfo).port}`;
+    smtp = new SMTPServer({
+      logger: false,
+      disabledCommands: ["STARTTLS"],
+      authMethods: ["PLAIN", "LOGIN"],
+      onAuth(auth, _session, cb) {
+        if (smtpReply.auth === 535) return cb(smtpError(535, "5.7.8 Username and Password not accepted."));
+        cb(null, { user: `${auth.username}\n${auth.password}` });
+      },
+      onData(stream, session, cb) {
+        simpleParser(stream).then((mail) => {
+          if (smtpReply.data !== "ok") return cb(smtpError(smtpReply.data.code, smtpReply.data.text));
+          const [user, pass] = String(session.user).split("\n");
+          mails.push({ user, pass, mail });
+          cb();
+        }, cb);
+      },
+    });
+    await new Promise<void>((r) => smtp.listen(0, "127.0.0.1", r));
+    const resendUrl = `http://127.0.0.1:${(resend.address() as AddressInfo).port}`;
+    const smtpUrl = `smtp://127.0.0.1:${(smtp.server.address() as AddressInfo).port}`;
     const port = 3300 + Math.floor(Math.random() * 400);
-    [configured, testSender, noKey] = await Promise.all([
-      startApp(port, { RESEND_API_KEY: "re_test_key", RESEND_API_URL: resendUrl, CONTACT_FROM_EMAIL: "Chetan Pujari <hello@example.com>" }),
-      startApp(port + 1, { RESEND_API_KEY: "re_test_key", RESEND_API_URL: resendUrl }),
-      startApp(port + 2, { RESEND_API_URL: resendUrl }),
+    [gmail, gmailHalf, resendOnly, noMail] = await Promise.all([
+      // Resend is set too: Gmail must win
+      startApp(port, { ...GMAIL, GMAIL_SMTP_URL: smtpUrl, RESEND_API_KEY: "re_test_key", RESEND_API_URL: resendUrl }),
+      startApp(port + 1, { GMAIL_USER: GMAIL.GMAIL_USER, GMAIL_SMTP_URL: smtpUrl, RESEND_API_KEY: "re_test_key", RESEND_API_URL: resendUrl }),
+      startApp(port + 2, { RESEND_API_KEY: "re_test_key", RESEND_API_URL: resendUrl }),
+      startApp(port + 3, { GMAIL_SMTP_URL: smtpUrl, RESEND_API_URL: resendUrl }),
     ]);
   });
 
   test.afterAll(async () => {
     for (const a of apps) a.proc.kill();
     if (resend) await new Promise((r) => resend.close(r));
+    if (smtp) await new Promise<void>((r) => smtp.close(() => r()));
   });
 
   test.beforeEach(() => {
     sent.length = 0;
+    mails.length = 0;
     reply = { status: 200, json: { id: "email_123" } };
+    smtpReply = { auth: "ok", data: "ok" };
   });
 
   let ip = 0;
@@ -226,105 +264,140 @@ test.describe("api", () => {
       body: typeof body === "string" ? body : JSON.stringify(body),
     });
 
-  test("a valid send goes From the sender, To the owner, Reply-To the visitor, escaped", async () => {
-    const res = await post(configured.url, { ...VALID, name: "Ada <b>Lovelace</b>", message: "Hi <script>alert(1)</script>\nLine two" });
+  test("Gmail: From GMAIL_USER, To the owner, Reply-To the visitor, escaped; Resend untouched", async () => {
+    const res = await post(gmail.url, { ...VALID, name: "Ada <b>Lovelace</b>", message: "Hi <script>alert(1)</script>\nLine two" });
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ ok: true });
-    expect(sent).toHaveLength(1);
-    const { auth, body } = sent[0];
-    expect(auth).toBe("Bearer re_test_key");
-    expect(body.from).toBe("Chetan Pujari <hello@example.com>");
-    expect(body.to).toEqual(["chetanpujari92@gmail.com"]);
-    expect(body.reply_to).toBe("ada@example.com");
-    expect(body.subject).toBe("[chetanpujari.com] A course question (from Ada <b>Lovelace</b>)");
-    expect(body.text).toContain("From: Ada <b>Lovelace</b> <ada@example.com>\nSubject: A course question\n\nHi <script>alert(1)</script>\nLine two");
-    expect(body.html).toContain("Ada &lt;b&gt;Lovelace&lt;/b&gt; &lt;ada@example.com&gt;");
-    expect(body.html).toContain("Hi &lt;script&gt;alert(1)&lt;/script&gt;");
-    expect(String(body.html)).not.toContain("<script>");
+    expect(mails).toHaveLength(1);
+    expect(sent).toHaveLength(0);
+    const { user, pass, mail } = mails[0];
+    expect(user).toBe("site@example.com");
+    expect(pass).toBe("abcdefghijklmnop"); // the spaces Google shows are dropped
+    expect(mail.from?.value[0]).toEqual({ name: "Chetan Pujari · website", address: "site@example.com" });
+    expect(mail.to && !Array.isArray(mail.to) ? mail.to.value.map((a) => a.address) : []).toEqual(["chetanpujari92@gmail.com"]);
+    expect(mail.replyTo?.value[0].address).toBe("ada@example.com");
+    expect(mail.subject).toBe("[chetanpujari.com] A course question (from Ada <b>Lovelace</b>)");
+    expect(mail.text).toContain("From: Ada <b>Lovelace</b> <ada@example.com>\nSubject: A course question\n\nHi <script>alert(1)</script>\nLine two");
+    expect(mail.html).toContain("Ada &lt;b&gt;Lovelace&lt;/b&gt; &lt;ada@example.com&gt;");
+    expect(mail.html).toContain("Hi &lt;script&gt;alert(1)&lt;/script&gt;");
+    expect(String(mail.html)).not.toContain("<script>");
   });
 
-  test("never sends From the visitor, and strips line breaks from the subject", async () => {
-    await post(configured.url, { ...VALID, subject: "Hi\r\nBcc: victim@example.com" });
-    expect(sent[0].body.from).toBe("Chetan Pujari <hello@example.com>");
-    expect(sent[0].body.subject).toBe("[chetanpujari.com] Hi Bcc: victim@example.com (from Ada Lovelace)");
+  test("Gmail: never sends From the visitor, and strips line breaks from the subject", async () => {
+    await post(gmail.url, { ...VALID, subject: "Hi\r\nBcc: victim@example.com" });
+    const { mail } = mails[0];
+    expect(mail.from?.value[0].address).toBe("site@example.com");
+    expect(mail.subject).toBe("[chetanpujari.com] Hi Bcc: victim@example.com (from Ada Lovelace)");
+    expect(mail.bcc).toBeUndefined();
   });
 
-  test("without CONTACT_FROM_EMAIL it sends from Resend's test sender, and says why once", async () => {
-    const res = await post(testSender.url, VALID);
-    expect(res.status).toBe(200);
-    expect(sent[0].body.from).toBe("Pocket Portfolio <onboarding@resend.dev>");
-    expect(testSender.log.join("")).toContain("CONTACT_FROM_EMAIL is not set: sending from onboarding@resend.dev");
-  });
-
-  test("without RESEND_API_KEY: 503 unavailable, Resend untouched, the log names the setting", async () => {
-    const res = await post(noKey.url, VALID);
+  test("Gmail login refused (535) → unavailable; the log names both settings, never the password", async () => {
+    smtpReply = { auth: 535, data: "ok" };
+    const res = await post(gmail.url, VALID);
     expect(res.status).toBe(503);
     expect(await res.json()).toEqual({ ok: false, reason: "unavailable", email: "chetanpujari92@gmail.com" });
+    const log = gmail.log.join("");
+    expect(log).toContain("[contact] Gmail refused the email (535");
+    expect(log).toContain("Check GMAIL_USER / GMAIL_APP_PASSWORD");
+    expect(log).not.toMatch(/abcd ?efgh/);
+  });
+
+  test("Gmail refusing the message for good (550) → unavailable; for now (451) → 502 failed", async () => {
+    smtpReply = { auth: "ok", data: { code: 550, text: "5.4.5 Daily user sending limit exceeded." } };
+    let res = await post(gmail.url, VALID);
+    expect(res.status).toBe(503);
+    expect(gmail.log.join("")).toContain("Gmail refused the email (550");
+    smtpReply = { auth: "ok", data: { code: 451, text: "4.3.0 Mail server temporarily rejected message." } };
+    res = await post(gmail.url, VALID);
+    expect(res.status).toBe(502);
+    expect((await res.json()).reason).toBe("failed");
+    expect(gmail.log.join("")).toContain("Gmail couldn't send right now (451");
+  });
+
+  test("only one Gmail variable set: 503, nothing sent (not even through Resend), the log names the missing one", async () => {
+    const res = await post(gmailHalf.url, VALID);
+    expect(res.status).toBe(503);
+    expect(mails).toHaveLength(0);
     expect(sent).toHaveLength(0);
-    expect(noKey.log.join("")).toContain("[contact] RESEND_API_KEY is not set");
+    expect(gmailHalf.log.join("")).toContain("[contact] GMAIL_APP_PASSWORD is not set");
+  });
+
+  test("nothing set: 503 unavailable, the log names the Gmail settings", async () => {
+    const res = await post(noMail.url, VALID);
+    expect(res.status).toBe(503);
+    expect(await res.json()).toEqual({ ok: false, reason: "unavailable", email: "chetanpujari92@gmail.com" });
+    expect(mails).toHaveLength(0);
+    expect(sent).toHaveLength(0);
+    expect(noMail.log.join("")).toContain("[contact] GMAIL_USER and GMAIL_APP_PASSWORD are not set");
+  });
+
+  test("Resend fallback (only RESEND_API_KEY): sends through Resend from its test sender, and says why once", async () => {
+    const res = await post(resendOnly.url, VALID);
+    expect(res.status).toBe(200);
+    expect(mails).toHaveLength(0);
+    const { auth, body } = sent[0];
+    expect(auth).toBe("Bearer re_test_key");
+    expect(body.from).toBe("Pocket Portfolio <onboarding@resend.dev>");
+    expect(body.to).toEqual(["chetanpujari92@gmail.com"]);
+    expect(body.reply_to).toBe("ada@example.com");
+    expect(body.subject).toBe("[chetanpujari.com] A course question (from Ada Lovelace)");
+    expect(resendOnly.log.join("")).toContain("CONTACT_FROM_EMAIL is not set: sending from onboarding@resend.dev");
   });
 
   test("Resend refusing the settings (403 test sender) → unavailable, with the fix in the log", async () => {
     reply = { status: 403, json: { name: "validation_error", message: "You can only send testing emails to your own email address (a@b.c)." } };
-    const res = await post(testSender.url, VALID);
+    const res = await post(resendOnly.url, VALID);
     expect(res.status).toBe(503);
     expect((await res.json()).reason).toBe("unavailable");
-    expect(testSender.log.join("")).toContain("Resend refused the email (403 validation_error");
-    expect(testSender.log.join("")).toContain("Verify a domain at resend.com/domains");
-  });
-
-  test("a bad key (401) → unavailable, the log says to check RESEND_API_KEY", async () => {
-    reply = { status: 401, json: { name: "validation_error", message: "API key is invalid" } };
-    const res = await post(configured.url, VALID);
-    expect(res.status).toBe(503);
-    expect(configured.log.join("")).toContain("Check RESEND_API_KEY");
+    expect(resendOnly.log.join("")).toContain("Resend refused the email (403 validation_error");
+    expect(resendOnly.log.join("")).toContain("Verify a domain at resend.com/domains");
   });
 
   test("Resend down (500) → 502 failed, which the form offers to retry", async () => {
     reply = { status: 500, json: { name: "internal_server_error", message: "boom" } };
-    const res = await post(configured.url, VALID);
+    const res = await post(resendOnly.url, VALID);
     expect(res.status).toBe(502);
     expect((await res.json()).reason).toBe("failed");
   });
 
   test("validation errors: 400 with a message per field; bad JSON is 400 too", async () => {
-    const res = await post(configured.url, { name: "A", email: "nope", subject: "x", message: "short" });
+    const res = await post(gmail.url, { name: "A", email: "nope", subject: "x", message: "short" });
     expect(res.status).toBe(400);
     const json = await res.json();
     expect(json.reason).toBe("invalid");
     expect(Object.keys(json.fieldErrors).sort()).toEqual(["email", "message", "name", "subject"]);
-    expect((await post(configured.url, "{bad")).status).toBe(400);
-    expect(sent).toHaveLength(0);
+    expect((await post(gmail.url, "{bad")).status).toBe(400);
+    expect(mails).toHaveLength(0);
   });
 
   test("a filled honeypot looks like success and sends nothing", async () => {
-    const res = await post(configured.url, { ...VALID, company: "Spam Inc" });
+    const res = await post(gmail.url, { ...VALID, company: "Spam Inc" });
     expect(res.status).toBe(200);
-    expect(sent).toHaveLength(0);
+    expect(mails).toHaveLength(0);
   });
 
   test("another site can't post to it", async () => {
-    const res = await post(configured.url, VALID, { Origin: "https://evil.example" });
+    const res = await post(gmail.url, VALID, { Origin: "https://evil.example" });
     expect(res.status).toBe(403);
-    expect(sent).toHaveLength(0);
+    expect(mails).toHaveLength(0);
   });
 
   test("rate limits: 3 sent per hour, then 429 with Retry-After", async () => {
     const headers = { "X-Forwarded-For": "10.9.9.9" };
-    for (let i = 0; i < 3; i++) expect((await post(configured.url, VALID, headers)).status).toBe(200);
-    const res = await post(configured.url, VALID, headers);
+    for (let i = 0; i < 3; i++) expect((await post(gmail.url, VALID, headers)).status).toBe(200);
+    const res = await post(gmail.url, VALID, headers);
     expect(res.status).toBe(429);
     expect(Number(res.headers.get("retry-after"))).toBeGreaterThan(0);
     const json = await res.json();
     expect(json.reason).toBe("rate-limited");
     expect(json.retryAfter).toBeGreaterThan(0);
-    expect(sent).toHaveLength(3);
+    expect(mails).toHaveLength(3);
   });
 
   test("rate limits: failed attempts are capped too (5 per 10 minutes)", async () => {
-    reply = { status: 500, json: { message: "boom" } };
+    smtpReply = { auth: "ok", data: { code: 451, text: "4.3.0 Try again later." } };
     const headers = { "X-Forwarded-For": "10.8.8.8" };
-    for (let i = 0; i < 5; i++) expect((await post(configured.url, VALID, headers)).status).toBe(502);
-    expect((await post(configured.url, VALID, headers)).status).toBe(429);
+    for (let i = 0; i < 5; i++) expect((await post(gmail.url, VALID, headers)).status).toBe(502);
+    expect((await post(gmail.url, VALID, headers)).status).toBe(429);
   });
 });
