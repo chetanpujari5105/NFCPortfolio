@@ -364,6 +364,8 @@ Second pass (morning): still blocked. Resend shows its login page in the Chrome 
 
 Third pass: done. Resend key + `CONTACT_TO_EMAIL` (Resend account, test sender) + `GITHUB_TOKEN` in Vercel Production and prod `.env.local`; one redeploy (`dpl_ARyDWoqt1gRSt8DrCyoav2BL6uBV`); one live test message Delivered; `/api/contributions` source `github` (1,016). No domain in Resend yet. See `docs/morning-report.md` → "Third pass".
 
+Gmail switch (branch `fix/contact-gmail`, d0673ba, merged and pushed): Contact sends through Gmail SMTP with Nodemailer; Resend only as a fallback. API tests use a fake SMTP server (`smtp-server`). Full suite: 383 passed / 5 known speed fails / 314 skipped. Production `dpl_5vxKcmzXMLfzedqfhbxRXczjrQhJ` Ready; a live test arrived in the Inbox; :3100 rebuilt from `nfc-portfolio-prod` on d0673ba.
+
 ## Needs Chetan
 
 - [ ] **Real-device check of v5:** iPhone Safari, Android Chrome, Brave, Samsung Internet, and the LinkedIn and Instagram in-app browsers.
@@ -373,7 +375,7 @@ Third pass: done. Resend key + `CONTACT_TO_EMAIL` (Resend account, test sender) 
 
 - [ ] **Reviews:** all 5 are `verified: false` in `content/reviews.ts`. Confirm each is a real quote you may publish, then set `verified: true`.
 - [ ] **Prompt Chaining post URL:** not found in the Substack feed/sitemap; the fallback post links to the publication home. Put the real URL in `content/blog.ts` if it exists.
-- [ ] **Contact email: verify a domain.** Sending works since 2026-10-29: Resend key `portfolio` in Vercel, `CONTACT_TO_EMAIL=cpujari12@gmail.com` (Resend account), test sender. A live test message was Delivered. Until a domain is verified, mail goes to cpujari12@gmail.com, not the address the form shows. Verify one at resend.com/domains (DNS records), set `CONTACT_FROM_EMAIL` (e.g. `Chetan Pujari <hello@chetanpujari.com>`), remove `CONTACT_TO_EMAIL`, redeploy. Steps in README → "Contact form email (Resend)".
+- [x] **Contact email:** since 2026-10-29 (d0673ba) the form sends through Gmail SMTP: `GMAIL_USER`/`GMAIL_APP_PASSWORD` (app password `portfolio`) and `CONTACT_TO_EMAIL=chetanpujari92@gmail.com` in Vercel Production and `nfc-portfolio-prod/.env.local`. A live test arrived in the chetanpujari92@gmail.com Inbox. No domain needed. `RESEND_API_KEY` is still set but unused while the Gmail variables exist. If you revoke the app password, the form falls back to "email me directly" and the log says `Check GMAIL_USER / GMAIL_APP_PASSWORD`.
 - [ ] **Ask Chetan (optional):** set `OPENAI_API_KEY` (server only) and `NEXT_PUBLIC_ENABLE_ASK=true` in Vercel, then redeploy. `OPENAI_MODEL` defaults to `gpt-5-mini`. Try a few questions before announcing it.
 - [x] **YouTube widget:** now @ImaginaryProgrammer (v9), which has public videos, so the widget shows the latest one. (Morning of 2026-10-29: YouTube's channel RSS returned 404 for every channel, so it showed the channel card. Check it's back.)
 - [ ] **Expertise stack on a real phone:** check the swipe feel (spring, rubber-band), that a vertical swipe on it never scrolls or pulls down Search in iOS Safari, and that a sideways swipe still pages. Say if you'd rather autoplay wrap from 8 back to 1, or not run at all.

@@ -1,6 +1,6 @@
 # Morning report (overnight run, 2026-10-29)
 
-Short version (updated after the third pass): the Contact form now sends. A live test was Delivered to cpujari12@gmail.com, your Resend account, because no domain is verified yet. The heatmap reads GitHub with the `portfolio-heatmap` token. What's left for you: verify a domain in Resend so mail reaches chetanpujari92@gmail.com, plus the decisions under "Needs Chetan".
+Short version (updated after the Gmail switch, d0673ba): the Contact form sends through Gmail SMTP to chetanpujari92@gmail.com. A live test arrived in the Inbox. No domain needed. The heatmap reads GitHub with the `portfolio-heatmap` token. What's left is the decisions under "Needs Chetan".
 
 ## Third pass (done: email sends, heatmap on the token)
 
