@@ -1,5 +1,29 @@
 # Morning report (2026-10-29)
 
+## v12: cleanup and the rest of the Apple-style pass
+
+In short: Courses, Blog, Expertise, Contact, Settings and Projects now use the same grouped rows, iOS tokens and push details as Services and Platforms. None of them has emoji, every row is at least 44 px, and nothing is cut off at 360/390/430 with Larger text on. It's live on nfcportfolio-two.vercel.app (`main` b84f89d, Vercel Production `nfcportfolio-7o30vfde2` Ready, :3100 rebuilt). Live checks passed 119/119, and one real contact message was sent (200, "Message sent").
+
+| # | Part | Result |
+| --- | --- | --- |
+| 1 | Reviews | The placeholder testimonials were already deleted (e2b1383). The schema now accepts only verified Udemy reviews, and the filter that hid placeholders is gone. The 16 real reviews are unchanged. |
+| 2 | Credits | Luch Dev's iOS 26 Builder is behind an access request (and isn't on their profile), so its values couldn't be compared. Values-only use stays as it was, and the Needs Chetan item remains. New finding: the iOS 27 Builder's Community page says "Licensed under CC BY 4.0", while the file's About frame says "All Rights Reserved". |
+| 3 | Apps | One commit per app on `feat/v12-apps`: Courses e198fe4, Blog bf1c0da, Expertise 77c69b5, Contact 352e7c3, Settings ecbdd6c, Projects fa5e9d6. Each has its own spec. Every fact and link is kept; Blog titles drop only their emoji. |
+| 4 | Live | 390x844 and 1440x900, light and dark: every v12 app has its rows, no emoji, and pushes its detail. Lock, home, Control Center, Journey and Reviews still pass. |
+| — | Tests | Lint, typecheck and build are clean. The full suite passes except the 5 known throttled speed checks, which are the same on prod. Visual baselines were updated on purpose. |
+
+### Screenshots (local, gitignored)
+
+- Before/after sheets: `docs/v12/sheets/<screen>.jpg`, with before on top and after below (390 light, 390 dark, 390 Larger text, 1440 light)
+- Raw frames: `docs/v12/before/`, `docs/v12/after/`
+- Live: `docs/morning/v12-live/` (including `contact-sent-390x844-light.png`)
+
+### Needs Chetan (new)
+
+- Ask Luch Dev which licence applies to iOS 27 Builder (CC BY 4.0 on the Community page vs "All Rights Reserved" in the file), or ask for access to the iOS 26 file.
+- Blog shows two Substack titles without their leading emoji. Say if you want them back.
+- Swipe-to-share (Blog), swipe-to-enroll (Courses), the Courses tab bar and the Expertise sheet are gone, replaced by buttons, rows and push details. Say if you miss any of them.
+
 ## v10 Parts A and B: real reviews, lock screen, Control Center, home
 
 Short version: Reviews now has 16 real Udemy reviews, word for word, in an App Store-style app. The lock clock fits every screen. The lock screen shows three of the site's own notifications. Control Center is rebuilt on the Liquid Glass kit's grid. The home screen has AI Instagram and Services on page 1 and Settings on the dock. It's live on nfcportfolio-two.vercel.app (`main` f02bb15, Vercel Production `nfcportfolio-hwupep9c5` Ready, :3100 rebuilt). Live checks pass 75/75, and one real contact message was sent (200, "Message sent").

@@ -143,6 +143,29 @@ for (const [w, h] of [[390, 844], [1440, 900]])
       const txt = (await p.locator("[data-app-window]").textContent()) ?? "";
       check(run, "Projects shows Anti-Doom and StackUp", /Anti[- ]Doom/.test(txt) && /StackUp/.test(txt));
 
+      // v12: the apps laid out like Settings, with no emoji and their details pushing
+      const EMOJI = /(?![\u00a9\u00ae\u2122])\p{Extended_Pictographic}/u;
+      for (const [hash, rows, min] of [
+        ["courses", "[data-course-row]", 6],
+        ["blog", "[data-post-row]", 2],
+        ["expertise", "[data-area-row]", 8],
+        ["projects", "[data-project-row]", 14],
+        ["settings", "[data-profile-row]", 1],
+        ["contact", "[data-contact-social]", 5],
+      ]) {
+        await p.goto(`${base}/#${hash}`, { waitUntil: "networkidle" });
+        await p.waitForTimeout(1000);
+        const n = await p.locator(rows).count();
+        const text = (await p.locator("[data-app-window]").textContent()) ?? "";
+        check(run, `v12 ${hash}: rows, no emoji`, n >= min && !EMOJI.test(text), `${n} rows${EMOJI.test(text) ? ", emoji found" : ""}`);
+        if (hash !== "contact") {
+          await p.locator(rows).first().click();
+          await p.waitForTimeout(900);
+          check(run, `v12 ${hash}: detail pushes`, await p.locator("[data-push-view]").isVisible().catch(() => false));
+        }
+        await p.screenshot({ path: shot(`v12-${hash}`) });
+      }
+
       await p.goto(base + "/#reviews/all", { waitUntil: "networkidle" });
       await p.waitForTimeout(1200);
       const reviews = await p.locator("[data-review-row]").count();
@@ -182,8 +205,8 @@ if (send) {
   await p.waitForTimeout(1200);
   await p.locator("#contact-email").fill("test@example.com");
   await p.locator("#contact-name").fill("Test");
-  await p.locator("#contact-subject").fill("v10 live test");
-  await p.locator("#contact-message").fill("Live check after the v10 reviews, lock screen, Control Center and home release. One test message; no reply needed.");
+  await p.locator("#contact-subject").fill("v12 live test");
+  await p.locator("#contact-message").fill("Live check after the v12 release (Courses, Blog, Expertise, Contact, Settings and Projects laid out like Settings). One test message; no reply needed.");
   const answer = p.waitForResponse((r) => r.url().endsWith("/api/contact") && r.request().method() === "POST", { timeout: 30_000 });
   await p.getByRole("button", { name: "Send message" }).click();
   const res = await answer;
