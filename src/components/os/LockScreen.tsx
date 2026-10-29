@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from "react";
 import { useMotionValue, useSpring, useTransform } from "motion/react";
 import * as m from "motion/react-m";
 import { useDrag } from "@use-gesture/react";
@@ -37,10 +37,51 @@ function clockText(d: Date) {
 }
 
 /**
- * Fills in the date and time straight after the server markup, before any JS loads: the clock is
- * the largest thing on a first visit, so it paints with the page instead of after hydration.
+ * Sizes the clock from the screen's own box: the iOS size (half the width, or 27.5% of the height
+ * on wide screens), shrunk for wide times ("10:08") and fallback fonts until the digits fit inside
+ * 5% side margins. Width is linear in font size, so one measure lands it. Self-contained, like
+ * clockText, so the pre-hydration script runs the same code.
  */
-const FILL_CLOCK = `(function(){var t=(${clockText.toString()})(new Date()),p=document.currentScript.previousElementSibling.querySelectorAll("[data-fill]");p[0].textContent=t[0];p[1].textContent=t[1];p[1].setAttribute("data-text",t[1])})()`;
+function fitClock(lock: HTMLElement) {
+  const digits = lock.querySelector<HTMLElement>(".lock-digits");
+  const W = lock.clientWidth;
+  const H = lock.clientHeight;
+  if (!digits || !W || !H || !digits.textContent?.trim()) return;
+  const base = Math.min(W * 0.5, H * 0.275);
+  const size = parseFloat(getComputedStyle(digits).fontSize) || base;
+  const em = digits.offsetWidth / size;
+  const next = Math.min(base, em ? (W * 0.9) / em : base);
+  if (Math.abs(next - size) > 0.25) lock.style.setProperty("--clock-fs", next.toFixed(2) + "px");
+}
+
+/**
+ * Fills in the date and time straight after the server markup, before any JS loads, and fits the
+ * clock: it is the largest thing on a first visit, so it paints with the page instead of after hydration.
+ */
+const FILL_CLOCK = `(function(){var t=(${clockText.toString()})(new Date()),e=document.currentScript.previousElementSibling,p=e.querySelectorAll("[data-fill]");p[0].textContent=t[0];p[1].textContent=t[1];p[1].setAttribute("data-text",t[1]);(${fitClock.toString()})(e.closest("[data-lock]"))})()`;
+
+/**
+ * Keeps the clock fitted: on any change to the screen's box (resize, rotation, the 3D phone taking
+ * the screen) or the digits' (a new minute, Larger Text), and once the display font arrives.
+ */
+function useClockFit(ref: RefObject<HTMLDivElement | null>) {
+  useLayoutEffect(() => {
+    const lock = ref.current;
+    if (!lock) return;
+    const fit = () => fitClock(lock);
+    fit();
+    const observer = new ResizeObserver(fit);
+    observer.observe(lock.closest("[data-screen]") ?? lock);
+    const digits = lock.querySelector(".lock-digits");
+    if (digits) observer.observe(digits);
+    document.fonts?.addEventListener("loadingdone", fit);
+    void document.fonts?.ready.then(fit);
+    return () => {
+      observer.disconnect();
+      document.fonts?.removeEventListener("loadingdone", fit);
+    };
+  }, [ref]);
+}
 
 /** Home icons fly in from slightly larger, 20 ms apart, on the gentle spring. */
 export function flyInHome(screen: HTMLElement | null) {
@@ -121,6 +162,7 @@ export function LockScreen() {
   const downOn = useRef<Element | null>(null);
   const height = () => ref.current?.clientHeight ?? 800;
   useStandInTilt();
+  useClockFit(ref);
 
   // 0 → 1 as the sheet travels up; the clock shrinks and fades ahead of it.
   const progress = useTransform(y, (v) => Math.min(1, Math.max(0, -v / height())));
@@ -254,7 +296,7 @@ export function LockScreen() {
       data-lock
       style={{ y }}
       onPointerDownCapture={(e) => (downOn.current = e.target as Element)}
-      className="lock-screen absolute inset-0 z-56 flex touch-none flex-col items-center pt-[max(env(safe-area-inset-top),9.6cqh)] text-white select-none"
+      className="lock-screen absolute inset-0 z-56 flex touch-none flex-col items-center pt-[max(env(safe-area-inset-top),9.6cqh,56px)] text-white select-none"
     >
       <m.div style={{ scale: clockScale, opacity: clockOpacity }} className="flex flex-col items-center">
         <time suppressHydrationWarning dateTime={now?.toISOString()} className="flex flex-col items-center">

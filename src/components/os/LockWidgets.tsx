@@ -133,7 +133,7 @@ function CityClock({ now }: { now: Date | null }) {
 
 export function LockWidgets({ now, fade }: { now: Date | null; fade: MotionValue<number> }) {
   return (
-    <m.div style={{ opacity: fade }} className="mt-[2.6cqh] flex items-center gap-[3.6cqw]">
+    <m.div style={{ opacity: fade }} className="mt-[2.6cqh] flex items-center gap-[3.6cqw] land:hidden">
       <BatteryWidget />
       <ContributionsWidget />
       <CityClock now={now} />
