@@ -410,7 +410,7 @@ References: the tall-clock lock screen with round widgets and flashlight/camera 
   - Launch feel: does the window start growing on the tap itself?
   - A repeat visit loads instantly, including in airplane mode after one visit.
 
-- [ ] **Reviews (five unverified):** all 5 are `verified: false` in `content/reviews.ts`. Confirm each is a real quote you may publish, then set `verified: true`.
+- [ ] **Reviews were copied from Udemy; remove any you don't want public.** 16 real 5-star reviews in `content/reviews.ts` (the five old unverified placeholders are gone; they're in git history). Left out on purpose: reviews from accounts named "Chetan", "Genstruct Sapna", "Shaila", "Shaila P" and anyone surnamed Pujari, in case they're people close to you. Say if any of those should go in.
 - [ ] **Prompt Chaining post URL:** not found in the Substack feed/sitemap; the fallback post links to the publication home. Put the real URL in `content/blog.ts` if it exists.
 - [x] **Contact email:** since 2026-10-29 (d0673ba) the form sends through Gmail SMTP: `GMAIL_USER`/`GMAIL_APP_PASSWORD` (app password `portfolio`) and `CONTACT_TO_EMAIL=chetanpujari92@gmail.com` in Vercel Production and `nfc-portfolio-prod/.env.local`. A live test arrived in the chetanpujari92@gmail.com Inbox. No domain needed. `RESEND_API_KEY` is still set but unused while the Gmail variables exist. If you revoke the app password, the form falls back to "email me directly" and the log says `Check GMAIL_USER / GMAIL_APP_PASSWORD`.
 - [ ] **Ask Chetan (optional):** set `OPENAI_API_KEY` (server only) and `NEXT_PUBLIC_ENABLE_ASK=true` in Vercel, then redeploy. `OPENAI_MODEL` defaults to `gpt-5-mini`. Try a few questions before announcing it.
@@ -433,3 +433,21 @@ References: the tall-clock lock screen with round widgets and flashlight/camera 
 - [ ] **StackUp screenshots (optional):** its cover is the logo, because the screens need Google sign-in. Send a few phone screenshots of the signed-in app if you'd like real screens instead (`scripts/project-covers.mjs`).
 - [ ] **StackUp repo hygiene (FYI):** the public repo contains `android/app/google-services.json`. Firebase client config isn't a secret by itself, but check that your Firestore rules and API-key restrictions are locked down.
 - [ ] **Anti-Doom repo (FYI):** the private repo has `debug.keystore.base64` committed. It's a debug key, but keep it out of any public copy.
+
+## v10 Part A: real Udemy reviews (branch `feat/v10-lockscreen-journey`, 2026-10-29)
+
+Reviews were read by hand in Chrome from instructor.udemy.com → Performance → Reviews (5 stars, "Has a comment"), one course at a time, oldest and newest first. Only what was on screen was copied: text verbatim, the name as Udemy shows it, Udemy's date label, the course and its URL. No crawling, no scripts against Udemy, no avatars. 16 reviews from 9 courses: UI/UX Design With Figma (3), Master Web & Mobile Design (1), Canva Masterclass (3), Filmora 11/X/9 (2), Adobe Premiere Pro CC (1), Mastering ChatGPT Prompt Engineering (2), ChatGPT Prompt Engineering Mastery (1), ChatGPT Masterclass: Navigating AI (1), Master Notion (2). Review pages (course landing pages, "Reviews" section):
+
+- https://www.udemy.com/course/uiux-design-with-figma-5-real-world-projects2022/
+- https://www.udemy.com/course/master-web-mobile-design-figma-uiux-essentials-more/
+- https://www.udemy.com/course/canva-masterclass-for-social-media-and-content-creation/
+- https://www.udemy.com/course/filmora9-complete-video-editing-tutorial-for-beginners-2020/
+- https://www.udemy.com/course/adobe-premiere-pro-cc-video-editing-for-beginners/
+- https://www.udemy.com/course/mastering-chatgpt-prompt-engineering-beginner-to-advanced/
+- https://www.udemy.com/course/chatgpt-prompt-engineering-mastery/
+- https://www.udemy.com/course/the-complete-guide-to-chatgpt-ai-prompts-dall-e-more/
+- https://www.udemy.com/course/master-notion-build-your-all-in-one-productivity-system/
+
+Courses checked with nothing usable (no 5-star comment of 20–60 words without emoji): Google Veo 3.1, HeyGen Video Mastery, InVideo, AI Mastery (ChatGPT + MidJourney), ChatGPT Masterclass: The Ultimate Beginner's Guide. The public profile shows 392,559 learners and 10,279 reviews but no average, so the app's "5.0" is computed from the 16 reviews shown and says so.
+
+The Reviews app is now App Store style: large title, a summary card (average and bars from the shown reviews, plus the Udemy profile counts labelled as such), a "Most Helpful" glass carousel (follows the finger, rubber-bands, lands on the page the flick heads for, arrow keys and page dots), and "See All Reviews", which pushes an inset-grouped list with course chips; each row opens its course on Udemy. No emoji, our own star glyph, rem type. Tests: `tests/reviews.spec.ts`.

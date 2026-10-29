@@ -127,12 +127,21 @@ export const BlogPostSchema = z.object({
 });
 
 export const ReviewSchema = z.object({
-  name: z.string(),
-  role: z.string(),
-  city: z.string(),
-  quote: z.string(),
+  id: z.string(),
+  course: z.string(),
+  /** Short label for the course filter chips */
+  courseShort: z.string(),
+  courseUrl: url,
   rating: z.number().int().min(1).max(5),
+  /** Verbatim, as the student wrote it */
+  text: z.string(),
+  /** The name exactly as Udemy displays it */
+  author: z.string(),
+  /** Udemy's own date label ("2 years ago"), read on READ_ON */
+  date: z.string(),
+  source: z.literal("Udemy"),
   verified: z.boolean(),
+  featured: z.boolean().optional(),
 });
 
 export const ProjectSchema = z.object({
