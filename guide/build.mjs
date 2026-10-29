@@ -25,7 +25,7 @@ const root = resolve(here, "..");
 const TITLE = "Build Your Own Pocket Portfolio with Claude Code";
 const SUBTITLE = "A 3D phone-style personal website. No coding experience needed.";
 const AUTHOR = "Chetan Pujari";
-const VERSION = "v2.0";
+const VERSION = "v2.0.1";
 const DATE = "October 2026";
 const arg = (name) => (process.argv.includes(name) ? resolve(process.argv[process.argv.indexOf(name) + 1]) : null);
 const OUT_PDF = arg("--out") ?? join(here, "Build-Your-Own-Pocket-Portfolio.pdf");

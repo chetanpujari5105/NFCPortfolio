@@ -1,5 +1,6 @@
 // Screenshots of our own site for the guide (never of any other site).
-// Usage: node guide/capture.mjs <outDir> [baseUrl=http://localhost:3100]   (FINISH=<id> changes the finish)
+// Usage: node guide/capture.mjs <outDir> [baseUrl=http://localhost:3100]   (FINISH=<id> changes the finish;
+// HEATMAP=snapshot makes /api/contributions fail, so the heatmap shows the committed snapshot)
 import { chromium, devices } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
@@ -10,7 +11,10 @@ const browser = await chromium.launch({ args: ["--use-angle=metal", "--enable-gp
 const errors = [];
 
 async function open(ctxOptions, { theme = "dark", finish = process.env.FINISH ?? "electric", unlocked = true, hash = "" } = {}) {
-  const ctx = await browser.newContext(ctxOptions);
+  const snapshot = process.env.HEATMAP === "snapshot";
+  // The service worker would answer the API itself, out of the route's reach
+  const ctx = await browser.newContext({ ...ctxOptions, ...(snapshot && { serviceWorkers: "block" }) });
+  if (snapshot) await ctx.route("**/api/contributions", (route) => route.fulfill({ status: 503, body: "" }));
   await ctx.addInitScript(
     ([t, f, u]) => {
       if (u) sessionStorage.setItem("pp-unlocked", "1");

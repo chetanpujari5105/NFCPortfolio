@@ -2,7 +2,7 @@
 
 *A 3D phone-style personal website. No coding experience needed.*
 
-by **Chetan Pujari** · October 2026 · v2.0
+by **Chetan Pujari** · October 2026 · v2.0.1
 
 ![The 3D phone on desktop](images/hero-front.jpg)
 
@@ -29,7 +29,7 @@ Every section of your portfolio is an app on the home screen: your courses or pr
 
 ![The template on a desktop, with its sample persona: the 3D phone, the name and nav on the right, finish swatches top-left.](images/hero-front.jpg)
 
-![Home page 2: the live GitHub heatmap, the latest blog post, a YouTube card and the Expertise stack.](images/page2.jpg)
+![Home page 2: the GitHub heatmap (here the template's sample snapshot; yours is live), the latest blog post, a YouTube card and the Expertise stack.](images/page2.jpg)
 ![An open app (Courses). It grows out of its icon and flies back into it.](images/app-courses.jpg)
 
 

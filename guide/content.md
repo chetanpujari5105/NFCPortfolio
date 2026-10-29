@@ -7,7 +7,7 @@ Every section of your portfolio is an app on the home screen: your courses or pr
 ![The template on a desktop, with its sample persona: the 3D phone, the name and nav on the right, finish swatches top-left.](images/hero-front.jpg)
 
 ::: figures
-![Home page 2: the live GitHub heatmap, the latest blog post, a YouTube card and the Expertise stack.](images/page2.jpg)
+![Home page 2: the GitHub heatmap (here the template's sample snapshot; yours is live), the latest blog post, a YouTube card and the Expertise stack.](images/page2.jpg)
 ![An open app (Courses). It grows out of its icon and flies back into it.](images/app-courses.jpg)
 :::
 
