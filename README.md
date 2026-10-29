@@ -127,3 +127,9 @@ unless `NEXT_PUBLIC_SHOW_MODEL_LOGO=true`. iPhone is a trademark of Apple Inc. B
 [Simple Icons](https://simpleicons.org/) (CC0) and Font Awesome Free (CC BY 4.0, LinkedIn). The world map is rasterised from
 [Natural Earth](https://www.naturalearthdata.com/) (public domain). Fonts: Geist and Archivo via
 `next/font` (SIL OFL).
+
+Interface measurements and colours (type ramp, spacing, radii, row and bar metrics, light and dark
+colours) follow **iOS 27 Builder** by Luch Dev (Figma Community; "© 2026. All Rights Reserved. — Luch Dev").
+Only values were taken: no components, icons, images or fonts. Its agent skills
+([figma-to-swiftui](https://github.com/uladluch/figma-to-swiftui)) are Apache 2.0. The values and node ids are in
+[`docs/ios27-spec.md`](docs/ios27-spec.md). iPhone, iOS and iPadOS are trademarks of Apple Inc.
