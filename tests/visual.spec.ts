@@ -7,7 +7,7 @@ test.beforeEach(async ({ page }) => {
 
 // Stable frames: reduced motion draws a still wallpaper; the clock is masked.
 for (const scheme of ["light", "dark"] as const) {
-  for (const path of ["/", "/#courses", "/#settings", "/#projects", "/#projects/anti-doom", "/#projects/stackup", "/#journey", "/#journey/2025", "/#services", "/#services/websites", "/#platforms", "/#platforms/partners"]) {
+  for (const path of ["/", "/#courses", "/#settings", "/#projects", "/#projects/anti-doom", "/#projects/stackup", "/#journey", "/#journey/2025", "/#services", "/#services/websites", "/#platforms", "/#platforms/partners", "/#courses/google-veo", "/#expertise", "/#expertise/ai", "/#contact", "/#settings/profile"]) {
     test(`${path} looks right in ${scheme}`, async ({ page }) => {
       await page.emulateMedia({ colorScheme: scheme, reducedMotion: "reduce" });
       await page.goto(path);
