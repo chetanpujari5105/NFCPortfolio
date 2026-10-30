@@ -38,8 +38,7 @@ In short: the template is released as v2.0.1, with the guide PDF attached. The s
 8. **Template history:** keep the older template commits that carry your name, or create a fresh-history copy as a new repo.
 9. **Small design calls:** Blog titles without their emoji (two posts), the Skillshare "S" tile, the Contact subject wording, lock-screen tap (wake first, or open), the removed swipe gestures. Say which to change.
 10. **Unused Resend key:** keep `RESEND_API_KEY` as a fallback, or remove it from Vercel and `nfc-portfolio-prod/.env.local`.
-11. **Optional:** the template README points to the v2.0.0 release for the guide (older PDF, octocat heatmap on page 2). Point it at v2.0.1 if you prefer.
-12. **Real-phone test** (iPhone Safari, Android Chrome and Brave):
+11. **Real-phone test** (iPhone Safari, Android Chrome and Brave):
     - [ ] Lock screen: clock fit, notifications, swipe up, flashlight and camera.
     - [ ] Notifications open the right post, reel and project.
     - [ ] Control Center: pull down from the top right, the sliders, the menus, swipe up to close.
