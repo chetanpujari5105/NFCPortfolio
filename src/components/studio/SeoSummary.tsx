@@ -25,8 +25,9 @@ export function SeoSummary({ posts }: { posts: FeedPost[] }) {
 
       <section>
         <h2>My story</h2>
-        {story.map((p) => (
-          <p key={p}>{plain(p)}</p>
+        {/* The key goes into the page's RSC data too, so it's the plain text as well */}
+        {story.map(plain).map((p) => (
+          <p key={p}>{p}</p>
         ))}
         <p>
           {profile.location} · {profile.education}

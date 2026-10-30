@@ -30,10 +30,14 @@ const norm = (s: string) => squash(s).replace(/ ([:,.;])/g, "$1");
 
 const ENTITIES: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', "#x27": "'", "#39": "'", nbsp: " " };
 
-async function summary(request: import("@playwright/test").APIRequestContext) {
+async function page(request: import("@playwright/test").APIRequestContext) {
   const res = await request.get("/", { headers: { "cache-control": "no-cache" } });
   expect(res.ok()).toBe(true);
-  const html = await res.text();
+  return res.text();
+}
+
+async function summary(request: import("@playwright/test").APIRequestContext) {
+  const html = await page(request);
   const start = html.indexOf('aria-label="Site summary"');
   expect(start, "the summary is in the server HTML").toBeGreaterThan(-1);
   const body = html.slice(start, html.indexOf("</article>", start));
@@ -44,6 +48,12 @@ test("the server summary has no emoji and none of the old Services copy", async 
   const text = await summary(request);
   expect(text.match(EMOJI)?.[0] ?? null).toBeNull();
   for (const old of OLD) expect(text, old).not.toContain(norm(old));
+});
+
+test("story lines with an emoji appear only without it, in the markup and the RSC data alike", async ({ request }) => {
+  const html = (await page(request)).replace(/\\"/g, '"');
+  const withEmoji = story.filter((p) => p !== plain(p));
+  for (const p of withEmoji) expect(html, p).not.toContain(p);
 });
 
 test("the server summary says what content/ says today", async ({ request }) => {
