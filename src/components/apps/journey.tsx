@@ -12,6 +12,7 @@ import { TINT, Tile, type GlyphName } from "@/components/ui/grouped";
 import { blurOf } from "@/lib/placeholders";
 import { openApp } from "@/lib/router";
 import { useOS } from "@/lib/store";
+import { plain } from "@/lib/text";
 import { cn } from "@/lib/utils";
 
 /*
@@ -24,7 +25,6 @@ import { cn } from "@/lib/utils";
 
 /* ───────────────────────── Content, shaped (never reworded) ───────────────────────── */
 
-const noEmoji = (s: string) => s.replace(/\s*\p{Extended_Pictographic}️?/gu, "");
 const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 /** One look per milestone, in timeline order. */
@@ -50,7 +50,7 @@ const MILESTONES = timeline.map((t, i) => {
 });
 type Milestone = (typeof MILESTONES)[number];
 
-const STORY = story.map(noEmoji);
+const STORY = story.map(plain);
 
 /* ───────────────────────── Building blocks ───────────────────────── */
 

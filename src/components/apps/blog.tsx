@@ -10,19 +10,13 @@ import { ProminentButton, Row, Section, TINT, Tile } from "@/components/ui/group
 import { blurOf } from "@/lib/placeholders";
 import { openApp } from "@/lib/router";
 import { useOS } from "@/lib/store";
+import { plain } from "@/lib/text";
 
 /*
  * Blog, laid out like Settings: the latest post as a large card, the rest as grouped rows (a
  * thumbnail, the title, its subtitle and date), each pushing a reader that ends in one "Read the
  * full post on Substack" button. Posts come from the Substack feed (content/blog.ts when it's down).
  */
-
-/**
- * Post titles and subtitles exactly as written, minus any emoji (a few Substack titles open with
- * one); the lock screen's notes do the same.
- */
-const plain = (s: string) =>
-  s.replace(/(?![\u00a9\u00ae\u2122])\p{Extended_Pictographic}(\u200d\p{Extended_Pictographic}|\ufe0f)*\s*/gu, "").trim();
 
 const slugOf = (url: string) => url.replace(/\/+$/, "").split("/").pop() || url;
 

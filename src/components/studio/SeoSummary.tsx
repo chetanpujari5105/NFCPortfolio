@@ -7,24 +7,26 @@ import { projects } from "@content/projects";
 import { services } from "@content/services";
 import { timeline } from "@content/timeline";
 import type { FeedPost } from "@/components/os/server-data";
+import { plain } from "@/lib/text";
 
 /**
  * Visually hidden semantic summary of the whole site, in the server HTML, so
- * crawlers and screen-reader users get the content without opening any app.
+ * crawlers and screen-reader users get the content without opening any app. Every line is read from
+ * content/ (and the Substack feed) at build time, through plain(), so it carries no emoji.
  */
 export function SeoSummary({ posts }: { posts: FeedPost[] }) {
   return (
     <article className="sr-only" aria-label="Site summary">
       <h1>
-        {profile.name} — {profile.headline}
+        {profile.name} — {plain(profile.headline)}
       </h1>
-      <p>{profile.subHeadline}</p>
-      <p>{profile.intro}</p>
+      <p>{plain(profile.subHeadline)}</p>
+      <p>{plain(profile.intro)}</p>
 
       <section>
         <h2>My story</h2>
         {story.map((p) => (
-          <p key={p}>{p}</p>
+          <p key={p}>{plain(p)}</p>
         ))}
         <p>
           {profile.location} · {profile.education}
@@ -32,7 +34,7 @@ export function SeoSummary({ posts }: { posts: FeedPost[] }) {
         <ul>
           {timeline.map((t) => (
             <li key={t.year}>
-              {t.year}: {t.text}
+              {t.year}: {plain(t.text)}
             </li>
           ))}
         </ul>
@@ -43,7 +45,7 @@ export function SeoSummary({ posts }: { posts: FeedPost[] }) {
         <ul>
           {courses.map((c) => (
             <li key={c.id}>
-              <a href={c.url}>{c.title}</a> — {c.badge}, {c.platform}. {c.blurb}
+              <a href={c.url}>{plain(c.title)}</a> — {c.badge}, {c.platform}. {plain(c.blurb)}
             </li>
           ))}
         </ul>
@@ -55,7 +57,7 @@ export function SeoSummary({ posts }: { posts: FeedPost[] }) {
         <ul>
           {services.map((s) => (
             <li key={s.id}>
-              <strong>{s.title}</strong>: {s.description}
+              <strong>{s.title}</strong>: {plain(s.description)}
             </li>
           ))}
         </ul>
@@ -66,7 +68,7 @@ export function SeoSummary({ posts }: { posts: FeedPost[] }) {
         <ul>
           {expertise.map((e) => (
             <li key={e.id}>
-              {e.title}: {e.tools.join(", ")}
+              {plain(e.title)}: {e.tools.join(", ")}
             </li>
           ))}
         </ul>
@@ -77,7 +79,7 @@ export function SeoSummary({ posts }: { posts: FeedPost[] }) {
         <ul>
           {projects.map((p) => (
             <li key={p.id}>
-              {p.url ? <a href={p.url}>{p.name}</a> : p.name} — {p.description}
+              {p.url ? <a href={p.url}>{p.name}</a> : p.name} — {plain(p.description)}
             </li>
           ))}
         </ul>
@@ -98,7 +100,7 @@ export function SeoSummary({ posts }: { posts: FeedPost[] }) {
         <ul>
           {posts.slice(0, 8).map((p) => (
             <li key={p.url}>
-              <a href={p.url}>{p.title}</a> — {p.subtitle}
+              <a href={p.url}>{plain(p.title)}</a> — {plain(p.subtitle)}
             </li>
           ))}
         </ul>
@@ -107,7 +109,7 @@ export function SeoSummary({ posts }: { posts: FeedPost[] }) {
       <section>
         <h2>Contact</h2>
         <p>
-          <a href={`mailto:${profile.email}`}>{profile.email}</a> — {profile.responseTime}
+          <a href={`mailto:${profile.email}`}>{profile.email}</a> — {plain(profile.responseTime)}
         </p>
         <ul>
           {profile.socials.map((s) => (
