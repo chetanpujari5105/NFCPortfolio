@@ -76,13 +76,20 @@ function useClockFit(ref: RefObject<HTMLDivElement | null>) {
     if (!lock) return;
     const fit = () => fitClock(lock);
     fit();
-    const observer = new ResizeObserver(fit);
+    // The fit resizes the digits it watches: refitting inside the observer's own delivery is a
+    // ResizeObserver loop (WebKit reports it as a page error), so it waits for the next frame.
+    let frame = 0;
+    const observer = new ResizeObserver(() => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(fit);
+    });
     observer.observe(lock.closest("[data-screen]") ?? lock);
     const digits = lock.querySelector(".lock-digits");
     if (digits) observer.observe(digits);
     document.fonts?.addEventListener("loadingdone", fit);
     void document.fonts?.ready.then(fit);
     return () => {
+      cancelAnimationFrame(frame);
       observer.disconnect();
       document.fonts?.removeEventListener("loadingdone", fit);
     };
